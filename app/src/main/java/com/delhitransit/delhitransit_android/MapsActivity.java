@@ -2,21 +2,33 @@ package com.delhitransit.delhitransit_android;
 
 import androidx.appcompat.widget.SearchView;
 import androidx.cardview.widget.CardView;
+import androidx.cursoradapter.widget.CursorAdapter;
+import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import androidx.fragment.app.FragmentActivity;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
+import android.widget.TextView;
 
+import com.delhitransit.delhitransit_android.api.ApiClient;
+import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.DataClass;
+import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -25,6 +37,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, TaskCompleteCallback {
 
@@ -37,6 +52,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int statusBarHeight;
     private boolean isKeyboardOn = false;
     private LinearLayout tryLayout;
+    private SimpleCursorAdapter searchViewAdapter_1;
+    private ApiInterface apiService;
+    private ArrayList<StopsResponseData> listOfCityName = new ArrayList<>();
 
 
     @Override
@@ -52,34 +70,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         busStopSearchView_2 = findViewById(R.id.bus_stop_search_view_2);
         searchCardView = findViewById(R.id.search_card_view_1);
         tryLayout = findViewById(R.id.try_layout_for_start);
+        apiService = ApiClient.getApiService();
 
         busStopSearchView_1.setIconified(false);
         busStopSearchView_1.clearFocus();
-        busStopSearchView_1.setOnCloseListener(new SearchView.OnCloseListener() {
+       /* busStopSearchView_1.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
                 Toast.makeText(MapsActivity.this, "onClose", Toast.LENGTH_SHORT).show();
                 shiftDown(searchCardView);
                 return true;
             }
-        });
-        busStopSearchView_1.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                shiftDown(searchCardView);
-                isKeyboardOn = false;
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if (!isKeyboardOn) {
-                    shiftUp(searchCardView);
-                }
-                isKeyboardOn = true;
-                return true;
-            }
-        });
+        });*/
         /*busStopSearchView_2.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -104,6 +106,99 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
+        Call<Void> initCall = apiService.initStops();
+        initCall.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                Log.e(TAG, "onResponse: called");
+                if (response.isSuccessful()) {
+                    Call<List<StopsResponseData>> getStopsCall = apiService.getStops();
+                    getStopsCall.enqueue(new Callback<List<StopsResponseData>>() {
+                        @Override
+                        public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
+                            if (response.body() != null) {
+                                listOfCityName.clear();
+                                listOfCityName.addAll(response.body());
+
+                                Log.e(TAG, "onResponse: done");
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
+                            Log.e(TAG, "onFailure: int " + t.getMessage());
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e(TAG, "onFailure : out " + t.getMessage());
+            }
+        });
+
+        final String[] from = new String[]{"cityName"};
+        final int[] to = new int[]{android.R.id.text1};
+        searchViewAdapter_1 = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+
+        busStopSearchView_1.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionClick(int position) {
+                Cursor cursor = (Cursor) searchViewAdapter_1.getItem(position);
+                String txt = cursor.getString(cursor.getColumnIndex("cityName"));
+                busStopSearchView_1.setQuery(txt, true);
+                return true;
+            }
+
+            @Override
+            public boolean onSuggestionSelect(int position) {
+                return true;
+            }
+        });
+        busStopSearchView_1.setSuggestionsAdapter(searchViewAdapter_1);
+        SearchView.SearchAutoComplete mSearchSrcTextView = (SearchView.SearchAutoComplete) busStopSearchView_1.findViewById(androidx.appcompat.R.id.search_src_text);
+
+        mSearchSrcTextView.setDropDownWidth(ViewGroup.LayoutParams.MATCH_PARENT);
+        mSearchSrcTextView.setDropDownAnchor((busStopSearchView_1).getId());
+        busStopSearchView_1.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                shiftDown(searchCardView);
+                isKeyboardOn = false;
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (!isKeyboardOn) {
+                    shiftUp(searchCardView);
+                    isKeyboardOn = true;
+                }
+
+                MatrixCursor c = new MatrixCursor(new String[]{BaseColumns._ID, "cityName"});
+                int i = 0;
+                /*if (!listOfCityName.isEmpty()) {
+                    for (StopsResponseData s : listOfCityName) {
+                        if (s.getName().toLowerCase().startsWith(newText.toLowerCase())) {
+                            c.addRow(new Object[]{i++, s.getName()});
+                        }
+                    }
+                    for (int j=0;j<10;j++){
+                        c.addRow(new Object[]{j, "NONE"});
+                    }
+
+                } else {
+                    c.addRow(new Object[]{i, "NONE"});
+                }*/
+                for (int j = 0; j < 20; j++) {
+                    c.addRow(new Object[]{j, "NONE"});
+                }
+
+                searchViewAdapter_1.changeCursor(c);
+                return true;
+            }
+        });
 /*
         setWindowFlag( WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);*/
@@ -138,18 +233,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     public void shiftUp(View view) {
-        view.animate().setDuration(200).translationY((float) (1.8 * (view.getTop()) - statusBarHeight)).start();
+        //view.animate().setDuration(200).translationY((float) (1.8 * (view.getTop()) - statusBarHeight)).start();
         int cx = tryLayout.getMeasuredWidth() / 2;
         int cy = 0;
 
-        int finalRadius = Math.max(tryLayout.getWidth(), tryLayout.getHeight()) / 2;
-        Animator anim = ViewAnimationUtils.createCircularReveal(tryLayout, cx, cy, 0, finalRadius).setDuration(500);
-        tryLayout.setVisibility(View.VISIBLE);
-        anim.start();
+        if (busStopSearchView_1.isAttachedToWindow()) {
+            int finalRadius = Math.max(tryLayout.getWidth(), tryLayout.getHeight()) / 2;
+            Animator anim = ViewAnimationUtils.createCircularReveal(tryLayout, cx, cy, 0, finalRadius).setDuration(500);
+            tryLayout.setVisibility(View.VISIBLE);
+            anim.start();
+        }
     }
 
     public void shiftDown(View view) {
-        view.animate().setDuration(200).translationY(0).start();
+        //view.animate().setDuration(200).translationY(0).start();
         int cx = tryLayout.getMeasuredWidth() / 2;
         int cy = tryLayout.getMeasuredWidth();
 
