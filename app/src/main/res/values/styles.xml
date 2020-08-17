@@ -7,4 +7,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="BusStopsSearchView" parent="Widget.AppCompat.SearchView">
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>
