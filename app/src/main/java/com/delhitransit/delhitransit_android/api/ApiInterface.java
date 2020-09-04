@@ -12,11 +12,8 @@ import retrofit2.http.Query;
 public interface ApiInterface {
 
 
-    @GET("delhitransit/v1/stops")
-    Call<List<StopsResponseData>> getStops();
 
     @GET("v1/stops/name/{query}")
     Call<List<StopsResponseData>> getStopsByName(@Path("query") String query, @Query("exact") boolean searchExact);
-
 
 }
