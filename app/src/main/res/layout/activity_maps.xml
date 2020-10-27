@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -129,7 +128,7 @@
     <com.arlib.floatingsearchview.FloatingSearchView
         android:id="@+id/floating_bus_stop_search_view_1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@id/status_bar_bg"
         app:floatingSearch_backgroundColor="@color/white"
         app:floatingSearch_close_search_on_keyboard_dismiss="true"
@@ -141,11 +140,43 @@
         app:floatingSearch_showSearchKey="true"
         app:floatingSearch_suggestionsListAnimDuration="250" />
 
+
+    <com.arlib.floatingsearchview.FloatingSearchView
+        android:id="@+id/floating_bus_stop_search_view_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/status_bar_bg"
+        android:animateLayoutChanges="true"
+        app:floatingSearch_backgroundColor="@color/white"
+        app:floatingSearch_close_search_on_keyboard_dismiss="true"
+        app:floatingSearch_leftActionMode="showSearch"
+        app:floatingSearch_searchBarMarginLeft="10dp"
+        app:floatingSearch_searchBarMarginRight="10dp"
+        app:floatingSearch_searchBarMarginTop="80dp"
+        app:floatingSearch_searchHint="Search bus stops"
+        app:floatingSearch_showSearchKey="true"
+        app:floatingSearch_suggestionsListAnimDuration="250" />
+
     <com.github.ybq.android.spinkit.SpinKitView
         android:id="@+id/progress_bar"
-        android:layout_width="200dp"
         style="@style/SpinKitView.Large.ThreeBounce"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
         android:layout_centerInParent="true"
-        android:layout_height="80dp" />
+        app:SpinKit_Color="@android:color/holo_green_light" />
+
+    <Button
+        android:id="@+id/select_destination_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="40dp"
+        android:backgroundTint="@color/colorPrimary"
+        android:onClick="showSecondSearchView"
+        android:padding="10dp"
+        android:text="Select Destination"
+        android:textColor="@android:color/white" />
+
 
 </RelativeLayout>

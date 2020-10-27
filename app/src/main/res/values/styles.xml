@@ -10,4 +10,16 @@
     <style name="BusStopsSearchView" parent="Widget.AppCompat.SearchView">
         <item name="android:textSize">14sp</item>
     </style>
+
+    <style name="BottomSheet" parent="@style/Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/routes_bottom_sheet_layout_round_corner_bg</item>
+        <item name="behavior_peekHeight">80dp</item>
+    </style>
+
+    <style name="BaseBottomSheetDialog" parent="@style/Theme.Design.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="bottomSheetStyle">@style/BottomSheet</item>
+    </style>
+
+    <style name="BottomSheetDialogTheme" parent="BaseBottomSheetDialog" />
 </resources>
