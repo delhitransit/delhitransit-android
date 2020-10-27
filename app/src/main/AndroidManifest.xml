@@ -40,6 +40,7 @@
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize|stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
