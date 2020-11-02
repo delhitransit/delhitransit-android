@@ -8,7 +8,7 @@ public class ApiClient {
     private static Retrofit retrofit = null;
 
 
-    public static Retrofit getApiClient() {
+    private static Retrofit getApiClient() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)

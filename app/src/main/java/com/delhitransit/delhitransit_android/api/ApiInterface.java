@@ -1,5 +1,7 @@
 package com.delhitransit.delhitransit_android.api;
 
+import com.delhitransit.delhitransit_android.pojos.Route;
+import com.delhitransit.delhitransit_android.pojos.ShapePoint;
 import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
 
 import java.util.List;
@@ -19,4 +21,9 @@ public interface ApiInterface {
     @GET("v1/stops/nearby")
     Call<List<StopsResponseData>> getNearByStops(@Query("dist") double dist, @Query("lat") double lat, @Query("lon") double lon);
 
+    @GET("/v1/routes/between")
+    Call<List<Route>> getRoutesBetweenStops(@Query("destination") Integer destination, @Query("source") Integer source);
+
+    @GET("/v1/shapePoints/trip/{trip}")
+    Call<List<ShapePoint>> getAllShapePointsByTripId(@Path("trip") String query);
 }

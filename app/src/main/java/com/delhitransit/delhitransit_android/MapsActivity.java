@@ -2,29 +2,34 @@ package com.delhitransit.delhitransit_android;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
+import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
+import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
-import com.delhitransit.delhitransit_android.pojos.DataClass;
+import com.delhitransit.delhitransit_android.pojos.Route;
 import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
 import com.github.ybq.android.spinkit.SpinKitView;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -33,6 +38,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -51,6 +57,8 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -78,18 +86,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private double userLatitude, userLongitude;
     private Button selectDestinationButton;
     private BottomSheetDialog routesBottomSheetDialog;
+    private RecyclerView routesListRecycleView;
+    private RoutesListAdapter routesListAdapter;
+    private List<Route> routesList = new ArrayList<>();
+    private String currQuery = "";
+    private Integer sourceId, destinationId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_maps);
+
         apiService = ApiClient.getApiService();
 
         setMapFragment();
         setStatusBar();
         init();
-        setContentView(R.layout.activity_maps);
 
+        apiService.getRoutesBetweenStops(909, 2101).enqueue(new Callback<List<Route>>() {
+            @Override
+            public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
+                if (response.body() != null && !response.body().isEmpty()) {
+                    routesList.clear();
+                    routesList.addAll(response.body());
+                    routesList.addAll(response.body());
+                    routesListAdapter.notifyDataSetChanged();
+                }
+                routesBottomSheetDialog.show();
+            }
 
+            @Override
+            public void onFailure(Call<List<Route>> call, Throwable t) {
+
+            }
+        });
     }
 
     private void setMapFragment() {
@@ -130,13 +160,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void setRoutesBottomSheetDialog() {
         routesBottomSheetDialog = new BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
         routesBottomSheetDialog.setContentView(getLayoutInflater().inflate(R.layout.routes_bottom_sheet_view, null));
-        routesBottomSheetDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
 
-            }
+        //routesList.add("xyx");
+
+        routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
+        routesListAdapter = new RoutesListAdapter(this, routesList);
+        routesListRecycleView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        routesListRecycleView.setAdapter(routesListAdapter);
+
+        routesBottomSheetDialog.setOnDismissListener(dialog -> {
+
         });
-        //routesBottomSheetDialog.pe
     }
 
     private void viewVisibility(View view, boolean visible) {
@@ -151,9 +185,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         searchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
             @Override
             public void onSearchTextChanged(String oldQuery, String newQuery) {
+                if (!isSecondSearchView) {
+                    viewVisibility(floatingBusStopSearchView_2, false);
+                }
                 if (newQuery.equals("")) {
                     searchView.clearSuggestions();
                 } else if (!newQuery.trim().equals("")) {
+                    currQuery = newQuery;
                     searchView.showProgress();
                     apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopsResponseData>>() {
                         @Override
@@ -184,8 +222,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 BusStopsSuggestion suggestion = (BusStopsSuggestion) searchSuggestion;
                 setBusStopMarker(suggestion.getStopsResponseData());
                 if (isSecondSearchView) {
-                    routesBottomSheetDialog.show();
+                    destinationId = suggestion.getStopsResponseData().getStopId();
+                    apiService.getRoutesBetweenStops(destinationId, sourceId).enqueue(new Callback<List<Route>>() {
+                        @Override
+                        public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
+                            if (response.body() != null && !response.body().isEmpty()) {
+                                routesList.clear();
+                                routesList.addAll(response.body());
+                                routesList.addAll(response.body());
+                                routesListAdapter.notifyDataSetChanged();
+                            }
+                            routesBottomSheetDialog.show();
+                        }
+
+                        @Override
+                        public void onFailure(Call<List<Route>> call, Throwable t) {
+
+                        }
+                    });
+                    //routesBottomSheetDialog.show();
                 } else {
+                    sourceId = suggestion.getStopsResponseData().getStopId();
                     viewVisibility(selectDestinationButton, true);
                 }
                 searchView.setSearchText(suggestion.getStopsResponseData().getName());
@@ -211,6 +268,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });*/
 
             }
+        });
+        searchView.setOnBindSuggestionCallback((View suggestionView, ImageView leftIcon, TextView textView, SearchSuggestion item, int itemPosition) -> {
+            String temp = item.getBody();
+            if (temp.toLowerCase().contains(currQuery.toLowerCase())) {
+                int index = temp.toLowerCase().indexOf(currQuery.toLowerCase());
+                temp = temp.substring(0, index) + "<b>" + currQuery.toLowerCase() + "</b>" + temp.substring(index + currQuery.length());
+            }
+            textView.setTextColor(getColor(R.color.black));
+            textView.setText(Html.fromHtml(temp, Html.FROM_HTML_MODE_LEGACY));
         });
     }
 
@@ -353,7 +419,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     builder.include(new LatLng(userLatitude, userLongitude));
                                     for (StopsResponseData data : response.body()) {
                                         LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
-                                        mMap.addMarker(new MarkerOptions().position(latLng));
+                                        mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(MapsActivity.this, data.getName(), Color.RED).getBitmap())));
                                         builder.include(latLng);
                                     }
                                     LatLngBounds bounds = builder.build();
@@ -374,7 +440,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setUserLocation(boolean isZoom) {
         LatLng latLng = new LatLng(userLatitude, userLongitude);
-        mMap.addMarker(new MarkerOptions().position(latLng));
+        mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, "Your location ").getBitmap())).position(latLng));
         if (isZoom) mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
     }
 
@@ -444,9 +510,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (currentPolyline != null)
             currentPolyline.remove();
         currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
-        mMap.addMarker(new MarkerOptions().position(new LatLng(((DataClass.Points) values[1]).lat, ((DataClass.Points) values[1]).lon)));
-        mMap.addMarker(new MarkerOptions().position(new LatLng(((DataClass.Points) values[2]).lat, ((DataClass.Points) values[2]).lon)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(((DataClass.Points) values[1]).lat, ((DataClass.Points) values[1]).lon), 15));
+        mMap.addMarker(new MarkerOptions().position((LatLng) values[1]));
+        mMap.addMarker(new MarkerOptions().position((LatLng) values[2]));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds((LatLngBounds) values[3], 100));
+        Log.e(TAG, "onTaskDone: done");
+        routesBottomSheetDialog.dismiss();
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(((DataClass.Points) values[1]).lat, ((DataClass.Points) values[1]).lon), 15));
     }
 
     /*private String getUrl(LatLng origin, LatLng dest, String directionMode) {
