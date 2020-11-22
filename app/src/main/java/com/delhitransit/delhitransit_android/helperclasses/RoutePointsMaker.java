@@ -74,8 +74,7 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
         if (sourcePosition == destinationPosition) {
             Log.e("TAG", "Not plot");
         }
-        //for (int i = sourcePosition; i <= destinationPosition; i++) {
-        for (int i = 0; i <= shapePointList.size() - 1; i++) {
+        for (int i = sourcePosition; i <= destinationPosition; i++) {
             LatLng latLng = new LatLng(shapePointList.get(i).getLatitude(), shapePointList.get(i).getLongitude());
             resultPoints.add(latLng);
             builder.include(latLng);

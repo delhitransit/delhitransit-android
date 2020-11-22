@@ -238,8 +238,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 routesList.addAll(response.body());
                                 routesListAdapter.notifyDataSetChanged();
                                 viewVisibility(routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view), false);
+                                viewVisibility(routesListRecycleView, true);
                             } else {
                                 viewVisibility(routesListRecycleView, false);
+                                viewVisibility(routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view), true);
                             }
 
                             routesBottomSheetDialog.show();
