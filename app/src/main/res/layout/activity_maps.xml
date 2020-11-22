@@ -166,16 +166,16 @@
         app:SpinKit_Color="@android:color/holo_green_light" />
 
     <Button
-        android:id="@+id/select_destination_button"
+        android:id="@+id/bottom_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="40dp"
         android:backgroundTint="@color/colorPrimary"
-        android:onClick="showSecondSearchView"
-        android:padding="10dp"
-        android:text="Select Destination"
+        android:onClick="showRoutesBottomSheet"
+        android:padding="15dp"
+        android:text="Show Routes"
         android:textColor="@android:color/white" />
 
 

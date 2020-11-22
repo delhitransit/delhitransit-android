@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/white"
     android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
@@ -18,6 +19,17 @@
         android:id="@+id/routes_list_recycle_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/no_routes_available_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="60dp"
+        android:gravity="center"
+        android:text="No Routes Available"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold" />
     <!--
         <ImageView
             android:layout_width="match_parent"

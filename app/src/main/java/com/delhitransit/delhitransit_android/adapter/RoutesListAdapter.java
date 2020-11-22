@@ -11,8 +11,10 @@ import android.widget.TextView;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.helperclasses.RoutePointsMaker;
+import com.delhitransit.delhitransit_android.interfaces.OnRouteSelectedListener;
 import com.delhitransit.delhitransit_android.pojos.Route;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
@@ -26,14 +28,15 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
 
 
     Context context;
+    LatLng source, destination;
     private List<Route> list;
-    private String destination, source;
+    private OnRouteSelectedListener onRouteSelectedListener;
 
-    public RoutesListAdapter(Context context, List<Route> list) {
+    public RoutesListAdapter(Context context, List<Route> list, OnRouteSelectedListener onRouteSelectedListener) {
         this.context = context;
         this.list = list;
+        this.onRouteSelectedListener = onRouteSelectedListener;
     }
-
 
     @NonNull
     @Override
@@ -48,11 +51,12 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
         holder.busNumber.setText(route.getLongName());
         holder.time3.setText("5:20 PM from xyx place" + position);
         holder.parent.setOnClickListener(v -> {
+            onRouteSelectedListener.OnRouteSelected();
             ApiClient.getApiService().getAllShapePointsByTripId(route.getTrips().get(0).getTripId()).enqueue(new Callback<List<ShapePoint>>() {
                 @Override
                 public void onResponse(Call<List<ShapePoint>> call, Response<List<ShapePoint>> response) {
                     if (response.body() != null) {
-                        new RoutePointsMaker(context, colorList[3]).execute(response.body());
+                        new RoutePointsMaker(context, colorList[4], source, destination).execute(response.body());
                     }
                 }
 
@@ -68,6 +72,11 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
     @Override
     public int getItemCount() {
         return list.size();
+    }
+
+    public void setSourceAndDestination(LatLng source, LatLng destination) {
+        this.source = source;
+        this.destination = destination;
     }
 
     static class RoutesListViewHolder extends RecyclerView.ViewHolder {

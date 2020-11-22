@@ -5,12 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -83,14 +86,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ArrayList<StopsResponseData> listOfCityName = new ArrayList<>();
     private FloatingSearchView floatingBusStopSearchView_1, floatingBusStopSearchView_2;
     private SpinKitView progressBar;
-    private double userLatitude, userLongitude;
-    private Button selectDestinationButton;
+    //private double userLatitude, userLongitude;
+    private Button bottomButton;
     private BottomSheetDialog routesBottomSheetDialog;
     private RecyclerView routesListRecycleView;
     private RoutesListAdapter routesListAdapter;
     private List<Route> routesList = new ArrayList<>();
     private String currQuery = "";
     private Integer sourceId, destinationId;
+    private LatLng source, destination, userLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +107,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setStatusBar();
         init();
 
-        apiService.getRoutesBetweenStops(909, 2101).enqueue(new Callback<List<Route>>() {
+        /*apiService.getRoutesBetweenStops(909, 2101).enqueue(new Callback<List<Route>>() {
             @Override
             public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
                 if (response.body() != null && !response.body().isEmpty()) {
@@ -119,7 +123,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onFailure(Call<List<Route>> call, Throwable t) {
 
             }
-        });
+        });*/
     }
 
     private void setMapFragment() {
@@ -142,13 +146,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void init() {
         floatingBusStopSearchView_1 = findViewById(R.id.floating_bus_stop_search_view_1);
         floatingBusStopSearchView_2 = findViewById(R.id.floating_bus_stop_search_view_2);
-        selectDestinationButton = findViewById(R.id.select_destination_button);
+        bottomButton = findViewById(R.id.bottom_button);
         progressBar = findViewById(R.id.progress_bar);
 
 
         viewVisibility(floatingBusStopSearchView_1, false);
         viewVisibility(floatingBusStopSearchView_2, false);
-        viewVisibility(selectDestinationButton, false);
+        viewVisibility(bottomButton, false);
 
 
         setSearchViewQueryAndSearchListener(floatingBusStopSearchView_1, false);
@@ -161,16 +165,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         routesBottomSheetDialog = new BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
         routesBottomSheetDialog.setContentView(getLayoutInflater().inflate(R.layout.routes_bottom_sheet_view, null));
 
-        //routesList.add("xyx");
-
         routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
-        routesListAdapter = new RoutesListAdapter(this, routesList);
+        routesListAdapter = new RoutesListAdapter(this, routesList, () -> {
+            progressBarVisibility(true);
+            routesBottomSheetDialog.dismiss();
+        });
         routesListRecycleView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
         routesListRecycleView.setAdapter(routesListAdapter);
 
-        routesBottomSheetDialog.setOnDismissListener(dialog -> {
+        /*routesBottomSheetDialog.setOnDismissListener(dialog -> {
 
-        });
+        });*/
     }
 
     private void viewVisibility(View view, boolean visible) {
@@ -220,7 +225,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
                 BusStopsSuggestion suggestion = (BusStopsSuggestion) searchSuggestion;
-                setBusStopMarker(suggestion.getStopsResponseData());
+                setBusStopMarker(suggestion.getStopsResponseData(), isSecondSearchView);
                 if (isSecondSearchView) {
                     destinationId = suggestion.getStopsResponseData().getStopId();
                     apiService.getRoutesBetweenStops(destinationId, sourceId).enqueue(new Callback<List<Route>>() {
@@ -228,11 +233,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
                             if (response.body() != null && !response.body().isEmpty()) {
                                 routesList.clear();
+                                routesListAdapter.setSourceAndDestination(source, destination);
                                 routesList.addAll(response.body());
                                 routesList.addAll(response.body());
                                 routesListAdapter.notifyDataSetChanged();
+                                viewVisibility(routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view), false);
+                            } else {
+                                viewVisibility(routesListRecycleView, false);
                             }
+
                             routesBottomSheetDialog.show();
+                            viewVisibility(bottomButton, true);
                         }
 
                         @Override
@@ -240,10 +251,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         }
                     });
-                    //routesBottomSheetDialog.show();
                 } else {
                     sourceId = suggestion.getStopsResponseData().getStopId();
-                    viewVisibility(selectDestinationButton, true);
+                    viewVisibility(floatingBusStopSearchView_2, true);
+                    floatingBusStopSearchView_2.setSearchFocused(true);
                 }
                 searchView.setSearchText(suggestion.getStopsResponseData().getName());
             }
@@ -271,22 +282,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         searchView.setOnBindSuggestionCallback((View suggestionView, ImageView leftIcon, TextView textView, SearchSuggestion item, int itemPosition) -> {
             String temp = item.getBody();
+            SpannableStringBuilder content = new SpannableStringBuilder(temp);
             if (temp.toLowerCase().contains(currQuery.toLowerCase())) {
                 int index = temp.toLowerCase().indexOf(currQuery.toLowerCase());
-                temp = temp.substring(0, index) + "<b>" + currQuery.toLowerCase() + "</b>" + temp.substring(index + currQuery.length());
+                content.setSpan(
+                        new StyleSpan(Typeface.BOLD),
+                        index,
+                        index + currQuery.length(),
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
             }
             textView.setTextColor(getColor(R.color.black));
-            textView.setText(Html.fromHtml(temp, Html.FROM_HTML_MODE_LEGACY));
+            textView.setText(content);
         });
     }
 
-    private void setBusStopMarker(StopsResponseData stopsResponseData) {
-        LatLng latLng = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
+    private void setBusStopMarker(StopsResponseData stopsResponseData, boolean isSecondSearchView) {
         mMap.clear();
+        if (!isSecondSearchView) {
+            source = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(source, 17));
+            floatingBusStopSearchView_1.clearSearchFocus();
+        } else {
+            destination = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 17));
+            floatingBusStopSearchView_2.clearSearchFocus();
+        }
+        addMarkerIfNotNull(source, "From : " + stopsResponseData.getName());
+        addMarkerIfNotNull(destination, "To : " + stopsResponseData.getName());
+        addMarkerIfNotNull(userLocation, "Your Location");
+
+        /*LatLng latLng = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
         mMap.addMarker(new MarkerOptions().position(latLng));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
         setUserLocation(false);
-        floatingBusStopSearchView_1.clearSearchFocus();
+        floatingBusStopSearchView_1.clearSearchFocus();*/
+    }
+
+    private void addMarkerIfNotNull(LatLng latLng, String s) {
+        if (latLng != null) {
+            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, s).getBitmap())).position(latLng));
+        }
     }
 
 
@@ -358,11 +394,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, new LocationListener() {
                         @Override
                         public void onLocationChanged(Location location) {
-                            userLatitude = location.getLatitude();
-                            userLongitude = location.getLongitude();
+                            userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                             progressBarVisibility(false);
-                            setUserLocation(true);
-                            setNearByBusStopsWithInDistance(userLatitude, userLongitude, 1);
+                            setUserLocation();
+                            setNearByBusStopsWithInDistance(userLocation.latitude, userLocation.longitude, 1);
                         }
 
                         @Override
@@ -386,7 +421,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     e.printStackTrace();
                 }
             } else {
-                Snackbar.make(findViewById(R.id.map), "Please turn on your location", Snackbar.LENGTH_INDEFINITE)
+                Snackbar.make(findViewById(R.id.map), "Please turn on your location", Snackbar.LENGTH_LONG)
                         .setAction("TURN ON", v -> {
                             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                             startActivityForResult(intent, LOCATION_ON_REQUEST_CODE);
@@ -423,7 +458,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         builder.include(latLng);
                                     }
                                     LatLngBounds bounds = builder.build();
-                                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+                                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
                                 } else {
                                     setNearByBusStopsWithInDistance(userLatitude, userLongitude, (dist + 0.25));
                                 }
@@ -438,10 +473,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void setUserLocation(boolean isZoom) {
-        LatLng latLng = new LatLng(userLatitude, userLongitude);
-        mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, "Your location ").getBitmap())).position(latLng));
-        if (isZoom) mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+    private void setUserLocation() {
+        if (userLocation != null) {
+            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, "Your location ").getBitmap())).position(userLocation));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 17));
+        }
     }
 
     private boolean isLocationEnabled(LocationManager locationManager) {
@@ -479,10 +515,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         anim.start();
     }*/
 
-    public void showSecondSearchView(View view) {
+    public void showRoutesBottomSheet(View view) {
+        routesBottomSheetDialog.show();
+
+        /*
         viewVisibility(floatingBusStopSearchView_2, true);
-        viewVisibility(selectDestinationButton, false);
-     /*   floatingBusStopSearchView_2.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        viewVisibility(bottomButton, false);
+        floatingBusStopSearchView_2.setSearchFocused(true);
+       floatingBusStopSearchView_2.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
@@ -491,7 +531,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });*/
-        floatingBusStopSearchView_2.setSearchFocused(true);
         //floatingBusStopSearchView_2.requestFocusFromTouch();
     }
 
@@ -510,11 +549,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (currentPolyline != null)
             currentPolyline.remove();
         currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
-        mMap.addMarker(new MarkerOptions().position((LatLng) values[1]));
-        mMap.addMarker(new MarkerOptions().position((LatLng) values[2]));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds((LatLngBounds) values[3], 100));
-        Log.e(TAG, "onTaskDone: done");
-        routesBottomSheetDialog.dismiss();
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds((LatLngBounds) values[1], 100));
+        //Log.e(TAG, "onTaskDone: done");
+        progressBarVisibility(false);
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(((DataClass.Points) values[1]).lat, ((DataClass.Points) values[1]).lon), 15));
     }
 

@@ -22,16 +22,16 @@
             android:padding="4dp"
             android:text="@string/app_name"
             android:textColor="@color/black"
-            android:textSize="10sp"
+            android:textSize="@dimen/dimen_10"
             android:textStyle="bold" />
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
-        android:layout_width="8dp"
-        android:layout_height="8dp"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
         android:layout_gravity="center_horizontal"
         android:layout_margin="5dp"
         app:cardBackgroundColor="@color/black"
-        app:cardCornerRadius="4dp" />
+        app:cardCornerRadius="3dp" />
 
 </LinearLayout>
