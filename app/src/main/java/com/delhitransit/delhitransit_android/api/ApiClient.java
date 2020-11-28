@@ -7,14 +7,15 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
-    private static final String BASE_URL = "http://delhitransit.herokuapp.com/";
+    //private static final String BASE_URL = "http://delhitransit.herokuapp.com/";
+    private static final String BASE_URL = "http://www.delhitransit.ml/";
     private static Retrofit retrofit = null;
 
 
     private static Retrofit getApiClient() {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
-                .readTimeout(60, TimeUnit.SECONDS)
-                .connectTimeout(60, TimeUnit.SECONDS);
+                .readTimeout(2, TimeUnit.MINUTES)
+                .connectTimeout(2, TimeUnit.MINUTES);
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)

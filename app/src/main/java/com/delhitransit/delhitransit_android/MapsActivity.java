@@ -95,6 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String currQuery = "";
     private Integer sourceId, destinationId;
     private LatLng source, destination, userLocation;
+    private String sourceBusStopName, destinationBusStopName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,24 +107,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setMapFragment();
         setStatusBar();
         init();
-
-        /*apiService.getRoutesBetweenStops(909, 2101).enqueue(new Callback<List<Route>>() {
-            @Override
-            public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
-                if (response.body() != null && !response.body().isEmpty()) {
-                    routesList.clear();
-                    routesList.addAll(response.body());
-                    routesList.addAll(response.body());
-                    routesListAdapter.notifyDataSetChanged();
-                }
-                routesBottomSheetDialog.show();
-            }
-
-            @Override
-            public void onFailure(Call<List<Route>> call, Throwable t) {
-
-            }
-        });*/
     }
 
     private void setMapFragment() {
@@ -160,7 +143,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setRoutesBottomSheetDialog();
     }
 
-
     private void setRoutesBottomSheetDialog() {
         routesBottomSheetDialog = new BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
         routesBottomSheetDialog.setContentView(getLayoutInflater().inflate(R.layout.routes_bottom_sheet_view, null));
@@ -173,9 +155,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         routesListRecycleView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
         routesListRecycleView.setAdapter(routesListAdapter);
 
-        /*routesBottomSheetDialog.setOnDismissListener(dialog -> {
-
-        });*/
     }
 
     private void viewVisibility(View view, boolean visible) {
@@ -225,16 +204,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
                 BusStopsSuggestion suggestion = (BusStopsSuggestion) searchSuggestion;
-                setBusStopMarker(suggestion.getStopsResponseData(), isSecondSearchView);
                 if (isSecondSearchView) {
                     destinationId = suggestion.getStopsResponseData().getStopId();
+                    destinationBusStopName = suggestion.getStopsResponseData().getName();
                     apiService.getRoutesBetweenStops(destinationId, sourceId).enqueue(new Callback<List<Route>>() {
                         @Override
                         public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
                             if (response.body() != null && !response.body().isEmpty()) {
                                 routesList.clear();
                                 routesListAdapter.setSourceAndDestination(source, destination);
-                                routesList.addAll(response.body());
+                                routesListAdapter.setSourceBusStopName(sourceBusStopName);
                                 routesList.addAll(response.body());
                                 routesListAdapter.notifyDataSetChanged();
                                 viewVisibility(routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view), false);
@@ -255,9 +234,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     });
                 } else {
                     sourceId = suggestion.getStopsResponseData().getStopId();
+                    sourceBusStopName = suggestion.getStopsResponseData().getName();
                     viewVisibility(floatingBusStopSearchView_2, true);
                     floatingBusStopSearchView_2.setSearchFocused(true);
                 }
+                setBusStopMarker(suggestion.getStopsResponseData(), isSecondSearchView);
                 searchView.setSearchText(suggestion.getStopsResponseData().getName());
             }
 
@@ -310,8 +291,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 17));
             floatingBusStopSearchView_2.clearSearchFocus();
         }
-        addMarkerIfNotNull(source, "From : " + stopsResponseData.getName());
-        addMarkerIfNotNull(destination, "To : " + stopsResponseData.getName());
+        addMarkerIfNotNull(source, "From : " + sourceBusStopName);
+        addMarkerIfNotNull(destination, "To : " + destinationBusStopName);
         addMarkerIfNotNull(userLocation, "Your Location");
 
         /*LatLng latLng = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
@@ -326,7 +307,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, s).getBitmap())).position(latLng));
         }
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -361,27 +341,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
 
         getUserLocation();
-
-        //new DataClass(MapsActivity.this).execute(DataClass.data2);
-
-        // Add a marker in Sydney and move the camera
-        /*LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));*/
-
-        /*mMap.addMarker(place1);
-        mMap.addMarker(place2);
-        new FetchURL(MapsActivity.this).execute(getUrl(place1.getPosition(), place2.getPosition(), "driving"), "driving");
-
-        CameraPosition cameraPosition = CameraPosition.builder()
-                .target(new LatLng(22.7739, 71.6673))
-                .zoom(7)
-                .bearing(0)
-                .tilt(45)
-                .build();
-
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 5000, null);*/
-
 
     }
 
@@ -486,54 +445,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
 
-    /*
-    public void shiftUp(View view) {
-        //view.animate().setDuration(200).translationY((float) (1.8 * (view.getTop()) - statusBarHeight)).start();
-        int cx = tryLayout.getMeasuredWidth() / 2;
-        int cy = 0;
-
-        if (busStopSearchView_1.isAttachedToWindow()) {
-            int finalRadius = Math.max(tryLayout.getWidth(), tryLayout.getHeight()) / 2;
-            Animator anim = ViewAnimationUtils.createCircularReveal(tryLayout, cx, cy, 0, finalRadius).setDuration(500);
-            tryLayout.setVisibility(View.VISIBLE);
-            anim.start();
-        }
-    }
-
-    public void shiftDown(View view) {
-        //view.animate().setDuration(200).translationY(0).start();
-        int cx = tryLayout.getMeasuredWidth() / 2;
-        int cy = tryLayout.getMeasuredWidth();
-
-        int initialRadius = tryLayout.getWidth() / 2;
-        Animator anim = ViewAnimationUtils.createCircularReveal(tryLayout, cx, cy, initialRadius, 0).setDuration(500);
-        anim.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                tryLayout.setVisibility(View.INVISIBLE);
-            }
-        });
-        anim.start();
-    }*/
-
     public void showRoutesBottomSheet(View view) {
         routesBottomSheetDialog.show();
-
-        /*
-        viewVisibility(floatingBusStopSearchView_2, true);
-        viewVisibility(bottomButton, false);
-        floatingBusStopSearchView_2.setSearchFocused(true);
-       floatingBusStopSearchView_2.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-                }
-            }
-        });*/
-        //floatingBusStopSearchView_2.requestFocusFromTouch();
     }
 
     @Override
@@ -548,13 +461,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onTaskDone(Object... values) {
-        if (currentPolyline != null)
-            currentPolyline.remove();
-        currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds((LatLngBounds) values[1], 100));
-        //Log.e(TAG, "onTaskDone: done");
+        if (!(values[0] instanceof Boolean)) {
+            if (currentPolyline != null)
+                currentPolyline.remove();
+            currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+        } else {
+            routesBottomSheetDialog.dismiss();
+            showToast("Route plotting not available for this trip");
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(source).include(destination).build(), 200));
         progressBarVisibility(false);
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(((DataClass.Points) values[1]).lat, ((DataClass.Points) values[1]).lon), 15));
+    }
+
+
+    private void showToast(String s) {
+        showToast(s, "info");
+    }
+
+    private void showToast(String s, String about) {
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+        Log.e(TAG, about + "  : " + s);
     }
 
     /*private String getUrl(LatLng origin, LatLng dest, String directionMode) {

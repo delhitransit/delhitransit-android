@@ -2,15 +2,15 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="140dp"
+    android:layout_height="wrap_content"
     android:background="@color/white">
 
     <ImageView
         android:id="@+id/bus_icon_image_view"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="18dp"
         android:backgroundTint="@android:color/black"
         android:src="@drawable/bus_icon"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,29 +21,66 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="10dp"
+        android:layout_marginTop="15dp"
         android:background="@drawable/black_thin_borber_background"
         android:padding="5dp"
         android:text="100STL"
         android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toStartOf="@+id/time_text_view_1"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/hr_text_view"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/bus_icon_image_view"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/time_text_view_1"
+        android:id="@+id/min_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="48 min"
+        android:text="48"
         android:textColor="@color/black"
-        android:textSize="20sp"
+        android:textSize="22sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/arrow_icon_image_view"
         app:layout_constraintEnd_toStartOf="@+id/arrow_icon_image_view"
         app:layout_constraintTop_toTopOf="@+id/arrow_icon_image_view" />
+
+    <TextView
+        android:id="@+id/fix_min_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="min"
+        android:textColor="@color/grey_800"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/arrow_icon_image_view"
+        app:layout_constraintEnd_toEndOf="@+id/min_text_view"
+        app:layout_constraintStart_toStartOf="@+id/min_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/min_text_view" />
+
+    <TextView
+        android:id="@+id/hr_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:text="2"
+        android:textColor="@color/black"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/min_text_view"
+        app:layout_constraintTop_toTopOf="@+id/arrow_icon_image_view" />
+
+    <TextView
+        android:id="@+id/fix_hr_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="hr"
+        android:textColor="@color/grey_800"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/arrow_icon_image_view"
+        app:layout_constraintEnd_toEndOf="@+id/hr_text_view"
+        app:layout_constraintStart_toStartOf="@+id/hr_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/hr_text_view" />
 
     <ImageView
         android:id="@+id/arrow_icon_image_view"
@@ -60,11 +97,11 @@
         android:id="@+id/time_text_view_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="10dp"
         android:text="5:00 - 6:00 PM"
         android:textColor="@color/black"
-        android:textSize="18sp"
+        android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bus_number_text_view" />
 
@@ -72,14 +109,19 @@
         android:id="@+id/time_text_view_3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="12dp"
         android:layout_marginBottom="5dp"
         android:text="5:20 PM from xyx place"
-        android:textSize="16sp"
+        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/time_text_view_2"
         app:layout_constraintVertical_bias="0.0" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/grey_300"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

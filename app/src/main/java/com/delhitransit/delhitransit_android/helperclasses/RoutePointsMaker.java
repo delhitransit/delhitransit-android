@@ -30,12 +30,14 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
 
     public PolylineOptions makePoly(List<ShapePoint> shapePointList) {
 
-        //Log.e("TAG", "makePoly: called");
+        //shapePointList.sort(Comparator.comparingInt(ShapePoint::getSequence));
+
 
         PolylineOptions polylineOptions = new PolylineOptions();
         ArrayList<LatLng> resultPoints = new ArrayList<>();
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         int sourcePosition = 0, destinationPosition = shapePointList.size() - 1;
+
         Location sourceLocation = new Location("locationS");
         sourceLocation.setLatitude(source.latitude);
         sourceLocation.setLongitude(source.longitude);
@@ -55,22 +57,18 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
 
             double temp = startPoint.distanceTo(sourceLocation);
             if (minFromSource > temp) {
-                //Log.e("TAG", "temp PS-" + minFromSource + "m "+"NS -" + temp+" i=" + i);
                 minFromSource = temp;
                 sourcePosition = i;
 
             }
             temp = startPoint.distanceTo(destinationLocation);
             if (minFromDestination > temp) {
-                // Log.e("TAG", "temp PD-" + minFromDestination + "m "+"ND -" + temp+" i=" + i);
                 minFromDestination = temp;
                 destinationPosition = i;
 
             }
-
-
         }
-        //Log.e("TAG", "makePoly: S-" + sourcePosition + "-    D-" + destinationPosition);
+
         if (sourcePosition == destinationPosition) {
             Log.e("TAG", "Not plot");
         }
@@ -79,8 +77,12 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
             resultPoints.add(latLng);
             builder.include(latLng);
         }
-
-        bounds = builder.build();
+        try {
+            bounds = builder.build();
+        } catch (Exception e) {
+            Log.e("TAG", "makePoly: " + e.getMessage());
+            return polylineOptions;
+        }
         polylineOptions.addAll(resultPoints);
         polylineOptions.width(20);
         polylineOptions.color(color);
@@ -95,6 +97,10 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
     @Override
     protected void onPostExecute(PolylineOptions polylineOptions) {
         //Log.e("TAG", "onPostExecute: called");
-        taskCallback.onTaskDone(polylineOptions, bounds);
+        if (bounds != null) {
+            taskCallback.onTaskDone(polylineOptions, bounds);
+        } else {
+            taskCallback.onTaskDone(false);
+        }
     }
 }
