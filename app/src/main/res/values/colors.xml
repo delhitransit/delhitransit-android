@@ -9,4 +9,10 @@
     <color name="pm_transparent">#00000000</color>
     <color name="semi_transparent">#33000000</color>
     <color name="white">#ffffffff</color>
+    <color name="temp">#647878</color>
+    <color name="blue_grey">#DADCE0</color>
+    <color name="grey_200">#EEEEEE</color>
+    <color name="grey_300">#E0E0E0</color>
+    <color name="grey_400">#BDBDBD</color>
+    <color name="grey_800">#424242</color>
 </resources>
