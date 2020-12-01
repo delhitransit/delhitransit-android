@@ -29,13 +29,10 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
-import com.delhitransit.delhitransit_android.dontuploadpojos.TomTomResponse;
-import com.delhitransit.delhitransit_android.dontuploadpojos.TomTomRoutePointsMaker;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
-import com.delhitransit.delhitransit_android.pojos.DataClass;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
@@ -55,7 +52,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -115,6 +111,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setMapFragment();
         setStatusBar();
         init();
+
+        //plotTomTom();
+ /*
+        source = new LatLng(28.837612, 77.171881);
+        destination = new LatLng(28.660087, 77.227876);
+        Log.e(TAG, "onCreate: 10 " + new BusStopTimings(0, 29, 29).getTime());
+        source = new LatLng(28.628, 77.1107);
+        destination = new LatLng(28.6252, 77.1108);
+        apiService.getRoutesBetweenStops(909, 2101).enqueue(new Callback<List<Route>>() {
+            @Override
+            public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
+                if (response.body() != null && !response.body().isEmpty()) {
+                    routesList.clear();
+                    routesList.addAll(response.body());
+                    routesListAdapter.setSourceAndDestination(source, destination);
+                    routesListAdapter.setSourceBusStopName("DDU Hospital");
+                    routesListAdapter.notifyDataSetChanged();
+                }
+                routesBottomSheetDialog.show();
+            }
+
+            @Override
+            public void onFailure(Call<List<Route>> call, Throwable t) {
+
+            }
+        });*/
+
     }
 
     private void setMapFragment() {
@@ -465,6 +488,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setUserLocation() {
         if (userLocation != null) {
+            mMap.addMarker(new MarkerOptions().position(userLocation));
             mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, "Your location ").getBitmap())).position(userLocation));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 17));
         }
@@ -501,10 +525,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             routesBottomSheetDialog.dismiss();
             showToast("Route plotting not available for this trip");
+/*
+            plotTomTom();*/
         }
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(source).include(destination).build(), 0));
         progressBarVisibility(false);
     }
+
+   /* private void plotTomTom() {
+        Gson gson = new Gson();
+        TomTomResponse response = gson.fromJson(DataClass.data3, TomTomResponse.class);
+        new TomTomRoutePointsMaker(this).execute(response.getRoutes().get(0).getLegs().get(0).getPoints());
+    }*/
 
 
     private void showToast(String s) {
