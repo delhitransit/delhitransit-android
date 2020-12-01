@@ -2,7 +2,6 @@ package com.delhitransit.delhitransit_android.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.icu.util.Calendar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,11 +14,10 @@ import com.delhitransit.delhitransit_android.helperclasses.RoutePointsMaker;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.interfaces.OnRouteSelectedListener;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
-import com.delhitransit.delhitransit_android.pojos.Route;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
+import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.util.Date;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -33,11 +31,11 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
 
     Context context;
     LatLng source, destination;
-    private List<Route> list;
+    private List<RouteDetailForAdapter> list;
     private OnRouteSelectedListener onRouteSelectedListener;
     private String sourceBusStopName;
 
-    public RoutesListAdapter(Context context, List<Route> list, OnRouteSelectedListener onRouteSelectedListener) {
+    public RoutesListAdapter(Context context, List<RouteDetailForAdapter> list, OnRouteSelectedListener onRouteSelectedListener) {
         this.context = context;
         this.list = list;
         this.onRouteSelectedListener = onRouteSelectedListener;
@@ -51,15 +49,15 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
 
     @Override
     public void onBindViewHolder(@NonNull RoutesListViewHolder holder, int position) {
-        Route route = list.get(position);
+        RouteDetailForAdapter routeDetail = list.get(position);
 
         int[] colorList = {Color.RED, Color.BLACK, Color.CYAN, Color.YELLOW, Color.BLUE, Color.GRAY};
 
-        holder.busNumber.setText(route.getLongName());
-        setTimeInLayout(holder.bothTime, holder.sourceTime, sourceBusStopName, getSecondsSince12AM(), getTravelTime(), holder.travelTimeHr, holder.hrDisplay, holder.travelTimeMin, holder.minDisplay);
+        holder.busNumber.setText(routeDetail.getLongName());
+        setTimeInLayout(holder.bothTime, holder.sourceTime, sourceBusStopName, routeDetail.getBusTimings(), routeDetail.getTravelTime(), holder.travelTimeHr, holder.hrDisplay, holder.travelTimeMin, holder.minDisplay);
         holder.parent.setOnClickListener(v -> {
             onRouteSelectedListener.OnRouteSelected();
-            ApiClient.getApiService().getAllShapePointsByTripId(route.getTrips().get(0).getTripId()).enqueue(new Callback<List<ShapePoint>>() {
+            ApiClient.getApiService().getAllShapePointsByTripId(routeDetail.getTripId()).enqueue(new Callback<List<ShapePoint>>() {
                 @Override
                 public void onResponse(Call<List<ShapePoint>> call, Response<List<ShapePoint>> response) {
                     if (response.body() != null && response.body().size() != 0) {
@@ -83,11 +81,11 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
     private void setTimeInLayout(TextView bothTime, TextView sourceTime, String sourceBusStopName, long arrivalTime, long travelTime, TextView travelTimeHr, TextView hrDisplay, TextView travelTimeMin, TextView minDisplay) {
 
         if (sourceBusStopName != null) {
-            sourceTime.setText((new TimeConverter(arrivalTime).justHrAndMinWithState + " from " + sourceBusStopName)); //+ position);
+            sourceTime.setText((new TimeConverter(arrivalTime - travelTime).justHrAndMinWithState + " from " + sourceBusStopName)); //+ position);
         } else {
             sourceTime.setVisibility(View.GONE);
         }
-        bothTime.setText((new TimeConverter(arrivalTime).justHrAndMin + " - " + new TimeConverter(arrivalTime + travelTime).justHrAndMinWithState));
+        bothTime.setText((new TimeConverter(arrivalTime - travelTime).justHrAndMin + " - " + new TimeConverter(arrivalTime).justHrAndMinWithState));
         TimeConverter converter = new TimeConverter(travelTime);
         if (converter.hr != 0) {
             travelTimeHr.setVisibility(View.VISIBLE);
@@ -118,18 +116,6 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
 
     public void setSourceBusStopName(String sourceBusStopName) {
         this.sourceBusStopName = sourceBusStopName;
-    }
-
-    public long getSecondsSince12AM() {
-        Calendar now = Calendar.getInstance();
-        now.setTime(new Date());
-        return now.get(Calendar.HOUR_OF_DAY) * 3600 + (now.get(Calendar.MINUTE) + (int) (Math.random() * 20)) * 60 + now.get(Calendar.SECOND);
-
-    }
-
-    public long getTravelTime() {
-        return (int) (Math.random() * 80) * 60 + (int) (Math.random() * 60);
-
     }
 
     static class RoutesListViewHolder extends RecyclerView.ViewHolder {

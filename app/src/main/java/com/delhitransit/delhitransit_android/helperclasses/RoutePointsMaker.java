@@ -89,8 +89,9 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
         return polylineOptions;
     }
 
+    @SafeVarargs
     @Override
-    protected PolylineOptions doInBackground(List<ShapePoint>... lists) {
+    protected final PolylineOptions doInBackground(List<ShapePoint>... lists) {
         return makePoly(lists[0]);
     }
 

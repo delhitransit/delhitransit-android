@@ -29,10 +29,15 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
+import com.delhitransit.delhitransit_android.dontuploadpojos.TomTomResponse;
+import com.delhitransit.delhitransit_android.dontuploadpojos.TomTomRoutePointsMaker;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
+import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
-import com.delhitransit.delhitransit_android.pojos.Route;
+import com.delhitransit.delhitransit_android.pojos.DataClass;
+import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
+import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
 import com.github.ybq.android.spinkit.SpinKitView;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -44,13 +49,16 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -91,7 +99,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private BottomSheetDialog routesBottomSheetDialog;
     private RecyclerView routesListRecycleView;
     private RoutesListAdapter routesListAdapter;
-    private List<Route> routesList = new ArrayList<>();
+    private List<RouteDetailForAdapter> routesList = new ArrayList<>();
     private String currQuery = "";
     private Integer sourceId, destinationId;
     private LatLng source, destination, userLocation;
@@ -207,15 +215,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (isSecondSearchView) {
                     destinationId = suggestion.getStopsResponseData().getStopId();
                     destinationBusStopName = suggestion.getStopsResponseData().getName();
-                    apiService.getRoutesBetweenStops(destinationId, sourceId).enqueue(new Callback<List<Route>>() {
+
+                    progressBarVisibility(true);
+
+                    apiService.getCustomizeRoutesBetweenStops(destinationId, sourceId, ((int) TimeConverter.getSecondsSince12AM())).enqueue(new Callback<List<CustomizeRouteDetail>>() {
                         @Override
-                        public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
+                        public void onResponse(Call<List<CustomizeRouteDetail>> call, Response<List<CustomizeRouteDetail>> response) {
                             if (response.body() != null && !response.body().isEmpty()) {
                                 routesList.clear();
                                 routesListAdapter.setSourceAndDestination(source, destination);
                                 routesListAdapter.setSourceBusStopName(sourceBusStopName);
-                                routesList.addAll(response.body());
+                                routesList.addAll(makeListAdapter(response.body()));
                                 routesListAdapter.notifyDataSetChanged();
+
                                 viewVisibility(routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view), false);
                                 viewVisibility(routesListRecycleView, true);
                             } else {
@@ -224,11 +236,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
 
                             routesBottomSheetDialog.show();
+                            progressBarVisibility(false);
                             viewVisibility(bottomButton, true);
                         }
 
                         @Override
-                        public void onFailure(Call<List<Route>> call, Throwable t) {
+                        public void onFailure(Call<List<CustomizeRouteDetail>> call, Throwable t) {
 
                         }
                     });
@@ -278,6 +291,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             textView.setTextColor(getColor(R.color.black));
             textView.setText(content);
         });
+    }
+
+    private List<RouteDetailForAdapter> makeListAdapter(List<CustomizeRouteDetail> customizeRouteDetailList) {
+        List<RouteDetailForAdapter> list = new ArrayList<>();
+        for (CustomizeRouteDetail customizeRouteDetail : customizeRouteDetailList) {
+            for (String busTiming : customizeRouteDetail.getBusTimings()) {
+                list.add(new RouteDetailForAdapter(customizeRouteDetail.getTravelTime(),
+                        customizeRouteDetail.getRouteId(),
+                        customizeRouteDetail.getTripId(),
+                        TimeConverter.getTimeInSeconds(busTiming),
+                        customizeRouteDetail.getLongName()));
+            }
+        }
+        list.sort(Comparator.comparingLong(RouteDetailForAdapter::getBusTimings));
+        return list;
     }
 
     private void setBusStopMarker(StopsResponseData stopsResponseData, boolean isSecondSearchView) {
@@ -341,6 +369,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
 
         getUserLocation();
+        mMap.setPadding(100, 600, 100, 100);
 
     }
 
@@ -419,7 +448,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         builder.include(latLng);
                                     }
                                     LatLngBounds bounds = builder.build();
-                                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
+                                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
                                 } else {
                                     setNearByBusStopsWithInDistance(userLatitude, userLongitude, (dist + 0.25));
                                 }
@@ -465,11 +494,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (currentPolyline != null)
                 currentPolyline.remove();
             currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(0)));
+            marker.setZIndex(2);
+            marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(currentPolyline.getPoints().size() - 1)));
+            marker.setZIndex(2);
         } else {
             routesBottomSheetDialog.dismiss();
             showToast("Route plotting not available for this trip");
         }
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(source).include(destination).build(), 200));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(source).include(destination).build(), 0));
         progressBarVisibility(false);
     }
 
