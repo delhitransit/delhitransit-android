@@ -310,12 +310,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         addMarkerIfNotNull(source, "From : " + sourceBusStopName);
         addMarkerIfNotNull(destination, "To : " + destinationBusStopName);
         addMarkerIfNotNull(userLocation, "Your Location");
-
-        /*LatLng latLng = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
-        mMap.addMarker(new MarkerOptions().position(latLng));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
-        setUserLocation(false);
-        floatingBusStopSearchView_1.clearSearchFocus();*/
     }
 
     private void addMarkerIfNotNull(LatLng latLng, String s) {
