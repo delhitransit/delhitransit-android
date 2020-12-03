@@ -19,7 +19,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,8 +36,6 @@ import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
 import com.github.ybq.android.spinkit.SpinKitView;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -55,14 +52,12 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SearchView;
-import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
-import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -76,21 +71,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private final int LOCATION_PERMISSION_REQUEST_CODE = 101;
     private final int LOCATION_ON_REQUEST_CODE = 101;
 
-    FusedLocationProviderClient mFusedLocationClient;
     private GoogleMap mMap;
-    private MarkerOptions place1, place2;
     private Polyline currentPolyline;
-    private CardView searchCardView;
-    private SearchView busStopSearchView_1, busStopSearchView_2;
-    private int statusBarHeight;
-    private boolean isKeyboardOn = false;
-    private LinearLayout tryLayout;
-    private SimpleCursorAdapter searchViewAdapter_1;
     private ApiInterface apiService;
-    private ArrayList<StopsResponseData> listOfCityName = new ArrayList<>();
-    private FloatingSearchView floatingBusStopSearchView_1, floatingBusStopSearchView_2;
+    private FloatingSearchView searchView1, searchView2;
     private SpinKitView progressBar;
-    //private double userLatitude, userLongitude;
     private Button bottomButton;
     private BottomSheetDialog routesBottomSheetDialog;
     private RecyclerView routesListRecycleView;
@@ -100,6 +85,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Integer sourceId, destinationId;
     private LatLng source, destination, userLocation;
     private String sourceBusStopName, destinationBusStopName;
+    private HashMap<Marker, StopsResponseData> nearByBusStopsHashMap = new HashMap<>();
+    private TextView noRoutesAvailableTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,32 +98,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setMapFragment();
         setStatusBar();
         init();
-
-        //plotTomTom();
- /*
-        source = new LatLng(28.837612, 77.171881);
-        destination = new LatLng(28.660087, 77.227876);
-        Log.e(TAG, "onCreate: 10 " + new BusStopTimings(0, 29, 29).getTime());
-        source = new LatLng(28.628, 77.1107);
-        destination = new LatLng(28.6252, 77.1108);
-        apiService.getRoutesBetweenStops(909, 2101).enqueue(new Callback<List<Route>>() {
-            @Override
-            public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
-                if (response.body() != null && !response.body().isEmpty()) {
-                    routesList.clear();
-                    routesList.addAll(response.body());
-                    routesListAdapter.setSourceAndDestination(source, destination);
-                    routesListAdapter.setSourceBusStopName("DDU Hospital");
-                    routesListAdapter.notifyDataSetChanged();
-                }
-                routesBottomSheetDialog.show();
-            }
-
-            @Override
-            public void onFailure(Call<List<Route>> call, Throwable t) {
-
-            }
-        });*/
 
     }
 
@@ -151,26 +112,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void setStatusBar() {
         int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) {
-            statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+            int statusBarHeight = getResources().getDimensionPixelSize(resourceId);
             findViewById(R.id.status_bar_bg).setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, statusBarHeight));
         }
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
 
     private void init() {
-        floatingBusStopSearchView_1 = findViewById(R.id.floating_bus_stop_search_view_1);
-        floatingBusStopSearchView_2 = findViewById(R.id.floating_bus_stop_search_view_2);
+        searchView1 = findViewById(R.id.floating_bus_stop_search_view_1);
+        searchView2 = findViewById(R.id.floating_bus_stop_search_view_2);
         bottomButton = findViewById(R.id.bottom_button);
         progressBar = findViewById(R.id.progress_bar);
 
-
-        viewVisibility(floatingBusStopSearchView_1, false);
-        viewVisibility(floatingBusStopSearchView_2, false);
+        viewVisibility(searchView1, false);
+        viewVisibility(searchView2, false);
         viewVisibility(bottomButton, false);
 
-
-        setSearchViewQueryAndSearchListener(floatingBusStopSearchView_1, false);
-        setSearchViewQueryAndSearchListener(floatingBusStopSearchView_2, true);
+        setSearchViewQueryAndSearchListener(searchView1, false);
+        setSearchViewQueryAndSearchListener(searchView2, true);
         setRoutesBottomSheetDialog();
     }
 
@@ -179,6 +138,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         routesBottomSheetDialog.setContentView(getLayoutInflater().inflate(R.layout.routes_bottom_sheet_view, null));
 
         routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
+        noRoutesAvailableTextView = routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view);
         routesListAdapter = new RoutesListAdapter(this, routesList, () -> {
             progressBarVisibility(true);
             routesBottomSheetDialog.dismiss();
@@ -201,7 +161,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onSearchTextChanged(String oldQuery, String newQuery) {
                 if (!isSecondSearchView) {
-                    viewVisibility(floatingBusStopSearchView_2, false);
+                    viewVisibility(searchView2, false);
                 }
                 if (newQuery.equals("")) {
                     searchView.clearSuggestions();
@@ -234,59 +194,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                BusStopsSuggestion suggestion = (BusStopsSuggestion) searchSuggestion;
-                if (isSecondSearchView) {
-                    destinationId = suggestion.getStopsResponseData().getStopId();
-                    destinationBusStopName = suggestion.getStopsResponseData().getName();
-
-                    progressBarVisibility(true);
-
-                    apiService.getCustomizeRoutesBetweenStops(destinationId, sourceId, ((int) TimeConverter.getSecondsSince12AM())).enqueue(new Callback<List<CustomizeRouteDetail>>() {
-                        @Override
-                        public void onResponse(Call<List<CustomizeRouteDetail>> call, Response<List<CustomizeRouteDetail>> response) {
-                            if (response.body() != null && !response.body().isEmpty()) {
-                                routesList.clear();
-                                routesListAdapter.setSourceAndDestination(source, destination);
-                                routesListAdapter.setSourceBusStopName(sourceBusStopName);
-                                routesList.addAll(makeListAdapter(response.body()));
-                                routesListAdapter.notifyDataSetChanged();
-
-                                viewVisibility(routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view), false);
-                                viewVisibility(routesListRecycleView, true);
-                            } else {
-                                viewVisibility(routesListRecycleView, false);
-                                viewVisibility(routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view), true);
-                            }
-
-                            routesBottomSheetDialog.show();
-                            progressBarVisibility(false);
-                            viewVisibility(bottomButton, true);
-                        }
-
-                        @Override
-                        public void onFailure(Call<List<CustomizeRouteDetail>> call, Throwable t) {
-
-                        }
-                    });
-                } else {
-                    sourceId = suggestion.getStopsResponseData().getStopId();
-                    sourceBusStopName = suggestion.getStopsResponseData().getName();
-                    viewVisibility(floatingBusStopSearchView_2, true);
-                    floatingBusStopSearchView_2.setSearchFocused(true);
-                }
-                setBusStopMarker(suggestion.getStopsResponseData(), isSecondSearchView);
-                searchView.setSearchText(suggestion.getStopsResponseData().getName());
+                StopsResponseData stopsDetail = ((BusStopsSuggestion) searchSuggestion).getStopsResponseData();
+                setStopDataOnSearchView(stopsDetail, searchView, isSecondSearchView);
             }
 
             @Override
             public void onSearchAction(String currentQuery) {
-               /* apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopsResponseData>>() {
+                apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopsResponseData>>() {
                     @Override
                     public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
                         if (response.body() != null) {
                             if (response.body().size() != 0) {
-                                setBusStopMarker(response.body().get(0));
-                                viewVisibility(selectDestinationButton, true);
+                                setStopDataOnSearchView(response.body().get(0), searchView, isSecondSearchView);
+                            } else {
+                                showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
                             }
                         }
                     }
@@ -295,7 +216,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
                         Log.e(TAG, "onFailure: int " + t.getMessage());
                     }
-                });*/
+                });
 
             }
         });
@@ -314,6 +235,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             textView.setTextColor(getColor(R.color.black));
             textView.setText(content);
         });
+    }
+
+    private void setStopDataOnSearchView(StopsResponseData stopsDetail, FloatingSearchView searchView, boolean isSecondSearchView) {
+        if (isSecondSearchView) {
+            destinationId = stopsDetail.getStopId();
+            destinationBusStopName = stopsDetail.getName();
+
+            progressBarVisibility(true);
+
+            apiService.getCustomizeRoutesBetweenStops(destinationId, sourceId, ((int) TimeConverter.getSecondsSince12AM())).enqueue(new Callback<List<CustomizeRouteDetail>>() {
+                @Override
+                public void onResponse(Call<List<CustomizeRouteDetail>> call, Response<List<CustomizeRouteDetail>> response) {
+                    if (response.body() != null && !response.body().isEmpty()) {
+                        routesList.clear();
+                        routesListAdapter.setSourceAndDestination(source, destination);
+                        routesListAdapter.setSourceBusStopName(sourceBusStopName);
+                        routesList.addAll(makeListAdapter(response.body()));
+                        routesListAdapter.notifyDataSetChanged();
+
+                        viewVisibility(noRoutesAvailableTextView, false);
+                        viewVisibility(routesListRecycleView, true);
+                    } else {
+                        viewVisibility(routesListRecycleView, false);
+                        viewVisibility(noRoutesAvailableTextView, true);
+                    }
+
+                    routesBottomSheetDialog.show();
+                    progressBarVisibility(false);
+                    viewVisibility(bottomButton, true);
+                }
+
+                @Override
+                public void onFailure(Call<List<CustomizeRouteDetail>> call, Throwable t) {
+
+                }
+            });
+        } else {
+            sourceId = stopsDetail.getStopId();
+            sourceBusStopName = stopsDetail.getName();
+            viewVisibility(searchView2, true);
+            searchView2.setSearchFocused(true);
+        }
+        setBusStopMarker(stopsDetail, isSecondSearchView);
+        searchView.setSearchText(stopsDetail.getName());
     }
 
     private List<RouteDetailForAdapter> makeListAdapter(List<CustomizeRouteDetail> customizeRouteDetailList) {
@@ -336,21 +301,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (!isSecondSearchView) {
             source = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(source, 17));
-            floatingBusStopSearchView_1.clearSearchFocus();
+            searchView1.clearSearchFocus();
         } else {
             destination = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 17));
-            floatingBusStopSearchView_2.clearSearchFocus();
+            searchView2.clearSearchFocus();
         }
         addMarkerIfNotNull(source, "From : " + sourceBusStopName);
         addMarkerIfNotNull(destination, "To : " + destinationBusStopName);
         addMarkerIfNotNull(userLocation, "Your Location");
-
-        /*LatLng latLng = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
-        mMap.addMarker(new MarkerOptions().position(latLng));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
-        setUserLocation(false);
-        floatingBusStopSearchView_1.clearSearchFocus();*/
     }
 
     private void addMarkerIfNotNull(LatLng latLng, String s) {
@@ -386,25 +345,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         progressBarVisibility(false);
-        viewVisibility(floatingBusStopSearchView_1, true);
+        viewVisibility(searchView1, true);
 
         LatLng latLng = new LatLng(28.6172368, 77.2059964);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
 
         getUserLocation();
         mMap.setPadding(100, 600, 100, 100);
+        mMap.setOnMarkerClickListener(marker -> {
+            if (nearByBusStopsHashMap.containsKey(marker)) {
+                setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
+            }
+            return true;
+        });
 
     }
 
     private void getUserLocation() {
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         if (checkPermissions()) {
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             if (isLocationEnabled(locationManager)) {
                 try {
                     progressBarVisibility(true);
-                    locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, new LocationListener() {
+                    locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new LocationListener() {
                         @Override
                         public void onLocationChanged(Location location) {
                             userLocation = new LatLng(location.getLatitude(), location.getLongitude());
@@ -463,11 +426,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
                             if (response.body() != null) {
                                 if (response.body().size() > 4) {
+                                    nearByBusStopsHashMap = new HashMap<>();
                                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
                                     builder.include(new LatLng(userLatitude, userLongitude));
                                     for (StopsResponseData data : response.body()) {
                                         LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
-                                        mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(MapsActivity.this, data.getName(), Color.RED).getBitmap())));
+                                        Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(MapsActivity.this, data.getName(), Color.RED).getBitmap())));
+                                        nearByBusStopsHashMap.put(marker, data);
                                         builder.include(latLng);
                                     }
                                     LatLngBounds bounds = builder.build();
@@ -488,7 +453,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setUserLocation() {
         if (userLocation != null) {
-            mMap.addMarker(new MarkerOptions().position(userLocation));
             mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, "Your location ").getBitmap())).position(userLocation));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 17));
         }
@@ -502,15 +466,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         routesBottomSheetDialog.show();
     }
 
-    @Override
-    public void onBackPressed() {
-        if (isKeyboardOn) {
-            //shiftDown(searchCardView);
-            isKeyboardOn = false;
-        } else {
-            super.onBackPressed();
-        }
-    }
 
     @Override
     public void onTaskDone(Object... values) {
@@ -525,18 +480,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             routesBottomSheetDialog.dismiss();
             showToast("Route plotting not available for this trip");
-/*
-            plotTomTom();*/
         }
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(source).include(destination).build(), 0));
         progressBarVisibility(false);
     }
-
-   /* private void plotTomTom() {
-        Gson gson = new Gson();
-        TomTomResponse response = gson.fromJson(DataClass.data3, TomTomResponse.class);
-        new TomTomRoutePointsMaker(this).execute(response.getRoutes().get(0).getLegs().get(0).getPoints());
-    }*/
 
 
     private void showToast(String s) {
@@ -548,115 +495,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.e(TAG, about + "  : " + s);
     }
 
-    /*private String getUrl(LatLng origin, LatLng dest, String directionMode) {
-        // Origin of route
-        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
-        // Destination of route
-        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
-        // Mode
-        String mode = "mode=" + directionMode;
-        // Building the parameters to the web service
-        String parameters = str_origin + "&" + str_dest + "&" + mode;
-        // Output format
-        String output = "json";
-        // Building the url to the web service
-        return "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters + "&key=" + getString(R.string.google_maps_key);
-    }*/
-    /*busStopSearchView_1 = findViewById(R.id.bus_stop_search_view_1);
-        busStopSearchView_2 = findViewById(R.id.bus_stop_search_view_2);
-        searchCardView = findViewById(R.id.search_card_view_1);
-        tryLayout = findViewById(R.id.try_layout_for_start);
 
-        busStopSearchView_1.setIconified(false);
-        busStopSearchView_1.clearFocus();
-        busStopSearchView_1.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-                Toast.makeText(MapsActivity.this, "onClose", Toast.LENGTH_SHORT).show();
-                shiftDown(searchCardView);
-                return true;
-            }
-        });
-        busStopSearchView_2.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                shiftDown(searchCardView);
-                isKeyboardOn = false;
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if (isKeyboardOn) {
-                    shiftUp(searchCardView);
-                }
-                return false;
-            }
-        });
-
-       final String[] from = new String[]{"cityName"};
-        final int[] to = new int[]{android.R.id.text1};
-        searchViewAdapter_1 = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, null, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
-
-        busStopSearchView_1.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
-            @Override
-            public boolean onSuggestionClick(int position) {
-                Cursor cursor = (Cursor) searchViewAdapter_1.getItem(position);
-                String txt = cursor.getString(cursor.getColumnIndex("cityName"));
-                busStopSearchView_1.setQuery(txt, true);
-                return true;
-            }
-
-            @Override
-            public boolean onSuggestionSelect(int position) {
-                return true;
-            }
-        });
-        busStopSearchView_1.setSuggestionsAdapter(searchViewAdapter_1);
-
-        SearchView.SearchAutoComplete mSearchSrcTextView = (SearchView.SearchAutoComplete) busStopSearchView_1.findViewById(androidx.appcompat.R.id.search_src_text);
-
-        mSearchSrcTextView.setDropDownWidth(ViewGroup.LayoutParams.MATCH_PARENT);
-        mSearchSrcTextView.setDropDownAnchor((busStopSearchView_1).getId());
-
-        busStopSearchView_1.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                shiftDown(searchCardView);
-                isKeyboardOn = false;
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if (!isKeyboardOn) {
-                    shiftUp(searchCardView);
-                    isKeyboardOn = true;
-                }
-
-                MatrixCursor c = new MatrixCursor(new String[]{BaseColumns._ID, "cityName"});
-                int i = 0;
-                if (!listOfCityName.isEmpty()) {
-                    for (StopsResponseData s : listOfCityName) {
-                        if (s.getName().toLowerCase().startsWith(newText.toLowerCase())) {
-                            c.addRow(new Object[]{i++, s.getName()});
-                        }
-                    }
-                    for (int j = 0; j < 10; j++) {
-                        c.addRow(new Object[]{j, "NONE"});
-                    }
-
-                } else {
-                    c.addRow(new Object[]{i, "NONE"});
-                }
-                for (int j = 0; j < 20; j++) {
-                    c.addRow(new Object[]{j, "NONE"});
-                }
-
-                searchViewAdapter_1.changeCursor(c);
-                return true;
-            }
-        });*/
 
 
 }
