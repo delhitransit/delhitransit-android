@@ -3,9 +3,39 @@
     <PreferenceCategory app:title="@string/server_header">
 
         <EditTextPreference
+            app:enableCopying="true"
+            app:icon="@drawable/ic_baseline_cell_wifi_24"
             app:key="serverIpAddress"
+            app:summary="Toggle server IP"
             app:title="@string/server_ip_title"
             app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/credits_header">
+
+        <Preference
+            app:enableCopying="true"
+            app:icon="@drawable/ic_baseline_emoji_people_24"
+            app:summary="Ankit Varshney\nAbhishek Jain\nTanmay Singal"
+            app:title="Created by"
+            app:widgetLayout="@android:layout/two_line_list_item" />
+
+        <Preference
+            app:key="github"
+            app:enableCopying="true"
+            app:icon="@drawable/ic_baseline_code_24"
+            app:summary="@string/github_url"
+            app:title="Find the code on GitHub"
+            app:widgetLayout="@android:layout/two_line_list_item" />
+
+        <Preference
+            app:key="otd"
+            app:enableCopying="true"
+            app:icon="@drawable/ic_baseline_api_24"
+            app:summary="@string/otd_url"
+            app:title="Explore the Open Transit Delhi dataset"
+            app:widgetLayout="@android:layout/two_line_list_item" />
 
     </PreferenceCategory>
 
