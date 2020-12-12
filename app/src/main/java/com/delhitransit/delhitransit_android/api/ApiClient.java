@@ -1,6 +1,7 @@
 package com.delhitransit.delhitransit_android.api;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
@@ -24,15 +25,18 @@ public class ApiClient {
             serverIp = ((DelhiTransitApplication) context.getApplicationContext()).getServerIP();
         }
 
-        if (retrofit == null) {
-            OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
-                    .readTimeout(2, TimeUnit.MINUTES)
-                    .connectTimeout(2, TimeUnit.MINUTES);
+        OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
+                .readTimeout(2, TimeUnit.MINUTES)
+                .connectTimeout(2, TimeUnit.MINUTES);
+        try {
             retrofit = new Retrofit.Builder()
                     .baseUrl(serverIp)
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(httpClient.build())
                     .build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Please set valid server IP", Toast.LENGTH_SHORT).show();
         }
         return retrofit;
     }
