@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="default_server_ip">http://delhitransit.centralindia.cloudapp.azure.com</string>
+    <string name="github_url">https://github.com/delhitransit/</string>
+    <string name="otd_url">https://otd.delhi.gov.in/</string>
 </resources>

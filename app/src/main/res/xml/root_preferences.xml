@@ -15,21 +15,27 @@
     <PreferenceCategory app:title="@string/credits_header">
 
         <Preference
-            app:icon="@drawable/ic_baseline_emoji_people_24"
             app:enableCopying="true"
-            app:summary="Ankit Varshney (35196402717)
-            \nAbhishek Jain (35296402717)
-            \nTanmay Singal (40196402717)"
+            app:icon="@drawable/ic_baseline_emoji_people_24"
+            app:summary="Ankit Varshney\nAbhishek Jain\nTanmay Singal"
             app:title="Created by"
             app:widgetLayout="@android:layout/two_line_list_item" />
 
         <Preference
+            app:key="github"
             app:enableCopying="true"
             app:icon="@drawable/ic_baseline_code_24"
-            app:summary="https://github.com/delhitransit/"
-            app:title="Find us on GitHub"
+            app:summary="@string/github_url"
+            app:title="Find the code on GitHub"
             app:widgetLayout="@android:layout/two_line_list_item" />
 
+        <Preference
+            app:key="otd"
+            app:enableCopying="true"
+            app:icon="@drawable/ic_baseline_api_24"
+            app:summary="@string/otd_url"
+            app:title="Explore the Open Transit Delhi dataset"
+            app:widgetLayout="@android:layout/two_line_list_item" />
 
     </PreferenceCategory>
 
