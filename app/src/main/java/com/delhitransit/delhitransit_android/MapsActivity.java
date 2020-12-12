@@ -15,6 +15,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -47,6 +48,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -61,6 +63,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -87,6 +90,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String sourceBusStopName, destinationBusStopName;
     private HashMap<Marker, StopsResponseData> nearByBusStopsHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
+    private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,6 +135,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setSearchViewQueryAndSearchListener(searchView1, false);
         setSearchViewQueryAndSearchListener(searchView2, true);
         setRoutesBottomSheetDialog();
+
+        bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav.setOnNavigationItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.settings_tab_button) {
+                startActivity(AppActivity.navigateTo(MapsActivity.this, AppActivity.SETTINGS_FRAGMENT));
+                return true;
+            }
+            return true;
+        });
     }
 
     private void setRoutesBottomSheetDialog() {
@@ -466,6 +479,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         routesBottomSheetDialog.show();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.map_tab_button);
+        }
+    }
 
     @Override
     public void onTaskDone(Object... values) {
@@ -485,7 +505,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         progressBarVisibility(false);
     }
 
-
     private void showToast(String s) {
         showToast(s, "info");
     }
@@ -494,8 +513,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
         Log.e(TAG, about + "  : " + s);
     }
-
-
-
 
 }

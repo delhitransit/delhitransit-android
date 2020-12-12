@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Delhi Transit </string>
     <string name="title_activity_maps">Delhi Transit</string>
+    <string name="map_tab_title">Map</string>
+    <string name="settings_tab_title">Settings</string>
 </resources>
