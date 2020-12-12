@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 public class DelhiTransitApplication extends Application {
 
+    private static final String SERVER_IP_KEY = "serverIpAddress";
     private SharedPreferences sharedPreferences;
     private String DEFAULT_SERVER_IP;
 
@@ -17,8 +18,6 @@ public class DelhiTransitApplication extends Application {
             setServerIP(DEFAULT_SERVER_IP);
         }
     }
-
-    private static final String SERVER_IP_KEY = "serverIpAddress";
 
     public String getServerIP() {
         return sharedPreferences.getString(SERVER_IP_KEY, DEFAULT_SERVER_IP);

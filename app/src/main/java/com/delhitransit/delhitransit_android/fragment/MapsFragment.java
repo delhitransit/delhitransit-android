@@ -27,15 +27,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.R;
@@ -49,7 +40,6 @@ import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
-import com.github.ybq.android.spinkit.SpinKitView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -69,6 +59,16 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import jp.wasabeef.blurry.Blurry;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -119,7 +119,7 @@ public class MapsFragment extends Fragment implements TaskCompleteCallback {
     private Polyline currentPolyline;
     private ApiInterface apiService;
     private FloatingSearchView searchView1, searchView2;
-    private SpinKitView progressBar;
+    private CardView progressCardView;
     private Button bottomButton;
     private BottomSheetDialog routesBottomSheetDialog;
     private RecyclerView routesListRecycleView;
@@ -131,6 +131,7 @@ public class MapsFragment extends Fragment implements TaskCompleteCallback {
     private HashMap<Marker, StopsResponseData> nearByBusStopsHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
     private View parentView;
+    private ImageView blurView;
     private Context context;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
@@ -151,7 +152,10 @@ public class MapsFragment extends Fragment implements TaskCompleteCallback {
                     setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
                 }
                 return true;
-            });
+            });/*
+            new Handler().postDelayed(()->{
+                progressBarVisibility(true);
+            },10000);*/
 
         }
 
@@ -246,7 +250,8 @@ public class MapsFragment extends Fragment implements TaskCompleteCallback {
         searchView1 = parentView.findViewById(R.id.floating_bus_stop_search_view_1);
         searchView2 = parentView.findViewById(R.id.floating_bus_stop_search_view_2);
         bottomButton = parentView.findViewById(R.id.bottom_button);
-        progressBar = parentView.findViewById(R.id.progress_bar);
+        progressCardView = parentView.findViewById(R.id.progress_bar);
+        blurView = parentView.findViewById(R.id.blur_view);
 
         viewVisibility(searchView1, false);
         viewVisibility(searchView2, false);
@@ -279,7 +284,24 @@ public class MapsFragment extends Fragment implements TaskCompleteCallback {
     }
 
     private void progressBarVisibility(boolean visible) {
-        viewVisibility(progressBar, visible);
+        if (visible) {
+            mMap.snapshot(bitmap -> {
+                blurView.setVisibility(View.VISIBLE);
+                blurView.setImageBitmap(bitmap);
+
+                Blurry.with(context)
+                        .radius(15)
+                        .sampling(2)
+                        .onto(parentView.findViewById(R.id.main_layout));
+
+                viewVisibility(progressCardView, true);
+            });
+
+        } else {
+            blurView.setVisibility(View.GONE);
+            Blurry.delete(parentView.findViewById(R.id.main_layout));
+            viewVisibility(progressCardView, false);
+        }
     }
 
     private void setSearchViewQueryAndSearchListener(FloatingSearchView searchView, boolean isSecondSearchView) {
@@ -598,6 +620,5 @@ public class MapsFragment extends Fragment implements TaskCompleteCallback {
         Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
         Log.e(TAG, about + "  : " + s);
     }
-
 
 }
