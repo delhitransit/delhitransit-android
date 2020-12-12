@@ -74,10 +74,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static androidx.core.content.ContextCompat.checkSelfPermission;
-
 public class MapFragment extends Fragment implements TaskCompleteCallback {
 
     /**
@@ -137,7 +133,30 @@ public class MapFragment extends Fragment implements TaskCompleteCallback {
     private TextView noRoutesAvailableTextView;
     private View parentView;
     private Context context;
+    private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
+        @Override
+        public void onMapReady(GoogleMap googleMap) {
+            mMap = googleMap;
+
+            progressBarVisibility(false);
+            viewVisibility(searchView1, true);
+
+            LatLng latLng = new LatLng(28.6172368, 77.2059964);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
+
+            getUserLocation();
+            mMap.setPadding(100, 600, 100, 100);
+            mMap.setOnMarkerClickListener(marker -> {
+                if (nearByBusStopsHashMap.containsKey(marker)) {
+                    setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
+                }
+                return true;
+            });
+
+        }
+
+    };
 
     @Override
     public void onResume() {
@@ -204,38 +223,6 @@ public class MapFragment extends Fragment implements TaskCompleteCallback {
         }
         return actionBar;
     }
-
-
-
-/****************************************************************************************************************************************/
-
-
-
-
-    private final OnMapReadyCallback callback = new OnMapReadyCallback() {
-
-        @Override
-        public void onMapReady(GoogleMap googleMap) {
-            mMap = googleMap;
-
-            progressBarVisibility(false);
-            viewVisibility(searchView1, true);
-
-            LatLng latLng = new LatLng(28.6172368, 77.2059964);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-
-            getUserLocation();
-            mMap.setPadding(100, 600, 100, 100);
-            mMap.setOnMarkerClickListener(marker -> {
-                if (nearByBusStopsHashMap.containsKey(marker)) {
-                    setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
-                }
-                return true;
-            });
-
-        }
-
-    };
 
     @Nullable
     @Override
@@ -613,9 +600,6 @@ public class MapFragment extends Fragment implements TaskCompleteCallback {
         Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
         Log.e(TAG, about + "  : " + s);
     }
-
-
-
 
 
 }
