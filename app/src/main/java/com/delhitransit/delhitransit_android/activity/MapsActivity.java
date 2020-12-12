@@ -36,7 +36,6 @@ import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
-import com.github.ybq.android.spinkit.SpinKitView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -59,11 +58,16 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+<<<<<<< HEAD:app/src/main/java/com/delhitransit/delhitransit_android/activity/MapsActivity.java
 
+=======
+import jp.wasabeef.blurry.Blurry;
+>>>>>>> 5ee25f1 (progress bar with blur background added):app/src/main/java/com/delhitransit/delhitransit_android/MapsActivity.java
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -78,7 +82,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Polyline currentPolyline;
     private ApiInterface apiService;
     private FloatingSearchView searchView1, searchView2;
-    private SpinKitView progressBar;
+    private CardView progressCardView;
     private Button bottomButton;
     private BottomSheetDialog routesBottomSheetDialog;
     private RecyclerView routesListRecycleView;
@@ -90,7 +94,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String sourceBusStopName, destinationBusStopName;
     private HashMap<Marker, StopsResponseData> nearByBusStopsHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
+<<<<<<< HEAD:app/src/main/java/com/delhitransit/delhitransit_android/activity/MapsActivity.java
     private BottomNavigationView bottomNav;
+=======
+    private ImageView blurView;
+>>>>>>> 5ee25f1 (progress bar with blur background added):app/src/main/java/com/delhitransit/delhitransit_android/MapsActivity.java
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +107,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         apiService = ApiClient.getApiService(this);
 
+        blurView = findViewById(R.id.blur_view);
         setMapFragment();
         setStatusBar();
         init();
@@ -126,7 +135,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         searchView1 = findViewById(R.id.floating_bus_stop_search_view_1);
         searchView2 = findViewById(R.id.floating_bus_stop_search_view_2);
         bottomButton = findViewById(R.id.bottom_button);
-        progressBar = findViewById(R.id.progress_bar);
+        progressCardView = findViewById(R.id.progress_bar);
 
         viewVisibility(searchView1, false);
         viewVisibility(searchView2, false);
@@ -166,7 +175,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void progressBarVisibility(boolean visible) {
-        viewVisibility(progressBar, visible);
+        if (visible) {
+            mMap.snapshot(bitmap -> {
+                blurView.setVisibility(View.VISIBLE);
+                blurView.setImageBitmap(bitmap);
+
+                Blurry.with(MapsActivity.this)
+                        .radius(15)
+                        .sampling(2)
+                        .onto(findViewById(R.id.main_layout));
+
+                viewVisibility(progressCardView, true);
+            });
+
+        } else {
+            blurView.setVisibility(View.GONE);
+            Blurry.delete(findViewById(R.id.main_layout));
+            viewVisibility(progressCardView, false);
+        }
     }
 
     private void setSearchViewQueryAndSearchListener(FloatingSearchView searchView, boolean isSecondSearchView) {

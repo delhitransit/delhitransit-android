@@ -6,184 +6,103 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-        <fragment
-            android:id="@+id/map"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
+        <RelativeLayout
+            android:id="@+id/main_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context=".activity.MapsActivity" />
+            android:layout_height="match_parent">
 
-        <View
-            android:id="@+id/status_bar_bg"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_alignParentTop="true"
-            android:background="@color/semi_transparent" />
 
-        <!--<LinearLayout
-            android:id="@+id/try_layout_for_start"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/status_bar_bg"
-            android:background="@color/white"
-            android:orientation="vertical"
-            android:visibility="invisible">
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/search_card_view_2"
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="30dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginBottom="15dp"
-                android:visibility="gone"
-                app:cardBackgroundColor="@color/lighter_grey"
-                app:cardCornerRadius="5dp"
-                app:cardElevation="0dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                android:layout_height="match_parent"
+                tools:context=".MapsActivity" />
 
-                <androidx.appcompat.widget.SearchView
-                    android:id="@+id/bus_stop_search_view_2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:focusable="false"
-                    android:theme="@style/BusStopsSearchView"
-                    app:iconifiedByDefault="false"
-                    app:layout_constraintTop_toBottomOf="@+id/textView8"
-                    app:queryBackground="@android:color/transparent"
-                    app:queryHint="Search bus stops" />
-            </androidx.cardview.widget.CardView>
+            <ImageView
+                android:id="@+id/blur_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/black" />
 
-        </LinearLayout>
+            <View
+                android:id="@+id/status_bar_bg"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_alignParentTop="true"
+                android:background="@color/semi_transparent" />
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/search_card_view_1"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_below="@id/status_bar_bg"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="15dp"
-            app:cardBackgroundColor="@color/lighter_grey"
-            app:cardCornerRadius="5dp"
-            app:cardElevation="0dp"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-            &lt;!&ndash;
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_gravity="center"
-                        android:layout_height="wrap_content">
-
-                        <ImageView
-                            android:id="@+id/search_icon2_qna"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="5dp"
-                            android:padding="10dp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_search_24" />
-
-                        <EditText
-                            android:id="@+id/bus_stop_search_edit_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="10dp"
-                            android:background="@color/pm_transparent"
-                            android:hint="Search bus stops"
-                            android:maxLines="1"
-                            android:padding="5dp"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintHorizontal_bias="0.0"
-                            app:layout_constraintStart_toEndOf="@id/search_icon2_qna"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>&ndash;&gt;
-
-            <androidx.appcompat.widget.SearchView
-                android:id="@+id/bus_stop_search_view_1"
+            <com.arlib.floatingsearchview.FloatingSearchView
+                android:id="@+id/floating_bus_stop_search_view_1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:theme="@style/BusStopsSearchView"
-                android:visibility="gone"
-                app:iconifiedByDefault="false"
-                app:layout_constraintTop_toBottomOf="@+id/textView8"
-                app:queryBackground="@android:color/transparent"
-                app:queryHint="Search bus stops" />
-        </androidx.cardview.widget.CardView>-->
-
-        <com.arlib.floatingsearchview.FloatingSearchView
-            android:id="@+id/floating_bus_stop_search_view_1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/status_bar_bg"
-            app:floatingSearch_backgroundColor="@color/white"
-            app:floatingSearch_close_search_on_keyboard_dismiss="true"
-            app:floatingSearch_leftActionMode="showSearch"
-            app:floatingSearch_searchBarMarginLeft="10dp"
-            app:floatingSearch_searchBarMarginRight="10dp"
-            app:floatingSearch_searchBarMarginTop="20dp"
-            app:floatingSearch_searchHint="Search bus stops"
-            app:floatingSearch_showSearchKey="true"
-            app:floatingSearch_suggestionsListAnimDuration="250" />
+                android:layout_below="@id/status_bar_bg"
+                app:floatingSearch_backgroundColor="@color/white"
+                app:floatingSearch_close_search_on_keyboard_dismiss="true"
+                app:floatingSearch_leftActionMode="showSearch"
+                app:floatingSearch_searchBarMarginLeft="10dp"
+                app:floatingSearch_searchBarMarginRight="10dp"
+                app:floatingSearch_searchBarMarginTop="20dp"
+                app:floatingSearch_searchHint="Search bus stops"
+                app:floatingSearch_showSearchKey="true"
+                app:floatingSearch_suggestionsListAnimDuration="250" />
 
 
-        <com.arlib.floatingsearchview.FloatingSearchView
-            android:id="@+id/floating_bus_stop_search_view_2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/status_bar_bg"
-            android:animateLayoutChanges="true"
-            app:floatingSearch_backgroundColor="@color/white"
-            app:floatingSearch_close_search_on_keyboard_dismiss="true"
-            app:floatingSearch_leftActionMode="showSearch"
-            app:floatingSearch_searchBarMarginLeft="10dp"
-            app:floatingSearch_searchBarMarginRight="10dp"
-            app:floatingSearch_searchBarMarginTop="80dp"
-            app:floatingSearch_searchHint="Search bus stops"
-            app:floatingSearch_showSearchKey="true"
-            app:floatingSearch_suggestionsListAnimDuration="250" />
+            <com.arlib.floatingsearchview.FloatingSearchView
+                android:id="@+id/floating_bus_stop_search_view_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/status_bar_bg"
+                android:animateLayoutChanges="true"
+                app:floatingSearch_backgroundColor="@color/white"
+                app:floatingSearch_close_search_on_keyboard_dismiss="true"
+                app:floatingSearch_leftActionMode="showSearch"
+                app:floatingSearch_searchBarMarginLeft="10dp"
+                app:floatingSearch_searchBarMarginRight="10dp"
+                app:floatingSearch_searchBarMarginTop="80dp"
+                app:floatingSearch_searchHint="Search bus stops"
+                app:floatingSearch_showSearchKey="true"
+                app:floatingSearch_suggestionsListAnimDuration="250" />
 
-        <com.github.ybq.android.spinkit.SpinKitView
+            <Button
+                android:id="@+id/bottom_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="40dp"
+                android:backgroundTint="@color/colorPrimary"
+                android:onClick="showRoutesBottomSheet"
+                android:padding="15dp"
+                android:text="Show Routes"
+                android:textColor="@android:color/white" />
+
+
+        </RelativeLayout>
+
+        <androidx.cardview.widget.CardView
             android:id="@+id/progress_bar"
-            style="@style/SpinKitView.Large.ThreeBounce"
-            android:layout_width="200dp"
-            android:layout_height="80dp"
-            android:layout_centerInParent="true"
-            app:SpinKit_Color="@android:color/holo_green_light" />
+            android:layout_width="175dp"
+            android:layout_height="175dp"
+            android:layout_gravity="center"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="@dimen/dimen_10">
 
-        <Button
-            android:id="@+id/bottom_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="40dp"
-            android:backgroundTint="@color/colorPrimary"
-            android:onClick="showRoutesBottomSheet"
-            android:padding="15dp"
-            android:text="Show Routes"
-            android:textColor="@android:color/white" />
+            <com.github.ybq.android.spinkit.SpinKitView
+                style="@style/SpinKitView.Large.Wave"
+                android:layout_width="200dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                app:SpinKit_Color="@android:color/holo_red_dark" />
+        </androidx.cardview.widget.CardView>
 
-    </RelativeLayout>
+    </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
