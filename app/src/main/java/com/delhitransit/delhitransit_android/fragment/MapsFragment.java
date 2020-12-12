@@ -39,7 +39,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.activity.MapsActivity;
 import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
@@ -74,14 +73,14 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MapFragment extends Fragment implements TaskCompleteCallback {
+public class MapsFragment extends Fragment implements TaskCompleteCallback {
 
     /**
      * Some older devices needs a small delay between UI widget updates
      * and a change of the status and navigation bar.
      */
     private static final int UI_ANIMATION_DELAY = 300;
-    private static final String TAG = MapsActivity.class.getSimpleName();
+    private static final String TAG = MapsFragment.class.getSimpleName();
     private final Handler mHideHandler = new Handler();
     private final Runnable mHidePart2Runnable = () -> {
         // Delayed removal of status and navigation bar
@@ -227,10 +226,9 @@ public class MapFragment extends Fragment implements TaskCompleteCallback {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        parentView = inflater.inflate(R.layout.activity_maps, container, false);
+        parentView = inflater.inflate(R.layout.fragment_map, container, false);
         context = this.getContext();
         apiService = ApiClient.getApiService(context);
-
         setMapFragment();
         init();
 
