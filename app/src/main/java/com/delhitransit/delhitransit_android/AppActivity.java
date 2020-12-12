@@ -2,6 +2,9 @@ package com.delhitransit.delhitransit_android;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,13 +18,20 @@ public class AppActivity extends AppCompatActivity {
     public static final short SETTINGS_FRAGMENT = 0;
     private static final String INTENT_FRAGMENT_KEY = "fragmentKey";
 
+    private short currentFragment = SETTINGS_FRAGMENT;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app);
-
         BottomNavigationView bottomNav = (BottomNavigationView) findViewById(R.id.bottom_navigation);
-        bottomNav.setSelectedItemId(R.id.settings_tab_button);
+
+        currentFragment = getIntent().getShortExtra(INTENT_FRAGMENT_KEY, SETTINGS_FRAGMENT);
+        navigateTo(currentFragment);
+
+        if (currentFragment == SETTINGS_FRAGMENT)
+            bottomNav.setSelectedItemId(R.id.settings_tab_button);
+
         bottomNav.setOnNavigationItemSelectedListener(item -> {
             if (item.getItemId() == R.id.map_tab_button) {
                 onBackPressed();
@@ -30,6 +40,21 @@ public class AppActivity extends AppCompatActivity {
             return true;
         });
 
+    }
+
+    private void navigateTo(short fragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        Fragment frag;
+        switch (fragment) {
+            default:
+            case SETTINGS_FRAGMENT: {
+                frag = new SettingsFragment();
+                currentFragment = SETTINGS_FRAGMENT;
+                break;
+            }
+        }
+        transaction.replace(R.id.fragment_container, frag);
+        transaction.commit();
     }
 
     public static Intent navigateTo(Context source, short fragmentID) {
