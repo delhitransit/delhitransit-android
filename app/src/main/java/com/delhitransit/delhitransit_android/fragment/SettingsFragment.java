@@ -4,12 +4,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.delhitransit.delhitransit_android.R;
+
 import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
-
-import com.delhitransit.delhitransit_android.R;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
@@ -33,17 +33,17 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         String key = preference.getKey();
         if (key != null) {
             if (key.equals("github")) {
-                openWebpage(getString(R.string.github_url));
+                openWebPage(getString(R.string.github_url));
                 return true;
             } else if (key.equals("otd")) {
-                openWebpage(getString(R.string.otd_url));
+                openWebPage(getString(R.string.otd_url));
                 return true;
             }
         }
         return super.onPreferenceTreeClick(preference);
     }
 
-    private void openWebpage(String uri) {
+    private void openWebPage(String uri) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
         if (intent.resolveActivity(getContext().getPackageManager()) != null) {
             startActivity(intent);

@@ -25,10 +25,18 @@
             android:layout_height="match_parent"
             android:background="@color/black" />
 
+        <View
+            android:id="@+id/status_bar_bg"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_alignParentTop="true"
+            android:background="@color/semi_transparent" />
+
         <com.arlib.floatingsearchview.FloatingSearchView
             android:id="@+id/floating_bus_stop_search_view_1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/status_bar_bg"
             app:floatingSearch_backgroundColor="@color/white"
             app:floatingSearch_close_search_on_keyboard_dismiss="true"
             app:floatingSearch_leftActionMode="showSearch"
@@ -43,6 +51,7 @@
         <com.arlib.floatingsearchview.FloatingSearchView
             android:id="@+id/floating_bus_stop_search_view_2"
             android:layout_width="match_parent"
+            android:layout_below="@id/status_bar_bg"
             android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
             app:floatingSearch_backgroundColor="@color/white"
