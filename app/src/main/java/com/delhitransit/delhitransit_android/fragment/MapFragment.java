@@ -1,5 +1,6 @@
 package com.delhitransit.delhitransit_android.fragment;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -77,7 +78,7 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static androidx.core.content.ContextCompat.checkSelfPermission;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback, TaskCompleteCallback {
+public class MapFragment extends Fragment implements TaskCompleteCallback {
 
     /**
      * Some older devices needs a small delay between UI widget updates
@@ -137,28 +138,122 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, TaskCom
     private View parentView;
     private Context context;
 
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getActivity() != null && getActivity().getWindow() != null) {
+            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        }
+        // Trigger the initial hide() shortly after the activity has been
+        // created, to briefly hint to the user that UI controls
+        // are available.
+        delayedHide();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (getActivity() != null && getActivity().getWindow() != null) {
+            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
+            // Clear the systemUiVisibility flag
+            getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
+        }
+        show();
+    }
+
+    private void hide() {
+        // Hide UI first
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+
+        // Schedule a runnable to remove the status and navigation bar after a delay
+        mHideHandler.removeCallbacks(mShowPart2Runnable);
+        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
+    }
+
+    @SuppressLint("InlinedApi")
+    private void show() {
+        // Schedule a runnable to display UI elements after a delay
+        mHideHandler.removeCallbacks(mHidePart2Runnable);
+        mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.show();
+        }
+    }
+
+    /**
+     * Schedules a call to hide() in delay milliseconds, canceling any
+     * previously scheduled calls.
+     */
+    private void delayedHide() {
+        mHideHandler.removeCallbacks(this::hide);
+        mHideHandler.postDelayed(this::hide, 100);
+    }
+
+    @Nullable
+    private ActionBar getSupportActionBar() {
+        ActionBar actionBar = null;
+        if (getActivity() instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+            actionBar = activity.getSupportActionBar();
+        }
+        return actionBar;
+    }
+
+
+
+/****************************************************************************************************************************************/
+
+
+
+
+    private final OnMapReadyCallback callback = new OnMapReadyCallback() {
+
+        @Override
+        public void onMapReady(GoogleMap googleMap) {
+            mMap = googleMap;
+
+            progressBarVisibility(false);
+            viewVisibility(searchView1, true);
+
+            LatLng latLng = new LatLng(28.6172368, 77.2059964);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
+
+            getUserLocation();
+            mMap.setPadding(100, 600, 100, 100);
+            mMap.setOnMarkerClickListener(marker -> {
+                if (nearByBusStopsHashMap.containsKey(marker)) {
+                    setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
+                }
+                return true;
+            });
+
+        }
+
+    };
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        context = getContext();
-        parentView = inflater.inflate(R.layout.fragment_map, container, false);
-        apiService = ApiClient.getApiService(this.getContext());
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        parentView = inflater.inflate(R.layout.activity_maps, container, false);
+        context = this.getContext();
+        apiService = ApiClient.getApiService(context);
+
         setMapFragment();
         init();
+
         return parentView;
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
     private void setMapFragment() {
-        SupportMapFragment mapFragment = (SupportMapFragment) this.getActivity().getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
+            mapFragment.getMapAsync(callback);
         }
     }
 
@@ -175,6 +270,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, TaskCom
         setSearchViewQueryAndSearchListener(searchView1, false);
         setSearchViewQueryAndSearchListener(searchView2, true);
         setRoutesBottomSheetDialog();
+
+        bottomButton.setOnClickListener(this::showRoutesBottomSheet);
     }
 
     private void setRoutesBottomSheetDialog() {
@@ -362,6 +459,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, TaskCom
         }
     }
 
+    //TODO fix??
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -382,27 +480,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, TaskCom
                 Toast.makeText(context, "Permission Denied", Toast.LENGTH_LONG).show();
             }
         }
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        progressBarVisibility(false);
-        viewVisibility(searchView1, true);
-
-        LatLng latLng = new LatLng(28.6172368, 77.2059964);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-
-        getUserLocation();
-        mMap.setPadding(100, 600, 100, 100);
-        mMap.setOnMarkerClickListener(marker -> {
-            if (nearByBusStopsHashMap.containsKey(marker)) {
-                setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
-            }
-            return true;
-        });
-
     }
 
     private void getUserLocation() {
@@ -455,11 +532,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, TaskCom
     }
 
     private boolean checkPermissions() {
-        return checkSelfPermission(context, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(context, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestPermissions() {
-        ActivityCompat.requestPermissions(this.getActivity(), new String[]{ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
     }
 
     private void setNearByBusStopsWithInDistance(double userLatitude, double userLongitude, double dist) {
@@ -538,69 +615,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, TaskCom
     }
 
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (getActivity() != null && getActivity().getWindow() != null) {
-            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        }
-        // Trigger the initial hide() shortly after the activity has been
-        // created, to briefly hint to the user that UI controls
-        // are available.
-        delayedHide();
-    }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (getActivity() != null && getActivity().getWindow() != null) {
-            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
-            // Clear the systemUiVisibility flag
-            getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
-        }
-        show();
-    }
 
-    private void hide() {
-        // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
-
-        // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.removeCallbacks(mShowPart2Runnable);
-        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Schedule a runnable to display UI elements after a delay
-        mHideHandler.removeCallbacks(mHidePart2Runnable);
-        mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.show();
-        }
-    }
-
-    /**
-     * Schedules a call to hide() in delay milliseconds, canceling any
-     * previously scheduled calls.
-     */
-    private void delayedHide() {
-        mHideHandler.removeCallbacks(this::hide);
-        mHideHandler.postDelayed(this::hide, 100);
-    }
-
-    @Nullable
-    private ActionBar getSupportActionBar() {
-        ActionBar actionBar = null;
-        if (getActivity() instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) getActivity();
-            actionBar = activity.getSupportActionBar();
-        }
-        return actionBar;
-    }
 }
