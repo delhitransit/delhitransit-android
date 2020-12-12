@@ -3,12 +3,7 @@
     <string name="title_activity_maps">Delhi Transit</string>
     <string name="map_tab_title">Map</string>
     <string name="settings_tab_title">Settings</string>
-    <!-- Preference Titles -->
     <string name="server_header">Server</string>
     <string name="credits_header">Credits</string>
-
-    <!-- Messages Preferences -->
     <string name="server_ip_title">Server IP address or DNS name</string>
-    <string name="reply_title">Default reply action</string>
-
 </resources>

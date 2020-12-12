@@ -1,23 +1,32 @@
 package com.delhitransit.delhitransit_android.activity;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class AppActivity extends AppCompatActivity {
 
-    public static final short SETTINGS_FRAGMENT = 0;
+    public static final short MAPS_FRAGMENT = 0;
+    public static final short SETTINGS_FRAGMENT = 1;
     private static final String INTENT_FRAGMENT_KEY = "fragmentKey";
 
-    private short currentFragment = SETTINGS_FRAGMENT;
+    private short currentFragment = MAPS_FRAGMENT;
+
+    public static Intent navigateTo(Context source, short fragmentID) {
+        Intent intent = new Intent(source, AppActivity.class);
+        intent.putExtra(INTENT_FRAGMENT_KEY, fragmentID);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,16 +34,26 @@ public class AppActivity extends AppCompatActivity {
         setContentView(R.layout.activity_app);
         BottomNavigationView bottomNav = (BottomNavigationView) findViewById(R.id.bottom_navigation);
 
-        currentFragment = getIntent().getShortExtra(INTENT_FRAGMENT_KEY, SETTINGS_FRAGMENT);
+        currentFragment = getIntent().getShortExtra(INTENT_FRAGMENT_KEY, MAPS_FRAGMENT);
         navigateTo(currentFragment);
 
-        if (currentFragment == SETTINGS_FRAGMENT)
-            bottomNav.setSelectedItemId(R.id.settings_tab_button);
+        switch (currentFragment) {
+            case SETTINGS_FRAGMENT:
+                bottomNav.setSelectedItemId(R.id.settings_tab_button);
+                break;
+            case MAPS_FRAGMENT:
+                bottomNav.setSelectedItemId(R.id.map_tab_button);
+                break;
+        }
 
         bottomNav.setOnNavigationItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.map_tab_button) {
-                onBackPressed();
-                return true;
+            switch (item.getItemId()) {
+                case R.id.map_tab_button:
+                    navigateTo(MAPS_FRAGMENT);
+                    return true;
+                case R.id.settings_tab_button:
+                    navigateTo(SETTINGS_FRAGMENT);
+                    return true;
             }
             return true;
         });
@@ -46,6 +65,11 @@ public class AppActivity extends AppCompatActivity {
         Fragment frag;
         switch (fragment) {
             default:
+            case MAPS_FRAGMENT: {
+                frag = new MapsFragment();
+                currentFragment = MAPS_FRAGMENT;
+                break;
+            }
             case SETTINGS_FRAGMENT: {
                 frag = new SettingsFragment();
                 currentFragment = SETTINGS_FRAGMENT;
@@ -54,12 +78,5 @@ public class AppActivity extends AppCompatActivity {
         }
         transaction.replace(R.id.fragment_container, frag);
         transaction.commit();
-    }
-
-    public static Intent navigateTo(Context source, short fragmentID) {
-        Intent intent = new Intent(source, AppActivity.class);
-        intent.putExtra(INTENT_FRAGMENT_KEY, fragmentID);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        return intent;
     }
 }

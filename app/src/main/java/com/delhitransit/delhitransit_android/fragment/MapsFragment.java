@@ -1,6 +1,8 @@
-package com.delhitransit.delhitransit_android.activity;
+package com.delhitransit.delhitransit_android.fragment;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,18 +12,29 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
@@ -48,7 +61,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -57,23 +69,52 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, TaskCompleteCallback {
+public class MapsFragment extends Fragment implements TaskCompleteCallback {
 
-    private static final String TAG = MapsActivity.class.getSimpleName();
+    /**
+     * Some older devices needs a small delay between UI widget updates
+     * and a change of the status and navigation bar.
+     */
+    private static final int UI_ANIMATION_DELAY = 300;
+    private static final String TAG = MapsFragment.class.getSimpleName();
+    private final Handler mHideHandler = new Handler();
+    private final Runnable mHidePart2Runnable = () -> {
+        // Delayed removal of status and navigation bar
+
+        // Note that some of these constants are new as of API 16 (Jelly Bean)
+        // and API 19 (KitKat). It is safe to use them, as they are inlined
+        // at compile-time and do nothing on earlier devices.
+        int flags = View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+
+        Activity activity = getActivity();
+        if (activity != null
+                && activity.getWindow() != null) {
+            activity.getWindow().getDecorView().setSystemUiVisibility(flags);
+        }
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+
+    };
+    private final Runnable mShowPart2Runnable = () -> {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.show();
+        }
+    };
     private final int LOCATION_PERMISSION_REQUEST_CODE = 101;
     private final int LOCATION_ON_REQUEST_CODE = 101;
-
+    private final List<RouteDetailForAdapter> routesList = new ArrayList<>();
     private GoogleMap mMap;
     private Polyline currentPolyline;
     private ApiInterface apiService;
@@ -83,50 +124,129 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private BottomSheetDialog routesBottomSheetDialog;
     private RecyclerView routesListRecycleView;
     private RoutesListAdapter routesListAdapter;
-    private List<RouteDetailForAdapter> routesList = new ArrayList<>();
     private String currQuery = "";
     private Integer sourceId, destinationId;
     private LatLng source, destination, userLocation;
     private String sourceBusStopName, destinationBusStopName;
     private HashMap<Marker, StopsResponseData> nearByBusStopsHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
-    private BottomNavigationView bottomNav;
+    private View parentView;
+    private Context context;
+    private final OnMapReadyCallback callback = new OnMapReadyCallback() {
+
+        @Override
+        public void onMapReady(GoogleMap googleMap) {
+            mMap = googleMap;
+
+            progressBarVisibility(false);
+            viewVisibility(searchView1, true);
+
+            LatLng latLng = new LatLng(28.6172368, 77.2059964);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
+
+            getUserLocation();
+            mMap.setPadding(100, 600, 100, 100);
+            mMap.setOnMarkerClickListener(marker -> {
+                if (nearByBusStopsHashMap.containsKey(marker)) {
+                    setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
+                }
+                return true;
+            });
+
+        }
+
+    };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
+    public void onResume() {
+        super.onResume();
+        if (getActivity() != null && getActivity().getWindow() != null) {
+            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        }
+        // Trigger the initial hide() shortly after the activity has been
+        // created, to briefly hint to the user that UI controls
+        // are available.
+        delayedHide();
+    }
 
-        apiService = ApiClient.getApiService(this);
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (getActivity() != null && getActivity().getWindow() != null) {
+            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
+            // Clear the systemUiVisibility flag
+            getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
+        }
+        show();
+    }
+
+    private void hide() {
+        // Hide UI first
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+
+        // Schedule a runnable to remove the status and navigation bar after a delay
+        mHideHandler.removeCallbacks(mShowPart2Runnable);
+        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
+    }
+
+    @SuppressLint("InlinedApi")
+    private void show() {
+        // Schedule a runnable to display UI elements after a delay
+        mHideHandler.removeCallbacks(mHidePart2Runnable);
+        mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.show();
+        }
+    }
+
+    /**
+     * Schedules a call to hide() in delay milliseconds, canceling any
+     * previously scheduled calls.
+     */
+    private void delayedHide() {
+        mHideHandler.removeCallbacks(this::hide);
+        mHideHandler.postDelayed(this::hide, 100);
+    }
+
+    @Nullable
+    private ActionBar getSupportActionBar() {
+        ActionBar actionBar = null;
+        if (getActivity() instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+            actionBar = activity.getSupportActionBar();
+        }
+        return actionBar;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        parentView = inflater.inflate(R.layout.fragment_map, container, false);
+        context = this.getContext();
+        apiService = ApiClient.getApiService(context);
         setMapFragment();
-        setStatusBar();
         init();
 
+        return parentView;
     }
 
     private void setMapFragment() {
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
+            mapFragment.getMapAsync(callback);
         }
-    }
-
-    private void setStatusBar() {
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            int statusBarHeight = getResources().getDimensionPixelSize(resourceId);
-            findViewById(R.id.status_bar_bg).setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, statusBarHeight));
-        }
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
 
     private void init() {
-        searchView1 = findViewById(R.id.floating_bus_stop_search_view_1);
-        searchView2 = findViewById(R.id.floating_bus_stop_search_view_2);
-        bottomButton = findViewById(R.id.bottom_button);
-        progressBar = findViewById(R.id.progress_bar);
+        searchView1 = parentView.findViewById(R.id.floating_bus_stop_search_view_1);
+        searchView2 = parentView.findViewById(R.id.floating_bus_stop_search_view_2);
+        bottomButton = parentView.findViewById(R.id.bottom_button);
+        progressBar = parentView.findViewById(R.id.progress_bar);
 
         viewVisibility(searchView1, false);
         viewVisibility(searchView2, false);
@@ -136,27 +256,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setSearchViewQueryAndSearchListener(searchView2, true);
         setRoutesBottomSheetDialog();
 
-        bottomNav = findViewById(R.id.bottom_navigation);
-        bottomNav.setOnNavigationItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.settings_tab_button) {
-                startActivity(AppActivity.navigateTo(MapsActivity.this, AppActivity.SETTINGS_FRAGMENT));
-                return true;
-            }
-            return true;
-        });
+        bottomButton.setOnClickListener(this::showRoutesBottomSheet);
     }
 
     private void setRoutesBottomSheetDialog() {
-        routesBottomSheetDialog = new BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
+        routesBottomSheetDialog = new BottomSheetDialog(context, R.style.BottomSheetDialogTheme);
         routesBottomSheetDialog.setContentView(getLayoutInflater().inflate(R.layout.routes_bottom_sheet_view, null));
 
         routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
         noRoutesAvailableTextView = routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view);
-        routesListAdapter = new RoutesListAdapter(this, routesList, () -> {
+        routesListAdapter = new RoutesListAdapter(context, routesList, () -> {
             progressBarVisibility(true);
             routesBottomSheetDialog.dismiss();
         });
-        routesListRecycleView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        routesListRecycleView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         routesListRecycleView.setAdapter(routesListAdapter);
 
     }
@@ -245,7 +358,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 );
             }
-            textView.setTextColor(getColor(R.color.black));
+            textView.setTextColor(context.getColor(R.color.black));
             textView.setText(content);
         });
     }
@@ -327,12 +440,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void addMarkerIfNotNull(LatLng latLng, String s) {
         if (latLng != null) {
-            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, s).getBitmap())).position(latLng));
+            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, s).getBitmap())).position(latLng));
         }
     }
 
+    //TODO fix??
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == LOCATION_ON_REQUEST_CODE) {
             getUserLocation();
@@ -348,35 +462,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getUserLocation();
             } else {
-                Toast.makeText(this, "Permission Denied", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Permission Denied", Toast.LENGTH_LONG).show();
             }
         }
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        progressBarVisibility(false);
-        viewVisibility(searchView1, true);
-
-        LatLng latLng = new LatLng(28.6172368, 77.2059964);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-
-        getUserLocation();
-        mMap.setPadding(100, 600, 100, 100);
-        mMap.setOnMarkerClickListener(marker -> {
-            if (nearByBusStopsHashMap.containsKey(marker)) {
-                setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
-            }
-            return true;
-        });
-
-    }
-
     private void getUserLocation() {
         if (checkPermissions()) {
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             if (isLocationEnabled(locationManager)) {
                 try {
                     progressBarVisibility(true);
@@ -410,7 +503,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     e.printStackTrace();
                 }
             } else {
-                Snackbar.make(findViewById(R.id.map), "Please turn on your location", Snackbar.LENGTH_LONG)
+                Snackbar.make(parentView.findViewById(R.id.map), "Please turn on your location", Snackbar.LENGTH_LONG)
                         .setAction("TURN ON", v -> {
                             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                             startActivityForResult(intent, LOCATION_ON_REQUEST_CODE);
@@ -424,11 +517,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private boolean checkPermissions() {
-        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestPermissions() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
     }
 
     private void setNearByBusStopsWithInDistance(double userLatitude, double userLongitude, double dist) {
@@ -444,7 +537,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     builder.include(new LatLng(userLatitude, userLongitude));
                                     for (StopsResponseData data : response.body()) {
                                         LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
-                                        Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(MapsActivity.this, data.getName(), Color.RED).getBitmap())));
+                                        Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, data.getName(), Color.RED).getBitmap())));
                                         nearByBusStopsHashMap.put(marker, data);
                                         builder.include(latLng);
                                     }
@@ -466,7 +559,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setUserLocation() {
         if (userLocation != null) {
-            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this, "Your location ").getBitmap())).position(userLocation));
+            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, "Your location ").getBitmap())).position(userLocation));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 17));
         }
     }
@@ -480,22 +573,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        if (bottomNav != null) {
-            bottomNav.setSelectedItemId(R.id.map_tab_button);
-        }
-    }
-
-    @Override
     public void onTaskDone(Object... values) {
         if (!(values[0] instanceof Boolean)) {
             if (currentPolyline != null)
                 currentPolyline.remove();
             currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
-            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(0)));
+            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(0)));
             marker.setZIndex(2);
-            marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(this).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(currentPolyline.getPoints().size() - 1)));
+            marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(currentPolyline.getPoints().size() - 1)));
             marker.setZIndex(2);
         } else {
             routesBottomSheetDialog.dismiss();
@@ -510,8 +595,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void showToast(String s, String about) {
-        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
         Log.e(TAG, about + "  : " + s);
     }
+
 
 }
