@@ -24,10 +24,10 @@ public class ApiClient {
             serverIp = ((DelhiTransitApplication) context.getApplicationContext()).getServerIP();
         }
 
-        OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
-                .readTimeout(2, TimeUnit.MINUTES)
-                .connectTimeout(2, TimeUnit.MINUTES);
         if (retrofit == null) {
+            OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
+                    .readTimeout(2, TimeUnit.MINUTES)
+                    .connectTimeout(2, TimeUnit.MINUTES);
             retrofit = new Retrofit.Builder()
                     .baseUrl(serverIp)
                     .addConverterFactory(GsonConverterFactory.create())
