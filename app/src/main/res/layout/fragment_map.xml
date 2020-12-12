@@ -4,10 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/fullscreenBackgroundColor"
     android:orientation="vertical"
     android:theme="@style/ThemeOverlay.DelhiTransitAndroid.FullscreenContainer"
-    tools:context=".fragment.MapFragment">
+    tools:context=".fragment.MapsFragment">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/map"
@@ -15,13 +14,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".activity.MapsActivity" />
-
-    <View
-        android:id="@+id/status_bar_bg"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_alignParentTop="true"
-        android:background="@color/semi_transparent" />
 
     <!--<LinearLayout
         android:id="@+id/try_layout_for_start"
@@ -132,7 +124,6 @@
         android:id="@+id/floating_bus_stop_search_view_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/status_bar_bg"
         app:floatingSearch_backgroundColor="@color/white"
         app:floatingSearch_close_search_on_keyboard_dismiss="true"
         app:floatingSearch_leftActionMode="showSearch"
@@ -147,7 +138,6 @@
         android:id="@+id/floating_bus_stop_search_view_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/status_bar_bg"
         android:animateLayoutChanges="true"
         app:floatingSearch_backgroundColor="@color/white"
         app:floatingSearch_close_search_on_keyboard_dismiss="true"
@@ -175,7 +165,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="40dp"
         android:backgroundTint="@color/colorPrimary"
-        android:onClick="showRoutesBottomSheet"
         android:padding="15dp"
         android:text="Show Routes"
         android:textColor="@android:color/white" />
