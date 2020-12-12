@@ -10,5 +10,7 @@
     <!-- Messages Preferences -->
     <string name="server_ip_title">Server IP address or DNS name</string>
     <string name="reply_title">Default reply action</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 
 </resources>

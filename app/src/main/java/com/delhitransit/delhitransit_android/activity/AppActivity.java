@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.fragment.MapFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -47,7 +48,7 @@ public class AppActivity extends AppCompatActivity {
         switch (fragment) {
             default:
             case SETTINGS_FRAGMENT: {
-                frag = new SettingsFragment();
+                frag = new MapFragment();
                 currentFragment = SETTINGS_FRAGMENT;
                 break;
             }
