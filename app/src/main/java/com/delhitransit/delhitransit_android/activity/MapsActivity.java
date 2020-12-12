@@ -63,11 +63,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-<<<<<<< HEAD:app/src/main/java/com/delhitransit/delhitransit_android/activity/MapsActivity.java
-
-=======
 import jp.wasabeef.blurry.Blurry;
->>>>>>> 5ee25f1 (progress bar with blur background added):app/src/main/java/com/delhitransit/delhitransit_android/MapsActivity.java
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -94,11 +90,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String sourceBusStopName, destinationBusStopName;
     private HashMap<Marker, StopsResponseData> nearByBusStopsHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
-<<<<<<< HEAD:app/src/main/java/com/delhitransit/delhitransit_android/activity/MapsActivity.java
     private BottomNavigationView bottomNav;
-=======
     private ImageView blurView;
->>>>>>> 5ee25f1 (progress bar with blur background added):app/src/main/java/com/delhitransit/delhitransit_android/MapsActivity.java
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
