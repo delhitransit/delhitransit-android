@@ -38,7 +38,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
     implementation 'com.github.arimorty:floatingsearchview:2.1.1'
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
     implementation 'jp.wasabeef:blurry:4.0.0'

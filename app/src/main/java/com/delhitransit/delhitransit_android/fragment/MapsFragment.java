@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import jp.wasabeef.blurry.Blurry;
+import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -93,6 +94,7 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
     private View parentView;
     private ImageView blurView;
     private Context context;
+    private MaterialProgressBar horizontalProgressBar;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -146,6 +148,7 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
         bottomButton = parentView.findViewById(R.id.bottom_button);
         progressCardView = parentView.findViewById(R.id.progress_bar);
         blurView = parentView.findViewById(R.id.blur_view);
+        horizontalProgressBar = parentView.findViewById(R.id.horizontal_loading_bar);
 
         viewVisibility(searchView1, false);
         viewVisibility(searchView2, false);
@@ -388,12 +391,11 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
             LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             if (isLocationEnabled(locationManager)) {
                 try {
-                    progressBarVisibility(true);
+                    horizontalProgressBar.setVisibility(View.VISIBLE);
                     locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new LocationListener() {
                         @Override
                         public void onLocationChanged(Location location) {
                             userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                            progressBarVisibility(false);
                             setUserLocation();
                             setNearByBusStopsWithInDistance(userLocation.latitude, userLocation.longitude, 1);
                         }
@@ -417,6 +419,8 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
                 } catch (SecurityException e) {
                     Log.e(TAG, "getLastLocation: " + e.getMessage());
                     e.printStackTrace();
+                } finally {
+                    horizontalProgressBar.setVisibility(View.GONE);
                 }
             } else {
                 Snackbar.make(parentView.findViewById(R.id.map), "Please turn on your location", Snackbar.LENGTH_LONG)
