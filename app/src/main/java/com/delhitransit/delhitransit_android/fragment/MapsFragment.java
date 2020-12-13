@@ -40,7 +40,6 @@ import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
-import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
@@ -64,11 +63,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import jp.wasabeef.blurry.Blurry;
+import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MapsFragment extends FullScreenFragment implements TaskCompleteCallback {
+public class MapsFragment extends FullScreenFragment {
 
     private static final String TAG = MapsFragment.class.getSimpleName();
 
@@ -93,6 +93,7 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
     private View parentView;
     private ImageView blurView;
     private Context context;
+    private MaterialProgressBar horizontalProgressBar;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -146,6 +147,7 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
         bottomButton = parentView.findViewById(R.id.bottom_button);
         progressCardView = parentView.findViewById(R.id.progress_bar);
         blurView = parentView.findViewById(R.id.blur_view);
+        horizontalProgressBar = parentView.findViewById(R.id.horizontal_loading_bar);
 
         viewVisibility(searchView1, false);
         viewVisibility(searchView2, false);
@@ -167,6 +169,21 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
         routesListAdapter = new RoutesListAdapter(context, routesList, () -> {
             progressBarVisibility(true);
             routesBottomSheetDialog.dismiss();
+        }, values -> {
+            if (!(values[0] instanceof Boolean)) {
+                if (currentPolyline != null)
+                    currentPolyline.remove();
+                currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+                Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(0)));
+                marker.setZIndex(2);
+                marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(currentPolyline.getPoints().size() - 1)));
+                marker.setZIndex(2);
+            } else {
+                routesBottomSheetDialog.dismiss();
+                showToast("Route plotting not available for this trip");
+            }
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(source).include(destination).build(), 0));
+            progressBarVisibility(false);
         });
         routesListRecycleView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         routesListRecycleView.setAdapter(routesListAdapter);
@@ -179,6 +196,7 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
 
     private void progressBarVisibility(boolean visible) {
         if (visible) {
+            horizontalProgressBar.setVisibility(View.GONE);
             mMap.snapshot(bitmap -> {
                 blurView.setVisibility(View.VISIBLE);
                 blurView.setImageBitmap(bitmap);
@@ -388,12 +406,12 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
             LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             if (isLocationEnabled(locationManager)) {
                 try {
-                    progressBarVisibility(true);
+                    horizontalProgressBar.setVisibility(View.VISIBLE);
                     locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new LocationListener() {
                         @Override
                         public void onLocationChanged(Location location) {
+                            horizontalProgressBar.setVisibility(View.GONE);
                             userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                            progressBarVisibility(false);
                             setUserLocation();
                             setNearByBusStopsWithInDistance(userLocation.latitude, userLocation.longitude, 1);
                         }
@@ -417,6 +435,7 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
                 } catch (SecurityException e) {
                     Log.e(TAG, "getLastLocation: " + e.getMessage());
                     e.printStackTrace();
+                    horizontalProgressBar.setVisibility(View.GONE);
                 }
             } else {
                 Snackbar.make(parentView.findViewById(R.id.map), "Please turn on your location", Snackbar.LENGTH_LONG)
@@ -425,6 +444,7 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
                             startActivityForResult(intent, LOCATION_ON_REQUEST_CODE);
                         })
                         .show();
+                horizontalProgressBar.setVisibility(View.GONE);
             }
 
         } else {
@@ -489,24 +509,6 @@ public class MapsFragment extends FullScreenFragment implements TaskCompleteCall
 
     public void showRoutesBottomSheet(View view) {
         routesBottomSheetDialog.show();
-    }
-
-    @Override
-    public void onTaskDone(Object... values) {
-        if (!(values[0] instanceof Boolean)) {
-            if (currentPolyline != null)
-                currentPolyline.remove();
-            currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
-            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(0)));
-            marker.setZIndex(2);
-            marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(currentPolyline.getPoints().size() - 1)));
-            marker.setZIndex(2);
-        } else {
-            routesBottomSheetDialog.dismiss();
-            showToast("Route plotting not available for this trip");
-        }
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(source).include(destination).build(), 0));
-        progressBarVisibility(false);
     }
 
     private void showToast(String s) {
