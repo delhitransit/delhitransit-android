@@ -19,7 +19,9 @@ import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,13 +33,6 @@ public class AppActivity extends AppCompatActivity {
     private static final String INTENT_FRAGMENT_KEY = "fragmentKey";
     private final HashMap<Short, Fragment> fragmentMap = new HashMap<>();
     private short currentFragment = MAPS_FRAGMENT;
-
-    public static Intent navigateTo(Context source, short fragmentID) {
-        Intent intent = new Intent(source, AppActivity.class);
-        intent.putExtra(INTENT_FRAGMENT_KEY, fragmentID);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        return intent;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +66,6 @@ public class AppActivity extends AppCompatActivity {
             }
             return true;
         });
-
     }
 
     @Override
@@ -79,13 +73,21 @@ public class AppActivity extends AppCompatActivity {
         super.onStart();
         new Thread(() -> {
             if (!isNetworkConnected()) {
-                new MaterialAlertDialogBuilder(this)
+                runOnUiThread(() -> new MaterialAlertDialogBuilder(this)
                         .setTitle("Device offline")
                         .setMessage("Please turn on your mobile data or connect to a WiFi network")
                         .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
-                        .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                        .setPositiveButton("Turn on WiFi", (dialog, which) -> {
                             startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
-                        }).show();
+                        }).show());
+            } else if (!isServerReachable()) {
+                runOnUiThread(() -> new MaterialAlertDialogBuilder(this)
+                        .setTitle("Server unreachable")
+                        .setMessage("Cannot connect to remote server. You can change the server IP or try again in a little while")
+                        .setNegativeButton("Dismiss", (dialog, which) -> dialog.dismiss())
+                        .setPositiveButton("Change IP address", (dialog, which) -> {
+                            findViewById(R.id.settings_tab_button).performClick();
+                        }).show());
             }
         }).start();
     }
@@ -95,12 +97,16 @@ public class AppActivity extends AppCompatActivity {
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
     }
 
-    public boolean isInternetAvailable() {
+    public boolean isServerReachable() {
         try {
-            DelhiTransitApplication application = (DelhiTransitApplication) getApplication();
-            InetAddress ipAddr = InetAddress.getByName(application.getServerIP());
-            return !ipAddr.toString().isEmpty();
+            URL serverIP = new URL(((DelhiTransitApplication) getApplication()).getServerIP());
+            Socket socket = new Socket();
+            int port = serverIP.getPort();
+            socket.connect(new InetSocketAddress(serverIP.getHost(), port == -1 ? 80 : port), 5000);
+            socket.close();
+            return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
