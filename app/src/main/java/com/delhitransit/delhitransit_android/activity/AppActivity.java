@@ -3,10 +3,10 @@ package com.delhitransit.delhitransit_android.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.delhitransit.delhitransit_android.R;
@@ -15,6 +15,7 @@ import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class AppActivity extends AppCompatActivity {
 
@@ -41,11 +42,11 @@ public class AppActivity extends AppCompatActivity {
         navigateTo(currentFragment);
 
         switch (currentFragment) {
-            case SETTINGS_FRAGMENT:
-                bottomNav.setSelectedItemId(R.id.settings_tab_button);
-                break;
             case MAPS_FRAGMENT:
                 bottomNav.setSelectedItemId(R.id.map_tab_button);
+                break;
+            case SETTINGS_FRAGMENT:
+                bottomNav.setSelectedItemId(R.id.settings_tab_button);
                 break;
         }
 
@@ -62,20 +63,43 @@ public class AppActivity extends AppCompatActivity {
     }
 
     private void navigateTo(short fragmentId) {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        FragmentManager manager = getSupportFragmentManager();
+        List<Fragment> managerFragments = manager.getFragments();
+        FragmentTransaction transaction = manager.beginTransaction();
+
+        short previousFragment = currentFragment;
+
+        Fragment prevFragment = fragmentMap.get(previousFragment);
+
+        if (prevFragment != null && managerFragments.contains(prevFragment)) {
+            prevFragment.onPause();
+            transaction.hide(prevFragment);
+        }
+
         switch (fragmentId) {
             default:
             case MAPS_FRAGMENT: {
-                fragmentMap.put(MAPS_FRAGMENT, fragmentMap.getOrDefault(MAPS_FRAGMENT, new MapsFragment()));
-                currentFragment = MAPS_FRAGMENT;
+                showOrAddFragmentTransaction(MAPS_FRAGMENT, new MapsFragment(), managerFragments, transaction);
+                break;
             }
             case SETTINGS_FRAGMENT: {
-                fragmentMap.put(SETTINGS_FRAGMENT, fragmentMap.getOrDefault(SETTINGS_FRAGMENT, new SettingsFragment()));
-                currentFragment = SETTINGS_FRAGMENT;
+                showOrAddFragmentTransaction(SETTINGS_FRAGMENT, new SettingsFragment(), managerFragments, transaction);
+                break;
             }
         }
-        Fragment fragment = fragmentMap.getOrDefault(fragmentId, fragmentMap.get(MAPS_FRAGMENT));
-        transaction.replace(R.id.fragment_container, fragment);
         transaction.commit();
     }
+
+    private void showOrAddFragmentTransaction(short fragmentId, Fragment defaultFragment, List<Fragment> managerFragments, FragmentTransaction transaction) {
+        Fragment currentFragment = fragmentMap.getOrDefault(fragmentId, defaultFragment);
+        fragmentMap.put(fragmentId, currentFragment);
+        this.currentFragment = fragmentId;
+        if (!managerFragments.contains(currentFragment)) {
+            transaction.add(R.id.fragment_container, currentFragment);
+        } else {
+            transaction.show(currentFragment);
+            currentFragment.onResume();
+        }
+    }
+
 }
