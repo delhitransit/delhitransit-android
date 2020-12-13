@@ -196,6 +196,7 @@ public class MapsFragment extends FullScreenFragment {
 
     private void progressBarVisibility(boolean visible) {
         if (visible) {
+            horizontalProgressBar.setVisibility(View.GONE);
             mMap.snapshot(bitmap -> {
                 blurView.setVisibility(View.VISIBLE);
                 blurView.setImageBitmap(bitmap);
