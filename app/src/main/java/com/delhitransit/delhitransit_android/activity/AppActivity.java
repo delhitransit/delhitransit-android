@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.delhitransit.delhitransit_android.R;
@@ -13,12 +14,15 @@ import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.util.HashMap;
+import java.util.List;
+
 public class AppActivity extends AppCompatActivity {
 
     public static final short MAPS_FRAGMENT = 0;
     public static final short SETTINGS_FRAGMENT = 1;
     private static final String INTENT_FRAGMENT_KEY = "fragmentKey";
-
+    private final HashMap<Short, Fragment> fragmentMap = new HashMap<>();
     private short currentFragment = MAPS_FRAGMENT;
 
     public static Intent navigateTo(Context source, short fragmentID) {
@@ -38,45 +42,64 @@ public class AppActivity extends AppCompatActivity {
         navigateTo(currentFragment);
 
         switch (currentFragment) {
-            case SETTINGS_FRAGMENT:
-                bottomNav.setSelectedItemId(R.id.settings_tab_button);
-                break;
             case MAPS_FRAGMENT:
                 bottomNav.setSelectedItemId(R.id.map_tab_button);
+                break;
+            case SETTINGS_FRAGMENT:
+                bottomNav.setSelectedItemId(R.id.settings_tab_button);
                 break;
         }
 
         bottomNav.setOnNavigationItemSelectedListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.map_tab_button:
-                    navigateTo(MAPS_FRAGMENT);
-                    return true;
-                case R.id.settings_tab_button:
-                    navigateTo(SETTINGS_FRAGMENT);
-                    return true;
+            int itemId = item.getItemId();
+            if (itemId == R.id.map_tab_button) {
+                navigateTo(MAPS_FRAGMENT);
+            } else if (itemId == R.id.settings_tab_button) {
+                navigateTo(SETTINGS_FRAGMENT);
             }
             return true;
         });
 
     }
 
-    private void navigateTo(short fragment) {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        Fragment frag;
-        switch (fragment) {
+    private void navigateTo(short fragmentId) {
+        FragmentManager manager = getSupportFragmentManager();
+        List<Fragment> managerFragments = manager.getFragments();
+        FragmentTransaction transaction = manager.beginTransaction();
+
+        short previousFragment = currentFragment;
+
+        Fragment prevFragment = fragmentMap.get(previousFragment);
+
+        if (prevFragment != null && managerFragments.contains(prevFragment)) {
+            prevFragment.onPause();
+            transaction.hide(prevFragment);
+        }
+
+        switch (fragmentId) {
             default:
             case MAPS_FRAGMENT: {
-                frag = new MapsFragment();
-                currentFragment = MAPS_FRAGMENT;
+                showOrAddFragmentTransaction(MAPS_FRAGMENT, new MapsFragment(), managerFragments, transaction);
                 break;
             }
             case SETTINGS_FRAGMENT: {
-                frag = new SettingsFragment();
-                currentFragment = SETTINGS_FRAGMENT;
+                showOrAddFragmentTransaction(SETTINGS_FRAGMENT, new SettingsFragment(), managerFragments, transaction);
                 break;
             }
         }
-        transaction.replace(R.id.fragment_container, frag);
         transaction.commit();
     }
+
+    private void showOrAddFragmentTransaction(short fragmentId, Fragment defaultFragment, List<Fragment> managerFragments, FragmentTransaction transaction) {
+        Fragment currentFragment = fragmentMap.getOrDefault(fragmentId, defaultFragment);
+        fragmentMap.put(fragmentId, currentFragment);
+        this.currentFragment = fragmentId;
+        if (!managerFragments.contains(currentFragment)) {
+            transaction.add(R.id.fragment_container, currentFragment);
+        } else {
+            transaction.show(currentFragment);
+            currentFragment.onResume();
+        }
+    }
+
 }
