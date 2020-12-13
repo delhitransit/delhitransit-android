@@ -3,6 +3,7 @@ package com.delhitransit.delhitransit_android;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Room;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -46,7 +47,9 @@ public class StopResponseDaoTest {
         stop.setStopId(3546);
         FavouriteStopsDao userDao = db.dao();
         userDao.insertAll(stop);
-        List<StopsResponseData> stops = userDao.getAllFavouriteStops();
+        LiveData<List<StopsResponseData>> liveData = userDao.getAllFavouriteStops();
+        List<StopsResponseData> stops = liveData.getValue();
+        assert stops != null;
         assertThat(stops.size(), equalTo(1));
         StopsResponseData data = stops.get(0);
         assertThat(data.getLatitude(), equalTo(stop.getLatitude()));
