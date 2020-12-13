@@ -35,5 +35,8 @@ public class FavouriteStopsRepository {
         AppDatabase.databaseWriteExecutor.execute(mDao::deleteAll);
     }
 
+    public void deleteByStopId(int stopId){
+        AppDatabase.databaseWriteExecutor.execute(() -> mDao.deleteByStopId(stopId));
+    }
 
 }

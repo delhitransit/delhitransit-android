@@ -79,7 +79,6 @@ public class FullScreenFragment extends Fragment {
         if (actionBar != null) {
             actionBar.hide();
         }
-
         // Schedule a runnable to remove the status and navigation bar after a delay
         mHideHandler.removeCallbacks(mShowRunnable);
         mHideHandler.postDelayed(mHideRunnable, UI_ANIMATION_DELAY);

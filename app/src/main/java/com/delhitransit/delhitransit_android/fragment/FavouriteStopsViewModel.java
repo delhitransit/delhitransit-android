@@ -27,6 +27,7 @@ public class FavouriteStopsViewModel extends AndroidViewModel {
     }
 
     public void setFavouriteStopsAdapter(FavouriteStopsAdapter adapter, LifecycleOwner owner) {
+        insertDummyStop();
         this.getAll().observe(owner, adapter::submitList);
     }
 
@@ -43,6 +44,10 @@ public class FavouriteStopsViewModel extends AndroidViewModel {
 
     public void deleteAll() {
         mRepository.deleteAll();
+    }
+
+    public void deleteByStopId(int stopId) {
+        mRepository.deleteByStopId(stopId);
     }
 
 }

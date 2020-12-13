@@ -22,4 +22,7 @@ public interface FavouriteStopsDao {
     @Query("DELETE FROM favourite_stop")
     void deleteAll();
 
+    @Query("DELETE FROM favourite_stop WHERE stopId==:stopId")
+    void deleteByStopId(int stopId);
+
 }

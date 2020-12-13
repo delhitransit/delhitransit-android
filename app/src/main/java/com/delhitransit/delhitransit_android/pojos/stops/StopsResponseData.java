@@ -15,9 +15,6 @@ import java.util.Objects;
 @Entity(tableName = "favourite_stop")
 public class StopsResponseData {
 
-    @PrimaryKey(autoGenerate = true)
-    @NonNull
-    private Long key = -1L;
     @SerializedName("latitude")
     @Expose
     private Double latitude;
@@ -25,19 +22,13 @@ public class StopsResponseData {
     @Expose
     private String name;
     @SerializedName("stopId")
+    @PrimaryKey
+    @NonNull
     @Expose
-    private Integer stopId;
+    private Integer stopId = -1;
     @SerializedName("longitude")
     @Expose
     private Double longitude;
-
-    public Long getKey() {
-        return key;
-    }
-
-    public void setKey(@NotNull Long key) {
-        this.key = key;
-    }
 
     public Double getLatitude() {
         return latitude;
@@ -55,11 +46,12 @@ public class StopsResponseData {
         this.name = name;
     }
 
+    @NotNull
     public Integer getStopId() {
         return stopId;
     }
 
-    public void setStopId(Integer stopId) {
+    public void setStopId(@NotNull Integer stopId) {
         this.stopId = stopId;
     }
 
