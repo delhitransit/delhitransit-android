@@ -40,9 +40,4 @@
         android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold" />
-    <!--
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:background="@drawable/bus_stops_marker" />-->
 </LinearLayout>
