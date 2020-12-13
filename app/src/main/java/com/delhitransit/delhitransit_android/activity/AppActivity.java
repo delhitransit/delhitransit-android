@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.fragment.FavouriteStopsFragment;
 import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -21,6 +22,7 @@ public class AppActivity extends AppCompatActivity {
 
     public static final short MAPS_FRAGMENT = 0;
     public static final short SETTINGS_FRAGMENT = 1;
+    public static final short FAVOURITE_STOPS_FRAGMENT=2;
     private static final String INTENT_FRAGMENT_KEY = "fragmentKey";
     private final HashMap<Short, Fragment> fragmentMap = new HashMap<>();
     private short currentFragment = MAPS_FRAGMENT;
@@ -48,6 +50,9 @@ public class AppActivity extends AppCompatActivity {
             case SETTINGS_FRAGMENT:
                 bottomNav.setSelectedItemId(R.id.settings_tab_button);
                 break;
+            case FAVOURITE_STOPS_FRAGMENT:
+                bottomNav.setSelectedItemId(R.id.fav_stops_tab_button);
+                break;
         }
 
         bottomNav.setOnNavigationItemSelectedListener(item -> {
@@ -56,6 +61,8 @@ public class AppActivity extends AppCompatActivity {
                 navigateTo(MAPS_FRAGMENT);
             } else if (itemId == R.id.settings_tab_button) {
                 navigateTo(SETTINGS_FRAGMENT);
+            } else if (itemId == R.id.fav_stops_tab_button) {
+                navigateTo(FAVOURITE_STOPS_FRAGMENT);
             }
             return true;
         });
@@ -84,6 +91,10 @@ public class AppActivity extends AppCompatActivity {
             }
             case SETTINGS_FRAGMENT: {
                 showOrAddFragmentTransaction(SETTINGS_FRAGMENT, new SettingsFragment(), managerFragments, transaction);
+                break;
+            }
+            case FAVOURITE_STOPS_FRAGMENT: {
+                showOrAddFragmentTransaction(FAVOURITE_STOPS_FRAGMENT, new FavouriteStopsFragment(), managerFragments, transaction);
                 break;
             }
         }

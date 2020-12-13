@@ -1,9 +1,20 @@
 package com.delhitransit.delhitransit_android.pojos.stops;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
+
+@Entity(tableName = "favourite_stop")
 public class StopsResponseData {
+
     @SerializedName("latitude")
     @Expose
     private Double latitude;
@@ -11,41 +22,56 @@ public class StopsResponseData {
     @Expose
     private String name;
     @SerializedName("stopId")
+    @PrimaryKey
+    @NonNull
     @Expose
-    private Integer stopId;
+    private Integer stopId = -1;
     @SerializedName("longitude")
     @Expose
     private Double longitude;
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
 
     public Double getLatitude() {
         return latitude;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setStopId(Integer stopId) {
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @NotNull
+    public Integer getStopId() {
+        return stopId;
+    }
+
+    public void setStopId(@NotNull Integer stopId) {
         this.stopId = stopId;
     }
 
-    public Integer getStopId() {
-        return stopId;
+    public Double getLongitude() {
+        return longitude;
     }
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
     }
 
-    public Double getLongitude() {
-        return longitude;
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (!(obj instanceof StopsResponseData)) return super.equals(obj);
+        else {
+            StopsResponseData otherStop = (StopsResponseData) obj;
+            return Objects.equals(otherStop.getLatitude(), this.getLatitude()) &&
+                    Objects.equals(otherStop.getLongitude(), this.getLongitude()) &&
+                    Objects.equals(otherStop.getName(), this.getName()) &&
+                    Objects.equals(otherStop.getStopId(), this.getStopId());
+        }
     }
 }
