@@ -2,19 +2,24 @@ package com.delhitransit.delhitransit_android.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.provider.Settings;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.fragment.FavouriteStopsFragment;
 import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,7 +27,7 @@ public class AppActivity extends AppCompatActivity {
 
     public static final short MAPS_FRAGMENT = 0;
     public static final short SETTINGS_FRAGMENT = 1;
-    public static final short FAVOURITE_STOPS_FRAGMENT=2;
+    public static final short FAVOURITE_STOPS_FRAGMENT = 2;
     private static final String INTENT_FRAGMENT_KEY = "fragmentKey";
     private final HashMap<Short, Fragment> fragmentMap = new HashMap<>();
     private short currentFragment = MAPS_FRAGMENT;
@@ -38,7 +43,7 @@ public class AppActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app);
-        BottomNavigationView bottomNav = (BottomNavigationView) findViewById(R.id.bottom_navigation);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
         currentFragment = getIntent().getShortExtra(INTENT_FRAGMENT_KEY, MAPS_FRAGMENT);
         navigateTo(currentFragment);
@@ -67,6 +72,37 @@ public class AppActivity extends AppCompatActivity {
             return true;
         });
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        new Thread(() -> {
+            if (!isNetworkConnected()) {
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Device offline")
+                        .setMessage("Please turn on your mobile data or connect to a WiFi network")
+                        .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
+                        .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                            startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                        }).show();
+            }
+        }).start();
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
+    }
+
+    public boolean isInternetAvailable() {
+        try {
+            DelhiTransitApplication application = (DelhiTransitApplication) getApplication();
+            InetAddress ipAddr = InetAddress.getByName(application.getServerIP());
+            return !ipAddr.toString().isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void navigateTo(short fragmentId) {
