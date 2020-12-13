@@ -34,11 +34,13 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
     private List<RouteDetailForAdapter> list;
     private OnRouteSelectedListener onRouteSelectedListener;
     private String sourceBusStopName;
+    private TaskCompleteCallback taskCompleteCallback;
 
-    public RoutesListAdapter(Context context, List<RouteDetailForAdapter> list, OnRouteSelectedListener onRouteSelectedListener) {
+    public RoutesListAdapter(Context context, List<RouteDetailForAdapter> list, OnRouteSelectedListener onRouteSelectedListener, TaskCompleteCallback taskCompleteCallback) {
         this.context = context;
         this.list = list;
         this.onRouteSelectedListener = onRouteSelectedListener;
+        this.taskCompleteCallback = taskCompleteCallback;
     }
 
     @NonNull
@@ -61,9 +63,9 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
                 @Override
                 public void onResponse(Call<List<ShapePoint>> call, Response<List<ShapePoint>> response) {
                     if (response.body() != null && response.body().size() != 0) {
-                        new RoutePointsMaker(context, colorList[4], source, destination).execute(response.body());
+                        new RoutePointsMaker(context, colorList[4], taskCompleteCallback, source, destination).execute(response.body());
                     } else {
-                        ((TaskCompleteCallback) context).onTaskDone(false);
+                        taskCompleteCallback.onTaskDone(false);
                     }
                 }
 

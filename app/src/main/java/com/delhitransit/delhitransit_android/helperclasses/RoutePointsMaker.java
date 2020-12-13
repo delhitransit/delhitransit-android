@@ -16,14 +16,15 @@ import java.util.List;
 
 public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, PolylineOptions> {
     private final int color;
-    TaskCompleteCallback taskCallback;
-    LatLng source, destination;
+    private final LatLng source;
+    private final LatLng destination;
+    private final TaskCompleteCallback taskCompleteCallback;
     private LatLngBounds bounds;
 
 
-    public RoutePointsMaker(Context context, int color, LatLng source, LatLng destination) {
+    public RoutePointsMaker(Context context, int color, TaskCompleteCallback taskCompleteCallback, LatLng source, LatLng destination) {
         this.color = color;
-        this.taskCallback = (TaskCompleteCallback) context;
+        this.taskCompleteCallback = taskCompleteCallback;
         this.source = source;
         this.destination = destination;
     }
@@ -99,9 +100,9 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
     protected void onPostExecute(PolylineOptions polylineOptions) {
         //Log.e("TAG", "onPostExecute: called");
         if (bounds != null) {
-            taskCallback.onTaskDone(polylineOptions, bounds);
+            taskCompleteCallback.onTaskDone(polylineOptions, bounds);
         } else {
-            taskCallback.onTaskDone(false);
+            taskCompleteCallback.onTaskDone(false);
         }
     }
 }
