@@ -9,9 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import com.delhitransit.delhitransit_android.R;
-
 import androidx.core.content.ContextCompat;
+
+import com.delhitransit.delhitransit_android.R;
 
 public class ViewMarker {
 
@@ -23,7 +23,16 @@ public class ViewMarker {
         this(context, s, Color.GREEN);
     }
 
+    public ViewMarker(Context context, String s, String relation) {
+        this(context, s, Color.GREEN, relation);
+    }
+
     public ViewMarker(Context context, String s, int color) {
+        this(context, s, color, null);
+    }
+
+    public ViewMarker(Context context, String s, int color, String relation) {
+        View view;
         view = LayoutInflater.from(context).inflate(R.layout.marker_heading_view, null, false);
         if (s.length() < 15)
             ((TextView) view.findViewById(R.id.heading_text_view)).setText(s);
@@ -32,6 +41,12 @@ public class ViewMarker {
         }
         if (color != Color.GREEN)
             view.findViewById(R.id.heading_linear_layout).setBackgroundColor(color);
+        if (relation != null && !relation.isEmpty()) {
+            TextView relationTextView = ((TextView) view.findViewById(R.id.heading_relation_text_view));
+            relationTextView.setText(relation);
+            relationTextView.setVisibility(View.VISIBLE);
+        }
+        this.view = view;
     }
 
     public ViewMarker(Context context) {

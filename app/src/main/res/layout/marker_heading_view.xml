@@ -6,25 +6,43 @@
     android:background="@android:color/transparent"
     android:orientation="vertical">
 
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/heading_linear_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:color/holo_green_light"
-        android:orientation="horizontal">
+        android:layout_margin="4dp"
+        android:orientation="horizontal"
+        app:strokeColor="@android:color/holo_green_light"
+        app:strokeWidth="1dp">
 
-        <TextView
-            android:id="@+id/heading_text_view"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="7dp"
-            android:background="@color/white"
-            android:padding="4dp"
-            android:text="@string/app_name"
-            android:textColor="@color/black"
-            android:textSize="@dimen/dimen_10"
-            android:textStyle="bold" />
-    </LinearLayout>
+            android:background="@android:color/holo_green_light"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/heading_relation_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:text="From"
+                android:textAlignment="center"
+                android:textAppearance="?attr/textAppearanceCaption"
+                android:visibility="visible" />
+
+            <TextView
+                android:id="@+id/heading_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="4dp"
+                android:text="@string/app_name"
+                android:textSize="12sp"
+                android:textAppearance="?attr/textAppearanceListItemSmall" />
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.cardview.widget.CardView
         android:layout_width="6dp"
