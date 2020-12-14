@@ -3,13 +3,14 @@ package com.delhitransit.delhitransit_android.fragment;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Handler;
-import android.view.View;
-import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+
+import static android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
 
 public class FullScreenFragment extends Fragment {
 
@@ -22,19 +23,14 @@ public class FullScreenFragment extends Fragment {
     // Note that some of these constants are new as of API 16 (Jelly Bean)
     // and API 19 (KitKat). It is safe to use them, as they are inlined
     // at compile-time and do nothing on earlier devices.
-    private static final int flags = View.SYSTEM_UI_FLAG_LOW_PROFILE
-            | View.SYSTEM_UI_FLAG_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+    private static final int flags = FLAG_LAYOUT_NO_LIMITS;
 
     private final Handler mHideHandler = new Handler();
     private final Runnable mHideRunnable = () -> {
         Activity activity = getActivity();
         if (activity != null
                 && activity.getWindow() != null) {
-            activity.getWindow().getDecorView().setSystemUiVisibility(flags);
+            activity.getWindow().getDecorView().setSystemUiVisibility(SYSTEM_UI_FLAG_LAYOUT_STABLE);
         }
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -53,7 +49,7 @@ public class FullScreenFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (getActivity() != null && getActivity().getWindow() != null) {
-            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            getActivity().getWindow().addFlags(flags);
         }
         // Trigger the initial hide() shortly after the activity has been
         // created, to briefly hint to the user that UI controls
