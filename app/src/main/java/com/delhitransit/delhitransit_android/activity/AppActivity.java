@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -16,6 +17,8 @@ import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment;
+import com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragment;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -25,12 +28,12 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
-public class AppActivity extends AppCompatActivity {
+public class AppActivity extends AppCompatActivity implements MapsFragment.OnStopMarkerClickListener {
 
     public static final short MAPS_FRAGMENT = 0;
     public static final short SETTINGS_FRAGMENT = 1;
     public static final short FAVOURITE_STOPS_FRAGMENT = 2;
-    private static final String INTENT_FRAGMENT_KEY = "fragmentKey";
+    private static final short STOP_DETAILS_FRAGMENT = 3;
     private final HashMap<Short, Fragment> fragmentMap = new HashMap<>();
     private short currentFragment = MAPS_FRAGMENT;
 
@@ -39,10 +42,7 @@ public class AppActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app);
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-
-        currentFragment = getIntent().getShortExtra(INTENT_FRAGMENT_KEY, MAPS_FRAGMENT);
         navigateTo(currentFragment);
-
         switch (currentFragment) {
             case MAPS_FRAGMENT:
                 bottomNav.setSelectedItemId(R.id.map_tab_button);
@@ -54,7 +54,6 @@ public class AppActivity extends AppCompatActivity {
                 bottomNav.setSelectedItemId(R.id.fav_stops_tab_button);
                 break;
         }
-
         bottomNav.setOnNavigationItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.map_tab_button) {
@@ -109,17 +108,10 @@ public class AppActivity extends AppCompatActivity {
 
     private void navigateTo(short fragmentId) {
         FragmentManager manager = getSupportFragmentManager();
-        List<Fragment> managerFragments = manager.getFragments();
         FragmentTransaction transaction = manager.beginTransaction();
+        List<Fragment> managerFragments = manager.getFragments();
 
-        short previousFragment = currentFragment;
-
-        Fragment prevFragment = fragmentMap.get(previousFragment);
-
-        if (prevFragment != null && managerFragments.contains(prevFragment)) {
-            prevFragment.onPause();
-            transaction.hide(prevFragment);
-        }
+        hideCurrentFragment(transaction, managerFragments);
 
         switch (fragmentId) {
             default:
@@ -135,12 +127,33 @@ public class AppActivity extends AppCompatActivity {
                 showOrAddFragmentTransaction(FAVOURITE_STOPS_FRAGMENT, new FavouriteStopsFragment(), managerFragments, transaction);
                 break;
             }
+            case STOP_DETAILS_FRAGMENT: {
+                if (!fragmentMap.containsKey(STOP_DETAILS_FRAGMENT)) {
+                    transaction = null;
+                } else {
+                    showOrAddFragmentTransaction(STOP_DETAILS_FRAGMENT, null, managerFragments, transaction);
+                    transaction.addToBackStack(null);
+                }
+                break;
+            }
         }
-        transaction.commit();
+
+        if (transaction != null) {
+            transaction.commit();
+        }
     }
 
-    private void showOrAddFragmentTransaction(short fragmentId, Fragment defaultFragment, List<Fragment> managerFragments, FragmentTransaction transaction) {
-        Fragment currentFragment = fragmentMap.getOrDefault(fragmentId, defaultFragment);
+    private void hideCurrentFragment(FragmentTransaction transaction, List<Fragment> managerFragments) {
+        short previousFragment = currentFragment;
+        Fragment prevFragment = fragmentMap.get(previousFragment);
+        if (prevFragment != null && managerFragments.contains(prevFragment)) {
+            prevFragment.onPause();
+            transaction.hide(prevFragment);
+        }
+    }
+
+    private void showOrAddFragmentTransaction(short fragmentId, Fragment newInstance, List<Fragment> managerFragments, FragmentTransaction transaction) {
+        Fragment currentFragment = fragmentMap.getOrDefault(fragmentId, newInstance);
         fragmentMap.put(fragmentId, currentFragment);
         this.currentFragment = fragmentId;
         if (!managerFragments.contains(currentFragment)) {
@@ -151,4 +164,12 @@ public class AppActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onStopMarkerClicked(StopDetail stop, Runnable fabClickCallback) {
+        Toast.makeText(this, "stop : " + stop.getName(), Toast.LENGTH_SHORT).show();
+        StopDetailsFragment fragment = new StopDetailsFragment(stop);
+        fragmentMap.put(STOP_DETAILS_FRAGMENT, fragment);
+        navigateTo(STOP_DETAILS_FRAGMENT);
+        fabClickCallback.run();
+    }
 }

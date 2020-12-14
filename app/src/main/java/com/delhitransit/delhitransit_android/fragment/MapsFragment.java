@@ -1,6 +1,7 @@
 package com.delhitransit.delhitransit_android.fragment;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -106,16 +107,18 @@ public class MapsFragment extends Fragment {
 
             progressBarVisibility(false);
             viewVisibility(searchView1, true);
-
             LatLng latLng = new LatLng(28.6172368, 77.2059964);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
 
-            getUserLocation();
             mMap.setPadding(100, 600, 100, 100);
             mMap.setOnMarkerClickListener(marker -> {
-                StopDetail responseData = busStopsHashMap.get(marker);
-                if (responseData != null) {
-                    showToast(responseData.getName());
+                StopDetail stop = busStopsHashMap.get(marker);
+                if (stop != null) {
+                    Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
+                    Activity activity = getActivity();
+                    if (activity instanceof OnStopMarkerClickListener) {
+                        ((OnStopMarkerClickListener) activity).onStopMarkerClicked(stop, runnable);
+                    } else runnable.run();
                 }
                 /*if (busStopsHashMap.containsKey(marker)) {
                     setStopDataOnSearchView(busStopsHashMap.get(marker), searchView1, false);
@@ -130,6 +133,7 @@ public class MapsFragment extends Fragment {
                     */
                 return true;
             });
+            getUserLocation();
 
         }
 
@@ -545,6 +549,10 @@ public class MapsFragment extends Fragment {
         if (getActivity() != null && getActivity().getWindow() != null) {
             getActivity().getWindow().clearFlags(WINDOW_DECORATION_FLAG);
         }
+    }
+
+    public interface OnStopMarkerClickListener {
+        void onStopMarkerClicked(StopDetail stop, Runnable fabClickCallback);
     }
 
 }
