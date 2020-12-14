@@ -515,7 +515,7 @@ public class MapsFragment extends Fragment {
     }
 
     private void showToast(String s, String about) {
-        Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, s, Toast.LENGTH_LONG).show();
         Log.e(TAG, about + "  : " + s);
     }
 

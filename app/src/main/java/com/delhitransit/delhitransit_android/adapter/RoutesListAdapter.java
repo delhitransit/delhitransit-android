@@ -55,7 +55,7 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
         RouteDetailForAdapter routeDetail = list.get(position);
 
         int[] colorList = {Color.RED, Color.BLACK, Color.CYAN, Color.YELLOW, Color.BLUE, Color.GRAY};
-        if (routeDetail.getRouteId() >= 533) {
+        if (routeDetail.getRouteId() <= 533) {
             holder.busStopIcon.setImageResource(R.drawable.bus_icon);
         } else {
             holder.busStopIcon.setImageResource(R.drawable.ic_outline_directions_bus_24);
