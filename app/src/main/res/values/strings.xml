@@ -7,4 +7,5 @@
     <string name="credits_header">Credits</string>
     <string name="server_ip_title">Server IP address or DNS name</string>
     <string name="fav_stops_tab_title">Stops</string>
+    <string name="hint_stop_search_bar">Search bus stops</string>
 </resources>
