@@ -11,7 +11,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
@@ -26,8 +25,8 @@ public class FavouriteStopsFragment extends Fragment {
 
     private FavouriteStopsViewModel mViewModel;
     private FavouriteStopsAdapter adapter;
-    private Context context;
     private RecyclerView recyclerView;
+    private Context context;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -36,17 +35,17 @@ public class FavouriteStopsFragment extends Fragment {
         recyclerView = parent.findViewById(R.id.fav_stops_recycler_view);
         adapter = new FavouriteStopsAdapter();
         recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        enableSwipe();
         return parent;
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        context = this.getContext();
-        enableSwipe();
+        context = getContext();
         mViewModel = new ViewModelProvider(this).get(FavouriteStopsViewModel.class);
-        mViewModel.setFavouriteStopsAdapter(adapter, this);
+        mViewModel.insertDummyStop();
+        mViewModel.getAll().observe(getViewLifecycleOwner(), adapter::submitList);
     }
 
     private void enableSwipe() {

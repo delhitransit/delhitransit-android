@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/bus_icon_image_view"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="16dp"
+        android:alpha="0.6"
+        android:src="@drawable/bus_icon"
+        app:layout_constraintBottom_toBottomOf="@+id/stop_details_item_route_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/stop_details_item_route_name"
+        app:tint="@android:color/black" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/stop_details_item_route_name"
+        style="@style/AppTheme.Chip.Route"
+        android:layout_width="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:text="144+990"
+        app:layout_constraintStart_toEndOf="@+id/bus_icon_image_view"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/stop_details_item_last_stop_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Kanjhawala Depot"
+        android:textAppearance="?attr/textAppearanceSearchResultTitle"
+        app:layout_constraintBottom_toBottomOf="@+id/stop_details_item_route_name"
+        app:layout_constraintEnd_toStartOf="@+id/constraintLayout"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/stop_details_item_route_name"
+        app:layout_constraintTop_toTopOf="@+id/stop_details_item_route_name" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@+id/stop_details_item_bus_status"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/stop_details_item_route_name">
+
+        <TextView
+            android:id="@+id/stop_details_item_time_numeral"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="2dp"
+            android:text="4"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            app:layout_constraintBottom_toTopOf="@+id/stop_details_item_time_unit"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/stop_details_item_time_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="min"
+            android:textAlignment="center"
+            android:textColor="@color/grey_800"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/stop_details_item_time_numeral"
+            app:layout_constraintStart_toStartOf="@+id/stop_details_item_time_numeral"
+            app:layout_constraintTop_toBottomOf="@+id/stop_details_item_time_numeral" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/stop_details_item_bus_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="8dp"
+        android:text="Scheduled"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/bus_icon_image_view"
+        app:layout_constraintTop_toBottomOf="@+id/stop_details_item_route_name" />
+
+    <TextView
+        android:id="@+id/stop_details_item_exact_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="10:29 PM"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/stop_details_item_bus_status"
+        app:layout_constraintStart_toEndOf="@+id/stop_details_item_bus_status"
+        app:layout_constraintTop_toTopOf="@+id/stop_details_item_bus_status" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

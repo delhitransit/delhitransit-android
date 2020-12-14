@@ -3,7 +3,6 @@ package com.delhitransit.delhitransit_android.fragment.favourite_stops;
 import android.app.Application;
 
 import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 
 import com.delhitransit.delhitransit_android.adapter.FavouriteStopsAdapter;
@@ -27,12 +26,7 @@ public class FavouriteStopsViewModel extends AndroidViewModel {
         return mAllFavouriteStops;
     }
 
-    public void setFavouriteStopsAdapter(FavouriteStopsAdapter adapter, LifecycleOwner owner) {
-        insertDummyStop();
-        this.getAll().observe(owner, adapter::submitList);
-    }
-
-    private void insertDummyStop() {
+    public void insertDummyStop() {
         StopDetail stopDetail = new StopDetail();
         stopDetail.setName("A name for a stop");
         stopDetail.setStopId(new Random().nextInt());
