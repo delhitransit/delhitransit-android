@@ -27,6 +27,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -68,10 +69,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MapsFragment extends FullScreenFragment {
+import static android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+
+public class MapsFragment extends Fragment {
 
     private static final String TAG = MapsFragment.class.getSimpleName();
-
+    private static final int WINDOW_DECORATION_FLAG = FLAG_TRANSLUCENT_STATUS;
     private final int LOCATION_PERMISSION_REQUEST_CODE = 101;
     private final int LOCATION_ON_REQUEST_CODE = 101;
     private final List<RouteDetailForAdapter> routesList = new ArrayList<>();
@@ -113,10 +116,7 @@ public class MapsFragment extends FullScreenFragment {
                     setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
                 }
                 return true;
-            });/*
-            new Handler().postDelayed(()->{
-                progressBarVisibility(true);
-            },10000);*/
+            });
 
         }
 
@@ -518,6 +518,22 @@ public class MapsFragment extends FullScreenFragment {
     private void showToast(String s, String about) {
         Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
         Log.e(TAG, about + "  : " + s);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getActivity() != null && getActivity().getWindow() != null) {
+            getActivity().getWindow().addFlags(WINDOW_DECORATION_FLAG);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (getActivity() != null && getActivity().getWindow() != null) {
+            getActivity().getWindow().clearFlags(WINDOW_DECORATION_FLAG);
+        }
     }
 
 }
