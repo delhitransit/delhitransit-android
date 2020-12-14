@@ -6,10 +6,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.api.ApiClient;
@@ -23,6 +21,8 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -30,12 +30,12 @@ import retrofit2.Response;
 public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.RoutesListViewHolder> {
 
 
-    Context context;
-    LatLng source, destination;
     private final List<RouteDetailForAdapter> list;
     private final OnRouteSelectedListener onRouteSelectedListener;
-    private String sourceBusStopName;
     private final TaskCompleteCallback taskCompleteCallback;
+    Context context;
+    LatLng source, destination;
+    private String sourceBusStopName;
 
     public RoutesListAdapter(Context context, List<RouteDetailForAdapter> list, OnRouteSelectedListener onRouteSelectedListener, TaskCompleteCallback taskCompleteCallback) {
         this.context = context;
@@ -55,7 +55,11 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
         RouteDetailForAdapter routeDetail = list.get(position);
 
         int[] colorList = {Color.RED, Color.BLACK, Color.CYAN, Color.YELLOW, Color.BLUE, Color.GRAY};
-
+        if (routeDetail.getRouteId() >= 533) {
+            holder.busStopIcon.setImageResource(R.drawable.bus_icon);
+        } else {
+            holder.busStopIcon.setImageResource(R.drawable.ic_outline_directions_bus_24);
+        }
         holder.busNumber.setText(routeDetail.getLongName());
         setTimeInLayout(holder.bothTime, holder.sourceTime, sourceBusStopName, routeDetail.getBusTimings(), routeDetail.getTravelTime(), holder.travelTimeHr, holder.hrDisplay, holder.travelTimeMin, holder.minDisplay);
         holder.parent.setOnClickListener(v -> {
@@ -124,12 +128,14 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
     static class RoutesListViewHolder extends RecyclerView.ViewHolder {
 
         TextView busNumber, bothTime, sourceTime, travelTimeHr, travelTimeMin, hrDisplay, minDisplay;
+        ImageView busStopIcon;
         View parent;
 
         public RoutesListViewHolder(@NonNull View itemView) {
             super(itemView);
             parent = itemView;
             busNumber = itemView.findViewById(R.id.bus_number_text_view);
+            busStopIcon = itemView.findViewById(R.id.bus_icon_image_view);
             bothTime = itemView.findViewById(R.id.time_text_view_2);
             sourceTime = itemView.findViewById(R.id.time_text_view_3);
             travelTimeHr = itemView.findViewById(R.id.hr_text_view);
