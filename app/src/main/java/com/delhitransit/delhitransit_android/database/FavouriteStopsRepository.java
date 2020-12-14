@@ -4,14 +4,14 @@ import android.app.Application;
 
 import androidx.lifecycle.LiveData;
 
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
 
 public class FavouriteStopsRepository {
 
     private final FavouriteStopsDao mDao;
-    private final LiveData<List<StopsResponseData>> mAllFavouriteStops;
+    private final LiveData<List<StopDetail>> mAllFavouriteStops;
 
     public FavouriteStopsRepository(Application application) {
         AppDatabase db = AppDatabase.getInstance(application);
@@ -21,13 +21,13 @@ public class FavouriteStopsRepository {
 
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
-    public LiveData<List<StopsResponseData>> getAllFavouriteStops() {
+    public LiveData<List<StopDetail>> getAllFavouriteStops() {
         return mAllFavouriteStops;
     }
 
     // You must call this on a non-UI thread or your app will throw an exception. Room ensures
     // that you're not doing any long running operations on the main thread, blocking the UI.
-    public void insertAll(StopsResponseData... stop) {
+    public void insertAll(StopDetail... stop) {
         AppDatabase.databaseWriteExecutor.execute(() -> mDao.insertAll(stop));
     }
 

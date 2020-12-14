@@ -45,7 +45,7 @@ import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -92,7 +92,7 @@ public class MapsFragment extends Fragment {
     private String currQuery = "";
     private MarkerDetails sourceMarkerDetail, destinationMarkerDetail;
     private LatLng userLocation;
-    private HashMap<Marker, StopsResponseData> busStopsHashMap = new HashMap<>();
+    private HashMap<Marker, StopDetail> busStopsHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
     private View parentView;
     private ImageView blurView;
@@ -113,7 +113,7 @@ public class MapsFragment extends Fragment {
             getUserLocation();
             mMap.setPadding(100, 600, 100, 100);
             mMap.setOnMarkerClickListener(marker -> {
-                StopsResponseData responseData = busStopsHashMap.get(marker);
+                StopDetail responseData = busStopsHashMap.get(marker);
                 if (responseData != null) {
                     showToast(responseData.getName());
                 }
@@ -245,12 +245,12 @@ public class MapsFragment extends Fragment {
             } else if (!newQuery.trim().equals("")) {
                 currQuery = newQuery;
                 searchView.showProgress();
-                apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopsResponseData>>() {
+                apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopDetail>>() {
                     @Override
-                    public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
+                    public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
                         if (response.body() != null) {
                             List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
-                            for (StopsResponseData stopsResponseData : response.body()) {
+                            for (StopDetail stopsResponseData : response.body()) {
                                 busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
                             }
                             searchView.swapSuggestions(busStopsSuggestions);
@@ -259,7 +259,7 @@ public class MapsFragment extends Fragment {
                     }
 
                     @Override
-                    public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
+                    public void onFailure(Call<List<StopDetail>> call, Throwable t) {
                         Log.e(TAG, "onFailure: int " + t.getMessage());
                         searchView.hideProgress();
                     }
@@ -270,15 +270,15 @@ public class MapsFragment extends Fragment {
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                StopsResponseData stopsDetail = ((BusStopsSuggestion) searchSuggestion).getStopsResponseData();
+                StopDetail stopsDetail = ((BusStopsSuggestion) searchSuggestion).getStopDetail();
                 setStopDataOnSearchView(stopsDetail, searchView, isSecondSearchView);
             }
 
             @Override
             public void onSearchAction(String currentQuery) {
-                apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopsResponseData>>() {
+                apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopDetail>>() {
                     @Override
-                    public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
+                    public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
 
                         if (response.body() != null && response.body().size() != 0) {
                             setStopDataOnSearchView(response.body().get(0), searchView, isSecondSearchView);
@@ -288,7 +288,7 @@ public class MapsFragment extends Fragment {
                     }
 
                     @Override
-                    public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
+                    public void onFailure(Call<List<StopDetail>> call, Throwable t) {
                         Log.e(TAG, "onFailure: int " + t.getMessage());
                     }
                 });
@@ -312,7 +312,7 @@ public class MapsFragment extends Fragment {
         });
     }
 
-    private void setStopDataOnSearchView(StopsResponseData stopsDetail, FloatingSearchView searchView, boolean isSecondSearchView) {
+    private void setStopDataOnSearchView(StopDetail stopsDetail, FloatingSearchView searchView, boolean isSecondSearchView) {
 
         MarkerDetails markerDetails = new MarkerDetails(stopsDetail, isSecondSearchView);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerDetails.latLng, 17));
@@ -477,15 +477,15 @@ public class MapsFragment extends Fragment {
     private void setNearByBusStopsWithInDistance(double userLatitude, double userLongitude, double dist) {
         if (dist < 5) {
             apiService.getNearByStops(dist, userLatitude, userLongitude)
-                    .enqueue(new Callback<List<StopsResponseData>>() {
+                    .enqueue(new Callback<List<StopDetail>>() {
                         @Override
-                        public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
+                        public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
                             if (response.body() != null) {
                                 if (response.body().size() > 4) {
                                     busStopsHashMap = new HashMap<>();
                                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
                                     builder.include(new LatLng(userLatitude, userLongitude));
-                                    for (StopsResponseData data : response.body()) {
+                                    for (StopDetail data : response.body()) {
                                         LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
                                         Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, data.getName(), Color.RED).getBitmap())));
                                         busStopsHashMap.put(marker, data);
@@ -500,7 +500,7 @@ public class MapsFragment extends Fragment {
                         }
 
                         @Override
-                        public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
+                        public void onFailure(Call<List<StopDetail>> call, Throwable t) {
                             Log.e(TAG, "onFailure: " + t.getMessage());
                         }
                     });

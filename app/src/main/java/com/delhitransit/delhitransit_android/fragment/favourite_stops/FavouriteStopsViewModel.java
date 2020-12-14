@@ -8,13 +8,13 @@ import androidx.lifecycle.LiveData;
 
 import com.delhitransit.delhitransit_android.adapter.FavouriteStopsAdapter;
 import com.delhitransit.delhitransit_android.database.FavouriteStopsRepository;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
 import java.util.Random;
 
 public class FavouriteStopsViewModel extends AndroidViewModel {
-    private final LiveData<List<StopsResponseData>> mAllFavouriteStops;
+    private final LiveData<List<StopDetail>> mAllFavouriteStops;
     private final FavouriteStopsRepository mRepository;
 
     public FavouriteStopsViewModel(Application application) {
@@ -23,7 +23,7 @@ public class FavouriteStopsViewModel extends AndroidViewModel {
         mAllFavouriteStops = mRepository.getAllFavouriteStops();
     }
 
-    public LiveData<List<StopsResponseData>> getAll() {
+    public LiveData<List<StopDetail>> getAll() {
         return mAllFavouriteStops;
     }
 
@@ -33,13 +33,13 @@ public class FavouriteStopsViewModel extends AndroidViewModel {
     }
 
     private void insertDummyStop() {
-        StopsResponseData stopsResponseData = new StopsResponseData();
-        stopsResponseData.setName("A name for a stop");
-        stopsResponseData.setStopId(new Random().nextInt());
-        this.insertAll(stopsResponseData);
+        StopDetail stopDetail = new StopDetail();
+        stopDetail.setName("A name for a stop");
+        stopDetail.setStopId(new Random().nextInt());
+        this.insertAll(stopDetail);
     }
 
-    public void insertAll(StopsResponseData... stop) {
+    public void insertAll(StopDetail... stop) {
         mRepository.insertAll(stop);
     }
 

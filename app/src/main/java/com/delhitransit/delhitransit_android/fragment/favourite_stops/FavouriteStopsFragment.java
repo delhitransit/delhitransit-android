@@ -16,7 +16,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.FavouriteStopsAdapter;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.delhitransit.delhitransit_android.fragment.SwipeToDeleteCallback;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
@@ -53,8 +54,8 @@ public class FavouriteStopsFragment extends Fragment {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
-                List<StopsResponseData> data = adapter.getCurrentList();
-                StopsResponseData element = data.get(position);
+                List<StopDetail> data = adapter.getCurrentList();
+                StopDetail element = data.get(position);
                 mViewModel.deleteByStopId(element.getStopId());
 
                 // showing snack bar with Undo option

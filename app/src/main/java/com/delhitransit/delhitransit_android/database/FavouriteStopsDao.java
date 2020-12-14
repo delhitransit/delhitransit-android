@@ -6,7 +6,7 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
 
@@ -14,10 +14,10 @@ import java.util.List;
 public interface FavouriteStopsDao {
 
     @Query("SELECT * FROM favourite_stop")
-    LiveData<List<StopsResponseData>> getAllFavouriteStops();
+    LiveData<List<StopDetail>> getAllFavouriteStops();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertAll(StopsResponseData... stops);
+    void insertAll(StopDetail... stops);
 
     @Query("DELETE FROM favourite_stop")
     void deleteAll();

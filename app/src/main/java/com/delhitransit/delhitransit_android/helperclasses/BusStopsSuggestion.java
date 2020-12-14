@@ -3,13 +3,13 @@ package com.delhitransit.delhitransit_android.helperclasses;
 import android.os.Parcel;
 
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 
 public class BusStopsSuggestion implements SearchSuggestion {
 
-    private String mBusStopName;
-    private StopsResponseData stopsResponseData;
+    private final String mBusStopName;
+    private StopDetail stopDetail;
     private boolean mIsHistory = false;
 
 
@@ -18,17 +18,17 @@ public class BusStopsSuggestion implements SearchSuggestion {
         this.mIsHistory = source.readInt() != 0;
     }
 
-    public BusStopsSuggestion(StopsResponseData stopsResponseData) {
-        this.stopsResponseData = stopsResponseData;
-        this.mBusStopName = stopsResponseData.getName();
+    public BusStopsSuggestion(StopDetail stopDetail) {
+        this.stopDetail = stopDetail;
+        this.mBusStopName = stopDetail.getName();
     }
 
     public void setIsHistory(boolean isHistory) {
         this.mIsHistory = isHistory;
     }
 
-    public StopsResponseData getStopsResponseData() {
-        return stopsResponseData;
+    public StopDetail getStopDetail() {
+        return stopDetail;
     }
 
     public boolean getIsHistory() {
