@@ -7,18 +7,21 @@
     android:orientation="vertical">
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/heading_linear_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
+        android:elevation="0dp"
+        app:cardBackgroundColor="@android:color/holo_green_light"
+        app:cardCornerRadius="4dp"
         android:orientation="horizontal"
-        app:strokeColor="@android:color/holo_green_light"
+        app:strokeColor="@android:color/holo_green_dark"
         app:strokeWidth="1dp">
 
         <LinearLayout
+            android:id="@+id/heading_linear_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/holo_green_light"
+            android:layout_marginStart="8dp"
             android:orientation="vertical">
 
             <TextView
@@ -28,6 +31,7 @@
                 android:background="@color/white"
                 android:text="From"
                 android:textAlignment="center"
+                android:textSize="10sp"
                 android:textAppearance="?attr/textAppearanceCaption"
                 android:visibility="visible" />
 
@@ -38,8 +42,8 @@
                 android:background="@color/white"
                 android:padding="4dp"
                 android:text="@string/app_name"
-                android:textSize="12sp"
-                android:textAppearance="?attr/textAppearanceListItemSmall" />
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textSize="12sp" />
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
