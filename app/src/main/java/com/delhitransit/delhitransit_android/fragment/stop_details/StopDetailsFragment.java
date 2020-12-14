@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
+import com.google.android.material.appbar.MaterialToolbar;
 
 public class StopDetailsFragment extends Fragment {
 
@@ -29,6 +30,8 @@ public class StopDetailsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.stop_details_fragment, container, false);
+        MaterialToolbar toolbar = parent.findViewById(R.id.stop_details_fragment_app_bar);
+        toolbar.setTitle(stop.getName());
         recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
         adapter = new StopDetailsAdapter(new StopDetailsAdapter.SDDiff());
         recyclerView.setAdapter(adapter);

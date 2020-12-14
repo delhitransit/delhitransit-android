@@ -25,7 +25,7 @@
             app:statusBarScrim="?attr/colorPrimaryVariant">
 
             <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/topAppBar"
+                android:id="@+id/stop_details_fragment_app_bar"
                 style="@style/Widget.MaterialComponents.Toolbar.PrimarySurface"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"

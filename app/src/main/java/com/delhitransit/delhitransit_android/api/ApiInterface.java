@@ -3,6 +3,7 @@ package com.delhitransit.delhitransit_android.api;
 import com.delhitransit.delhitransit_android.pojos.RouteDetail;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
+import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
@@ -14,10 +15,8 @@ import retrofit2.http.Query;
 
 public interface ApiInterface {
 
-
     @GET("v1/stops/name/{query}")
     Call<List<StopDetail>> getStopsByName(@Path("query") String query, @Query("exact") boolean searchExact);
-
 
     @GET("v1/stops/nearby")
     Call<List<StopDetail>> getNearByStops(@Query("dist") double dist, @Query("lat") double lat, @Query("lon") double lon);
@@ -30,4 +29,7 @@ public interface ApiInterface {
 
     @GET("/v1/shapePoints/trip/{trip}")
     Call<List<ShapePoint>> getAllShapePointsByTripId(@Path("trip") String query);
+
+    @GET("/v1/client/routes/stop/{stop}")
+    Call<List<RoutesFromStopDetail>> getAllRoutesByStopId(@Path("stop") int stopId, @Query("time") int time);
 }
