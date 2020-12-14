@@ -33,8 +33,8 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
     private final List<RouteDetailForAdapter> list;
     private final OnRouteSelectedListener onRouteSelectedListener;
     private final TaskCompleteCallback taskCompleteCallback;
-    Context context;
-    LatLng source, destination;
+    private final Context context;
+    private LatLng source, destination;
     private String sourceBusStopName;
 
     public RoutesListAdapter(Context context, List<RouteDetailForAdapter> list, OnRouteSelectedListener onRouteSelectedListener, TaskCompleteCallback taskCompleteCallback) {
@@ -116,12 +116,9 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
         return list.size();
     }
 
-    public void setSourceAndDestination(LatLng source, LatLng destination) {
+    public void setDetail(LatLng source, LatLng destination, String sourceBusStopName) {
         this.source = source;
         this.destination = destination;
-    }
-
-    public void setSourceBusStopName(String sourceBusStopName) {
         this.sourceBusStopName = sourceBusStopName;
     }
 
