@@ -19,13 +19,6 @@
             android:layout_height="match_parent"
             tools:context=".activity.MapsActivity" />
 
-        <View
-            android:id="@+id/status_bar_bg"
-            android:layout_width="match_parent"
-            android:layout_height="24dp"
-            android:layout_gravity="top"
-            android:background="@color/semi_transparent" />
-
         <ImageView
             android:id="@+id/blur_view"
             android:layout_width="match_parent"
@@ -41,10 +34,11 @@
             app:floatingSearch_leftActionMode="showSearch"
             app:floatingSearch_searchBarMarginLeft="10dp"
             app:floatingSearch_searchBarMarginRight="10dp"
-            app:floatingSearch_searchBarMarginTop="36dp"
+            app:floatingSearch_searchBarMarginTop="20dp"
             app:floatingSearch_searchHint="Search bus stops"
             app:floatingSearch_showSearchKey="true"
             app:floatingSearch_suggestionsListAnimDuration="250" />
+
 
         <com.arlib.floatingsearchview.FloatingSearchView
             android:id="@+id/floating_bus_stop_search_view_2"
@@ -56,7 +50,7 @@
             app:floatingSearch_leftActionMode="showSearch"
             app:floatingSearch_searchBarMarginLeft="10dp"
             app:floatingSearch_searchBarMarginRight="10dp"
-            app:floatingSearch_searchBarMarginTop="96dp"
+            app:floatingSearch_searchBarMarginTop="80dp"
             app:floatingSearch_searchHint="Search bus stops"
             app:floatingSearch_showSearchKey="true"
             app:floatingSearch_suggestionsListAnimDuration="250" />
@@ -95,18 +89,17 @@
 
     <me.zhanghai.android.materialprogressbar.MaterialProgressBar
         android:id="@+id/horizontal_loading_bar"
-        style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal.NoPadding"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minHeight="16dp"
+        android:maxHeight="16dp"
         android:layout_gravity="start"
+        android:indeterminate="true"
+        app:mpb_progressStyle="horizontal"
+        app:mpb_indeterminateTint="@color/colorPrimary"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:indeterminate="true"
-        android:maxHeight="16dp"
-        android:minHeight="16dp"
-        android:visibility="gone"
-        app:mpb_indeterminateTint="@color/colorPrimary"
-        app:mpb_progressStyle="horizontal" />
-
+        style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal.NoPadding" />
 
 </FrameLayout>
