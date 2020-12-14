@@ -52,7 +52,6 @@
             app:floatingSearch_showSearchKey="true"
             app:floatingSearch_suggestionsListAnimDuration="250" />
 
-
         <com.arlib.floatingsearchview.FloatingSearchView
             android:id="@+id/floating_bus_stop_search_view_2"
             android:layout_width="match_parent"
@@ -63,11 +62,10 @@
             app:floatingSearch_leftActionMode="showSearch"
             app:floatingSearch_searchBarMarginLeft="10dp"
             app:floatingSearch_searchBarMarginRight="10dp"
-            app:floatingSearch_searchBarMarginTop="80dp"
+            app:floatingSearch_searchBarMarginTop="96dp"
             app:floatingSearch_searchHint="Search bus stops"
             app:floatingSearch_showSearchKey="true"
             app:floatingSearch_suggestionsListAnimDuration="250" />
-
 
         <Button
             android:id="@+id/bottom_button"
