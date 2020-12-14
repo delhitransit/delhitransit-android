@@ -367,14 +367,14 @@ public class MapsFragment extends Fragment {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 17));
             searchView2.clearSearchFocus();
         }
-        addMarkerIfNotNull(source, "From : " + sourceBusStopName);
-        addMarkerIfNotNull(destination, "To : " + destinationBusStopName);
-        addMarkerIfNotNull(userLocation, "Your Location");
+        addMarkerIfNotNull(source, sourceBusStopName, "From");
+        addMarkerIfNotNull(destination, destinationBusStopName, "To");
+        addMarkerIfNotNull(userLocation, "Your Location", null);
     }
 
-    private void addMarkerIfNotNull(LatLng latLng, String s) {
+    private void addMarkerIfNotNull(LatLng latLng, String s, String relation) {
         if (latLng != null) {
-            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, s).getBitmap())).position(latLng));
+            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, s, relation).getBitmap())).position(latLng));
         }
     }
 

@@ -9,9 +9,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import com.delhitransit.delhitransit_android.R;
-
+import androidx.annotation.ColorInt;
 import androidx.core.content.ContextCompat;
+
+import com.delhitransit.delhitransit_android.R;
+import com.google.android.material.card.MaterialCardView;
 
 public class ViewMarker {
 
@@ -23,26 +25,51 @@ public class ViewMarker {
         this(context, s, Color.GREEN);
     }
 
+    public ViewMarker(Context context, String s, String relation) {
+        this(context, s, Color.GREEN, relation);
+    }
+
     public ViewMarker(Context context, String s, int color) {
-        view = LayoutInflater.from(context).inflate(R.layout.marker_heading_view, null, false);
+        this(context, s, color, null);
+    }
+
+    public ViewMarker(Context context, String s, int color, String relation) {
+        View view = LayoutInflater.from(context).inflate(R.layout.marker_heading_view, null, false);
+        TextView headingTextView = view.findViewById(R.id.heading_text_view);
         if (s.length() < 15)
-            ((TextView) view.findViewById(R.id.heading_text_view)).setText(s);
+            headingTextView.setText(s);
         else {
-            ((TextView) view.findViewById(R.id.heading_text_view)).setText(s.substring(0, 15) + "...");
+            headingTextView.setText(String.format("%s...", s.substring(0, 15)));
         }
-        if (color != Color.GREEN)
-            view.findViewById(R.id.heading_linear_layout).setBackgroundColor(color);
+        if (color != Color.GREEN) {
+            MaterialCardView headingCardView = view.findViewById(R.id.heading_card_view);
+            headingCardView.setCardBackgroundColor(color);
+            headingCardView.setStrokeColor(darkenColor(color));
+        }
+        if (relation != null && !relation.isEmpty()) {
+            TextView relationTextView = view.findViewById(R.id.heading_relation_text_view);
+            relationTextView.setText(relation);
+            relationTextView.setVisibility(View.VISIBLE);
+        }
+        this.view = view;
     }
 
     public ViewMarker(Context context) {
         view = new View(context);
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.circle_marker_icon_150);
-        drawable.setBounds(0, 0, SIZE, SIZE);
-
-        view.setBackground(drawable);
-
+        if (drawable != null) {
+            drawable.setBounds(0, 0, SIZE, SIZE);
+            view.setBackground(drawable);
+        }
         forCircleMarker = true;
+    }
 
+    @ColorInt
+    int darkenColor(@ColorInt int color) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        hsv[2] *= 0.8f;
+        return Color.HSVToColor(hsv);
     }
 
     public Bitmap getBitmap() {
@@ -57,14 +84,10 @@ public class ViewMarker {
         }
         Canvas canvas = new Canvas(bitmap);
         Drawable bgDrawable = view.getBackground();
-
         if (bgDrawable != null)
             bgDrawable.draw(canvas);
-        else
-            canvas.drawColor(Color.TRANSPARENT);
-
+        else canvas.drawColor(Color.TRANSPARENT);
         view.draw(canvas);
         return bitmap;
-
     }
 }

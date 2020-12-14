@@ -8,6 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.helperclasses.RoutePointsMaker;
@@ -20,8 +23,6 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -31,10 +32,10 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
 
     Context context;
     LatLng source, destination;
-    private List<RouteDetailForAdapter> list;
-    private OnRouteSelectedListener onRouteSelectedListener;
+    private final List<RouteDetailForAdapter> list;
+    private final OnRouteSelectedListener onRouteSelectedListener;
     private String sourceBusStopName;
-    private TaskCompleteCallback taskCompleteCallback;
+    private final TaskCompleteCallback taskCompleteCallback;
 
     public RoutesListAdapter(Context context, List<RouteDetailForAdapter> list, OnRouteSelectedListener onRouteSelectedListener, TaskCompleteCallback taskCompleteCallback) {
         this.context = context;
@@ -63,7 +64,7 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
                 @Override
                 public void onResponse(Call<List<ShapePoint>> call, Response<List<ShapePoint>> response) {
                     if (response.body() != null && response.body().size() != 0) {
-                        new RoutePointsMaker(context, colorList[4], taskCompleteCallback, source, destination).execute(response.body());
+                        new RoutePointsMaker(colorList[4], taskCompleteCallback, source, destination).execute(response.body());
                     } else {
                         taskCompleteCallback.onTaskDone(false);
                     }

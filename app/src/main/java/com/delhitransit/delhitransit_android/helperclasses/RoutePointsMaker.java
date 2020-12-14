@@ -1,6 +1,5 @@
 package com.delhitransit.delhitransit_android.helperclasses;
 
-import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -22,7 +21,7 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
     private LatLngBounds bounds;
 
 
-    public RoutePointsMaker(Context context, int color, TaskCompleteCallback taskCompleteCallback, LatLng source, LatLng destination) {
+    public RoutePointsMaker(int color, TaskCompleteCallback taskCompleteCallback, LatLng source, LatLng destination) {
         this.color = color;
         this.taskCompleteCallback = taskCompleteCallback;
         this.source = source;
@@ -30,10 +29,6 @@ public class RoutePointsMaker extends AsyncTask<List<ShapePoint>, Integer, Polyl
     }
 
     public PolylineOptions makePoly(List<ShapePoint> shapePointList) {
-
-        //shapePointList.sort(Comparator.comparingInt(ShapePoint::getSequence));
-
-
         PolylineOptions polylineOptions = new PolylineOptions();
         ArrayList<LatLng> resultPoints = new ArrayList<>();
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
