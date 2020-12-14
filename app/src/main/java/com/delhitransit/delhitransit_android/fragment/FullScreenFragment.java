@@ -11,43 +11,42 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import static android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
+import static android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+
 public class FullScreenFragment extends Fragment {
 
     /**
      * Some older devices needs a small delay between UI widget updates
      * and a change of the status and navigation bar.
      */
-    private static final int UI_ANIMATION_DELAY = 300;
+//    private static final int UI_ANIMATION_DELAY = 300;
 
     // Note that some of these constants are new as of API 16 (Jelly Bean)
     // and API 19 (KitKat). It is safe to use them, as they are inlined
     // at compile-time and do nothing on earlier devices.
-    private static final int flags = View.SYSTEM_UI_FLAG_LOW_PROFILE
-            | View.SYSTEM_UI_FLAG_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+    private static final int flags = FLAG_TRANSLUCENT_STATUS;
 
-    private final Handler mHideHandler = new Handler();
-    private final Runnable mHideRunnable = () -> {
-        Activity activity = getActivity();
-        if (activity != null
-                && activity.getWindow() != null) {
-            activity.getWindow().getDecorView().setSystemUiVisibility(flags);
-        }
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
-
-    };
-    private final Runnable mShowRunnable = () -> {
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.show();
-        }
-    };
+//    private final Handler mHideHandler = new Handler();
+//    private final Runnable mHideRunnable = () -> {
+//        Activity activity = getActivity();
+//        if (activity != null
+//                && activity.getWindow() != null) {
+//            activity.getWindow().getDecorView().setSystemUiVisibility(SYSTEM_UI_FLAG_LAYOUT_STABLE);
+//        }
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar != null) {
+//            actionBar.hide();
+//        }
+//
+//    };
+//    private final Runnable mShowRunnable = () -> {
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar != null) {
+//            actionBar.show();
+//        }
+//    };
 
     @Override
     public void onResume() {
@@ -58,7 +57,7 @@ public class FullScreenFragment extends Fragment {
         // Trigger the initial hide() shortly after the activity has been
         // created, to briefly hint to the user that UI controls
         // are available.
-        delayedHide();
+//        delayedHide();
     }
 
     @Override
@@ -70,49 +69,49 @@ public class FullScreenFragment extends Fragment {
             // Clear the systemUiVisibility flag
             getActivity().getWindow().getDecorView().setSystemUiVisibility(0);
         }
-        show();
+//        show();
     }
 
-    private void hide() {
-        // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
-        // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.removeCallbacks(mShowRunnable);
-        mHideHandler.postDelayed(mHideRunnable, UI_ANIMATION_DELAY);
-    }
-
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Schedule a runnable to display UI elements after a delay
-        mHideHandler.removeCallbacks(mHideRunnable);
-        mHideHandler.postDelayed(mShowRunnable, UI_ANIMATION_DELAY);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.show();
-        }
-    }
-
-    /**
-     * Schedules a call to hide() in delay milliseconds, canceling any
-     * previously scheduled calls.
-     */
-    private void delayedHide() {
-        mHideHandler.removeCallbacks(this::hide);
-        mHideHandler.postDelayed(this::hide, 100);
-    }
-
-    @Nullable
-    private ActionBar getSupportActionBar() {
-        ActionBar actionBar = null;
-        if (getActivity() instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) getActivity();
-            actionBar = activity.getSupportActionBar();
-        }
-        return actionBar;
-    }
+//    private void hide() {
+//        // Hide UI first
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar != null) {
+//            actionBar.hide();
+//        }
+//        // Schedule a runnable to remove the status and navigation bar after a delay
+//        mHideHandler.removeCallbacks(mShowRunnable);
+//        mHideHandler.post(mHideRunnable);
+//    }
+//
+//    @SuppressLint("InlinedApi")
+//    private void show() {
+//        // Schedule a runnable to display UI elements after a delay
+//        mHideHandler.removeCallbacks(mHideRunnable);
+//        mHideHandler.post(mHideRunnable);
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar != null) {
+//            actionBar.show();
+//        }
+//    }
+//
+//    /**
+//     * Schedules a call to hide() in delay milliseconds, canceling any
+//     * previously scheduled calls.
+//     */
+//    private void delayedHide() {
+//        mHideHandler.removeCallbacks(this::hide);
+//        mHideHandler.postDelayed(this::hide, 100);
+//    }
+//
+//    @Nullable
+//    private ActionBar getSupportActionBar() {
+//        ActionBar actionBar = null;
+//        if (getActivity() instanceof AppCompatActivity) {
+//            AppCompatActivity activity = (AppCompatActivity) getActivity();
+//            actionBar = activity.getSupportActionBar();
+//        }
+//        return actionBar;
+//    }
 
 
 }

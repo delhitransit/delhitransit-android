@@ -16,14 +16,27 @@
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context=".activity.MapsActivity" />
+            android:layout_height="match_parent" />
 
         <ImageView
             android:id="@+id/blur_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/black" />
+
+        <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+            android:id="@+id/horizontal_loading_bar"
+            style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal.NoPadding"
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:layout_gravity="start"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:indeterminate="true"
+            android:visibility="visible"
+            android:layout_marginTop="82dp"
+            app:mpb_indeterminateTint="@color/colorPrimary"
+            app:mpb_progressStyle="horizontal" />
 
         <com.arlib.floatingsearchview.FloatingSearchView
             android:id="@+id/floating_bus_stop_search_view_1"
@@ -34,8 +47,8 @@
             app:floatingSearch_leftActionMode="showSearch"
             app:floatingSearch_searchBarMarginLeft="10dp"
             app:floatingSearch_searchBarMarginRight="10dp"
-            app:floatingSearch_searchBarMarginTop="20dp"
-            app:floatingSearch_searchHint="Search bus stops"
+            app:floatingSearch_searchBarMarginTop="36dp"
+            app:floatingSearch_searchHint="@string/hint_stop_search_bar"
             app:floatingSearch_showSearchKey="true"
             app:floatingSearch_suggestionsListAnimDuration="250" />
 
@@ -86,20 +99,5 @@
             android:padding="10dp"
             app:SpinKit_Color="@color/colorPrimary" />
     </androidx.cardview.widget.CardView>
-
-    <me.zhanghai.android.materialprogressbar.MaterialProgressBar
-        android:id="@+id/horizontal_loading_bar"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="16dp"
-        android:maxHeight="16dp"
-        android:layout_gravity="start"
-        android:indeterminate="true"
-        app:mpb_progressStyle="horizontal"
-        app:mpb_indeterminateTint="@color/colorPrimary"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal.NoPadding" />
 
 </FrameLayout>
