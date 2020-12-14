@@ -1,4 +1,4 @@
-package com.delhitransit.delhitransit_android.fragment;
+package com.delhitransit.delhitransit_android.fragment.favourite_stops;
 
 import android.content.Context;
 import android.os.Bundle;

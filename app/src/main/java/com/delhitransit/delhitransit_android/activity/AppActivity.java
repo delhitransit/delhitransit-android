@@ -13,7 +13,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.fragment.FavouriteStopsFragment;
+import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment;
 import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
