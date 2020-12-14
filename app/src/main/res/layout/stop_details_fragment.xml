@@ -39,6 +39,7 @@
 
     <!-- Note: A RecyclerView can also be used -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/stop_details_fragment_scrollable_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
@@ -62,5 +63,16 @@ There are many variations of passages of Lorem Ipsum available, but the majority
             android:textSize="24sp" />
 
     </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/extended_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Navigate from this stop"
+        app:icon="@drawable/ic_baseline_navigation_24"
+        app:layout_anchor="@id/stop_details_fragment_scrollable_content"
+        app:layout_anchorGravity="bottom|center_horizontal" />
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
