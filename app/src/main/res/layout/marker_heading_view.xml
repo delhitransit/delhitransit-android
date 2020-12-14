@@ -7,18 +7,18 @@
     android:orientation="vertical">
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/heading_card_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
         android:elevation="0dp"
+        android:orientation="horizontal"
         app:cardBackgroundColor="@android:color/holo_green_light"
         app:cardCornerRadius="4dp"
-        android:orientation="horizontal"
         app:strokeColor="@android:color/holo_green_dark"
         app:strokeWidth="1dp">
 
         <LinearLayout
-            android:id="@+id/heading_linear_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -31,9 +31,9 @@
                 android:background="@color/white"
                 android:text="From"
                 android:textAlignment="center"
-                android:textSize="10sp"
                 android:textAppearance="?attr/textAppearanceCaption"
-                android:visibility="visible" />
+                android:textSize="10sp"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/heading_text_view"
