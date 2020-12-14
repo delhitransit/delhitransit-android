@@ -13,9 +13,9 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment;
 import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
+import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -77,17 +77,13 @@ public class AppActivity extends AppCompatActivity {
                         .setTitle("Device offline")
                         .setMessage("Please turn on your mobile data or connect to a WiFi network")
                         .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
-                        .setPositiveButton("Turn on WiFi", (dialog, which) -> {
-                            startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
-                        }).show());
+                        .setPositiveButton("Turn on WiFi", (dialog, which) -> startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS))).show());
             } else if (!isServerReachable()) {
                 runOnUiThread(() -> new MaterialAlertDialogBuilder(this)
                         .setTitle("Server unreachable")
                         .setMessage("Cannot connect to remote server. You can change the server IP or try again in a little while")
                         .setNegativeButton("Dismiss", (dialog, which) -> dialog.dismiss())
-                        .setPositiveButton("Change IP address", (dialog, which) -> {
-                            findViewById(R.id.settings_tab_button).performClick();
-                        }).show());
+                        .setPositiveButton("Change IP address", (dialog, which) -> findViewById(R.id.settings_tab_button).performClick()).show());
             }
         }).start();
     }
