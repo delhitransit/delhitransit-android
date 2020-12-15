@@ -187,10 +187,22 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
     @Override
     public void finishAndExecute(String backStackKey, @NotNull Runnable runOnFinish) {
         manager.popBackStackImmediate(backStackKey, POP_BACK_STACK_INCLUSIVE);
-        List<Fragment> fragments = manager.getFragments();
-        final Optional<Fragment> visible = fragments.stream().filter(Fragment::isVisible).findFirst();
-        visible.ifPresent(it -> navigateTo(getFragmentIdFromHashMap(it)));
+        getVisibleFragment().ifPresent(it -> navigateTo(getFragmentIdFromHashMap(it)));
         runOnFinish.run();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Optional<Fragment> visibleFragment = getVisibleFragment();
+        if (visibleFragment.isPresent() && visibleFragment.get() instanceof StopDetailsFragment) {
+            ((StopDetailsFragment) visibleFragment.get()).finishMe(null);
+        } else super.onBackPressed();
+    }
+
+    @NotNull
+    private Optional<Fragment> getVisibleFragment() {
+        List<Fragment> fragments = manager.getFragments();
+        return fragments.stream().filter(Fragment::isVisible).findFirst();
     }
 
     private short getFragmentIdFromHashMap(Fragment fragment) {

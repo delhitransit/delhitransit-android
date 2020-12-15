@@ -61,7 +61,7 @@ public class StopDetailsFragment extends Fragment {
         }
     }
 
-    private void finishMe(Runnable callback) {
+    public void finishMe(Runnable callback) {
         FragmentFinisherInterface activity = (FragmentFinisherInterface) getActivity();
         if (activity != null) {
             activity.finishAndExecute(KEY_FRAGMENT_BACKSTACK, callback == null ? () -> {
