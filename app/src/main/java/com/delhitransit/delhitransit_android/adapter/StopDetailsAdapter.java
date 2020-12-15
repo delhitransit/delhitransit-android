@@ -1,4 +1,4 @@
-package com.delhitransit.delhitransit_android.fragment.stop_details;
+package com.delhitransit.delhitransit_android.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,8 +16,20 @@ import com.google.android.material.chip.Chip;
 
 public class StopDetailsAdapter extends ListAdapter<RoutesFromStopDetail, StopDetailsAdapter.SDViewHolder> {
 
-    protected StopDetailsAdapter(@NonNull DiffUtil.ItemCallback<RoutesFromStopDetail> diffCallback) {
-        super(diffCallback);
+    private static final DiffUtil.ItemCallback<RoutesFromStopDetail> DIFF_CALLBACK = new DiffUtil.ItemCallback<RoutesFromStopDetail>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull RoutesFromStopDetail oldItem, @NonNull RoutesFromStopDetail newItem) {
+            return oldItem == newItem;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull RoutesFromStopDetail oldItem, @NonNull RoutesFromStopDetail newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
+
+    public StopDetailsAdapter() {
+        super(DIFF_CALLBACK);
     }
 
     @NonNull
@@ -56,19 +68,6 @@ public class StopDetailsAdapter extends ListAdapter<RoutesFromStopDetail, StopDe
             }
         }
 
-    }
-
-    static class SDDiff extends DiffUtil.ItemCallback<RoutesFromStopDetail> {
-
-        @Override
-        public boolean areItemsTheSame(@NonNull RoutesFromStopDetail oldItem, @NonNull RoutesFromStopDetail newItem) {
-            return oldItem == newItem;
-        }
-
-        @Override
-        public boolean areContentsTheSame(@NonNull RoutesFromStopDetail oldItem, @NonNull RoutesFromStopDetail newItem) {
-            return oldItem.equals(newItem);
-        }
     }
 
 }
