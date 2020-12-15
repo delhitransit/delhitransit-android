@@ -18,6 +18,7 @@ import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment;
 import com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragment;
+import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -28,7 +29,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
-public class AppActivity extends AppCompatActivity implements MapsFragment.OnStopMarkerClickListener {
+public class AppActivity extends AppCompatActivity implements OnStopMarkerClickedListener {
 
     public static final short MAPS_FRAGMENT = 0;
     public static final short SETTINGS_FRAGMENT = 1;
@@ -165,7 +166,7 @@ public class AppActivity extends AppCompatActivity implements MapsFragment.OnSto
     }
 
     @Override
-    public void onStopMarkerClicked(StopDetail stop, Runnable fabClickCallback) {
+    public void onStopMarkerClick(StopDetail stop, Runnable fabClickCallback) {
         Toast.makeText(this, "stop : " + stop.getName(), Toast.LENGTH_SHORT).show();
         StopDetailsFragment fragment = new StopDetailsFragment(stop);
         fragmentMap.put(STOP_DETAILS_FRAGMENT, fragment);

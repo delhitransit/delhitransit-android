@@ -44,6 +44,7 @@ import com.delhitransit.delhitransit_android.helperclasses.CircleMarker;
 import com.delhitransit.delhitransit_android.helperclasses.MarkerDetails;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
+import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
@@ -116,8 +117,8 @@ public class MapsFragment extends Fragment {
                 if (stop != null) {
                     Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
                     Activity activity = getActivity();
-                    if (activity instanceof OnStopMarkerClickListener) {
-                        ((OnStopMarkerClickListener) activity).onStopMarkerClicked(stop, runnable);
+                    if (activity instanceof OnStopMarkerClickedListener) {
+                        ((OnStopMarkerClickedListener) activity).onStopMarkerClick(stop, runnable);
                     } else runnable.run();
                 }
                 /*if (busStopsHashMap.containsKey(marker)) {
@@ -549,10 +550,6 @@ public class MapsFragment extends Fragment {
         if (getActivity() != null && getActivity().getWindow() != null) {
             getActivity().getWindow().clearFlags(WINDOW_DECORATION_FLAG);
         }
-    }
-
-    public interface OnStopMarkerClickListener {
-        void onStopMarkerClicked(StopDetail stop, Runnable fabClickCallback);
     }
 
 }
