@@ -26,7 +26,6 @@ public class FavouriteStopsFragment extends Fragment {
     private FavouriteStopsViewModel mViewModel;
     private FavouriteStopsAdapter adapter;
     private RecyclerView recyclerView;
-    private Context context;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -35,20 +34,19 @@ public class FavouriteStopsFragment extends Fragment {
         recyclerView = parent.findViewById(R.id.fav_stops_recycler_view);
         adapter = new FavouriteStopsAdapter();
         recyclerView.setAdapter(adapter);
-        enableSwipe();
+        enableSwipe(this.getContext());
         return parent;
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        context = getContext();
         mViewModel = new ViewModelProvider(this).get(FavouriteStopsViewModel.class);
         mViewModel.insertDummyStop();
         mViewModel.getAll().observe(getViewLifecycleOwner(), adapter::submitList);
     }
 
-    private void enableSwipe() {
+    private void enableSwipe(Context context) {
         SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(context) {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
