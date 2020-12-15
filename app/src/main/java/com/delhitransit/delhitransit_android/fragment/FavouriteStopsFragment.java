@@ -6,6 +6,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.List;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -13,12 +19,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
-import com.google.android.material.snackbar.Snackbar;
-
-import java.util.List;
 
 public class FavouriteStopsFragment extends Fragment {
 
@@ -32,7 +32,8 @@ public class FavouriteStopsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.favourite_stops_fragment, container, false);
         recyclerView = parent.findViewById(R.id.fav_stops_recycler_view);
-        adapter = new FavouriteStopsAdapter(new FavouriteStopsAdapter.FSDiff());
+        //adapter = new FavouriteStopsAdapter(new FavouriteStopsAdapter.FSDiff());
+        adapter = new FavouriteStopsAdapter();
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         enableSwipe();

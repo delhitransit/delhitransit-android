@@ -30,6 +30,7 @@ import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
+import com.delhitransit.delhitransit_android.helperclasses.CircleMarker;
 import com.delhitransit.delhitransit_android.helperclasses.MarkerDetails;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
@@ -96,6 +97,7 @@ public class MapsFragment extends Fragment {
     private ImageView blurView;
     private Context context;
     private MaterialProgressBar horizontalProgressBar;
+    private CircleMarker circleMarker;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -174,28 +176,33 @@ public class MapsFragment extends Fragment {
 
         routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
         noRoutesAvailableTextView = routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view);
-        routesListAdapter = new RoutesListAdapter(context, routesList, () -> {
-            progressBarVisibility(true);
-            routesBottomSheetDialog.dismiss();
-        }, values -> {
-            if (!(values[0] instanceof Boolean)) {
-                if (currentPolyline != null)
-                    currentPolyline.remove();
-                currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
-                Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(0)));
-                marker.setZIndex(2);
-                marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(currentPolyline.getPoints().size() - 1)));
-                marker.setZIndex(2);
-            } else {
-                routesBottomSheetDialog.dismiss();
-                showToast("Route plotting not available for this trip");
-            }
-            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(sourceMarkerDetail.latLng).include(destinationMarkerDetail.latLng).build(), 0));
-            progressBarVisibility(false);
-        });
+
+        routesListAdapter = new RoutesListAdapter(context, routesList, this::onRouteSelected, this::onTaskDone);
+
         routesListRecycleView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         routesListRecycleView.setAdapter(routesListAdapter);
 
+    }
+
+    private void onRouteSelected() {
+        progressBarVisibility(true);
+        routesBottomSheetDialog.dismiss();
+    }
+
+    private void onTaskDone(Object[] values) {
+        if (!(values[0] instanceof Boolean)) {
+            if (currentPolyline != null) {
+                currentPolyline.remove();
+                circleMarker.remove();
+            }
+            currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+            circleMarker = new CircleMarker(mMap, context, currentPolyline);
+        } else {
+            routesBottomSheetDialog.dismiss();
+            showToast("Route plotting not available for this trip");
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(sourceMarkerDetail.latLng).include(destinationMarkerDetail.latLng).build(), 0));
+        progressBarVisibility(false);
     }
 
     private void viewVisibility(View view, boolean visible) {
@@ -271,12 +278,11 @@ public class MapsFragment extends Fragment {
                 apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopsResponseData>>() {
                     @Override
                     public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
-                        if (response.body() != null) {
-                            if (response.body().size() != 0) {
-                                setStopDataOnSearchView(response.body().get(0), searchView, isSecondSearchView);
-                            } else {
-                                showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
-                            }
+
+                        if (response.body() != null && response.body().size() != 0) {
+                            setStopDataOnSearchView(response.body().get(0), searchView, isSecondSearchView);
+                        } else {
+                            showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
                         }
                     }
 

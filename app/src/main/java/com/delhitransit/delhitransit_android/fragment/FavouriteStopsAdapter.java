@@ -5,19 +5,33 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
-
 public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, FavouriteStopsAdapter.FSViewHolder> {
 
-    public FavouriteStopsAdapter(@NonNull DiffUtil.ItemCallback<StopsResponseData> diffCallback) {
-        super(diffCallback);
+
+    private static DiffUtil.ItemCallback<StopsResponseData> DIFF_CALLBACK = new DiffUtil.ItemCallback<StopsResponseData>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
+            return oldItem == newItem;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
+
+    public FavouriteStopsAdapter() {
+        super(DIFF_CALLBACK);
     }
+
 
     @NonNull
     @Override
@@ -55,7 +69,7 @@ public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, Favour
             }
         }
     }
-
+/*
     static class FSDiff extends DiffUtil.ItemCallback<StopsResponseData> {
         @Override
         public boolean areItemsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
@@ -66,5 +80,5 @@ public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, Favour
         public boolean areContentsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
             return oldItem.equals(newItem);
         }
-    }
+    }*/
 }

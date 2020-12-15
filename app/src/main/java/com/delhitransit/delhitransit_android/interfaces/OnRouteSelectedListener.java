@@ -1,5 +1,5 @@
 package com.delhitransit.delhitransit_android.interfaces;
 
 public interface OnRouteSelectedListener {
-    void OnRouteSelected();
+    void onRouteSelected();
 }

@@ -34,6 +34,7 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
     private final OnRouteSelectedListener onRouteSelectedListener;
     private final TaskCompleteCallback taskCompleteCallback;
     private final Context context;
+    int[] colorList = {Color.RED, Color.BLACK, Color.CYAN, Color.YELLOW, Color.BLUE, Color.GRAY};
     private LatLng source, destination;
     private String sourceBusStopName;
 
@@ -54,7 +55,6 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
     public void onBindViewHolder(@NonNull RoutesListViewHolder holder, int position) {
         RouteDetailForAdapter routeDetail = list.get(position);
 
-        int[] colorList = {Color.RED, Color.BLACK, Color.CYAN, Color.YELLOW, Color.BLUE, Color.GRAY};
         if (routeDetail.getRouteId() <= 533) {
             holder.busStopIcon.setImageResource(R.drawable.bus_icon);
         } else {
@@ -63,7 +63,7 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
         holder.busNumber.setText(routeDetail.getLongName());
         setTimeInLayout(holder.bothTime, holder.sourceTime, sourceBusStopName, routeDetail.getBusTimings(), routeDetail.getTravelTime(), holder.travelTimeHr, holder.hrDisplay, holder.travelTimeMin, holder.minDisplay);
         holder.parent.setOnClickListener(v -> {
-            onRouteSelectedListener.OnRouteSelected();
+            onRouteSelectedListener.onRouteSelected();
             ApiClient.getApiService(context).getAllShapePointsByTripId(routeDetail.getTripId()).enqueue(new Callback<List<ShapePoint>>() {
                 @Override
                 public void onResponse(Call<List<ShapePoint>> call, Response<List<ShapePoint>> response) {
