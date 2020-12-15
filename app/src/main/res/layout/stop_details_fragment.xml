@@ -31,6 +31,7 @@
                 android:layout_height="?attr/actionBarSize"
                 android:elevation="0dp"
                 app:layout_collapseMode="pin"
+                app:menu="@menu/stop_details_menu"
                 app:navigationIcon="@drawable/ic_baseline_close_24"
                 app:title="Rohini Sector 22" />
 
