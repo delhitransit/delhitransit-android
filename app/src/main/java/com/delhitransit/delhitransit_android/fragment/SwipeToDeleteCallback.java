@@ -9,22 +9,22 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
-import com.delhitransit.delhitransit_android.R;
-
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.delhitransit.delhitransit_android.R;
+
 public abstract class SwipeToDeleteCallback extends ItemTouchHelper.Callback {
 
-    Context mContext;
-    private Paint mClearPaint;
-    private ColorDrawable mBackground;
-    private int backgroundColor;
-    private Drawable deleteDrawable;
+    private final Paint mClearPaint;
+    private final ColorDrawable mBackground;
+    private final int backgroundColor;
+    private final Drawable deleteDrawable;
     private int intrinsicWidth;
     private int intrinsicHeight;
+    Context mContext;
 
     SwipeToDeleteCallback(Context context) {
         mContext = context;
@@ -33,11 +33,11 @@ public abstract class SwipeToDeleteCallback extends ItemTouchHelper.Callback {
         mClearPaint = new Paint();
         mClearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         deleteDrawable = ContextCompat.getDrawable(mContext, R.drawable.delete_outline_icon);
-        intrinsicWidth = deleteDrawable.getIntrinsicWidth();
-        intrinsicHeight = deleteDrawable.getIntrinsicHeight();
-
+        if (deleteDrawable != null) {
+            intrinsicWidth = deleteDrawable.getIntrinsicWidth();
+            intrinsicHeight = deleteDrawable.getIntrinsicHeight();
+        }
     }
-
 
     @Override
     public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {

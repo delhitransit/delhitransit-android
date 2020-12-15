@@ -1,22 +1,23 @@
-package com.delhitransit.delhitransit_android.fragment;
+package com.delhitransit.delhitransit_android.adapter;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+
 public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, FavouriteStopsAdapter.FSViewHolder> {
 
 
-    private static DiffUtil.ItemCallback<StopsResponseData> DIFF_CALLBACK = new DiffUtil.ItemCallback<StopsResponseData>() {
+    private static final DiffUtil.ItemCallback<StopsResponseData> DIFF_CALLBACK = new DiffUtil.ItemCallback<StopsResponseData>() {
         @Override
         public boolean areItemsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
             return oldItem == newItem;
@@ -31,7 +32,6 @@ public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, Favour
     public FavouriteStopsAdapter() {
         super(DIFF_CALLBACK);
     }
-
 
     @NonNull
     @Override
@@ -63,22 +63,12 @@ public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, Favour
             }
         }
 
+        @SuppressLint("SetTextI18n")
         public void setStopId(Integer id) {
             if (stopId != null && id != null) {
                 stopId.setText(id.toString());
             }
         }
     }
-/*
-    static class FSDiff extends DiffUtil.ItemCallback<StopsResponseData> {
-        @Override
-        public boolean areItemsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
-            return oldItem == newItem;
-        }
 
-        @Override
-        public boolean areContentsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
-            return oldItem.equals(newItem);
-        }
-    }*/
 }

@@ -6,12 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
-import com.google.android.material.snackbar.Snackbar;
-
-import java.util.List;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -19,6 +13,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.adapter.FavouriteStopsAdapter;
+import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.List;
 
 public class FavouriteStopsFragment extends Fragment {
 
@@ -32,7 +33,6 @@ public class FavouriteStopsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.favourite_stops_fragment, container, false);
         recyclerView = parent.findViewById(R.id.fav_stops_recycler_view);
-        //adapter = new FavouriteStopsAdapter(new FavouriteStopsAdapter.FSDiff());
         adapter = new FavouriteStopsAdapter();
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
@@ -49,25 +49,17 @@ public class FavouriteStopsFragment extends Fragment {
     }
 
     private void enableSwipe() {
-
         SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(context) {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-
                 int position = viewHolder.getAdapterPosition();
                 List<StopsResponseData> data = adapter.getCurrentList();
                 StopsResponseData element = data.get(position);
                 mViewModel.deleteByStopId(element.getStopId());
-//                data.remove(element);
-//                adapter.notifyItemRemoved(position);
 
                 // showing snack bar with Undo option
                 Snackbar snackbar = Snackbar.make(viewHolder.itemView, "User deleted", Snackbar.LENGTH_LONG);
-                snackbar.setAction("UNDO", v -> {
-                    mViewModel.insertAll(element);
-//                    data.add(position, element);
-//                    adapter.notifyItemInserted(position);
-                });
+                snackbar.setAction("UNDO", v -> mViewModel.insertAll(element));
                 snackbar.show();
             }
         };

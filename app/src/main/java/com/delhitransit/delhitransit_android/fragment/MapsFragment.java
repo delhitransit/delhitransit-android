@@ -23,6 +23,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.R;
@@ -56,14 +65,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import jp.wasabeef.blurry.Blurry;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 import retrofit2.Call;
@@ -97,7 +98,6 @@ public class MapsFragment extends Fragment {
     private ImageView blurView;
     private Context context;
     private MaterialProgressBar horizontalProgressBar;
-    private CircleMarker circleMarker;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -113,7 +113,10 @@ public class MapsFragment extends Fragment {
             getUserLocation();
             mMap.setPadding(100, 600, 100, 100);
             mMap.setOnMarkerClickListener(marker -> {
-                showToast(busStopsHashMap.get(marker).getName());
+                StopsResponseData responseData = busStopsHashMap.get(marker);
+                if (responseData != null) {
+                    showToast(responseData.getName());
+                }
                 /*if (busStopsHashMap.containsKey(marker)) {
                     setStopDataOnSearchView(busStopsHashMap.get(marker), searchView1, false);
                 }*/
@@ -131,6 +134,7 @@ public class MapsFragment extends Fragment {
         }
 
     };
+    private CircleMarker circleMarker;
 
     @Nullable
     @Override
@@ -232,38 +236,35 @@ public class MapsFragment extends Fragment {
     }
 
     private void setSearchViewQueryAndSearchListener(FloatingSearchView searchView, boolean isSecondSearchView) {
-        searchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
-            @Override
-            public void onSearchTextChanged(String oldQuery, String newQuery) {
-                if (!isSecondSearchView) {
-                    viewVisibility(searchView2, false);
-                }
-                if (newQuery.equals("")) {
-                    searchView.clearSuggestions();
-                } else if (!newQuery.trim().equals("")) {
-                    currQuery = newQuery;
-                    searchView.showProgress();
-                    apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopsResponseData>>() {
-                        @Override
-                        public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
-                            if (response.body() != null) {
-                                List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
-                                for (StopsResponseData stopsResponseData : response.body()) {
-                                    busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
-                                }
-                                searchView.swapSuggestions(busStopsSuggestions);
+        searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
+            if (!isSecondSearchView) {
+                viewVisibility(searchView2, false);
+            }
+            if (newQuery.equals("")) {
+                searchView.clearSuggestions();
+            } else if (!newQuery.trim().equals("")) {
+                currQuery = newQuery;
+                searchView.showProgress();
+                apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopsResponseData>>() {
+                    @Override
+                    public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
+                        if (response.body() != null) {
+                            List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
+                            for (StopsResponseData stopsResponseData : response.body()) {
+                                busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
                             }
-                            searchView.hideProgress();
+                            searchView.swapSuggestions(busStopsSuggestions);
                         }
+                        searchView.hideProgress();
+                    }
 
-                        @Override
-                        public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
-                            Log.e(TAG, "onFailure: int " + t.getMessage());
-                            searchView.hideProgress();
-                        }
-                    });
+                    @Override
+                    public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
+                        Log.e(TAG, "onFailure: int " + t.getMessage());
+                        searchView.hideProgress();
+                    }
+                });
 
-                }
             }
         });
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
