@@ -1,5 +1,6 @@
-package com.delhitransit.delhitransit_android.fragment;
+package com.delhitransit.delhitransit_android.adapter;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +16,21 @@ import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
 
 public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, FavouriteStopsAdapter.FSViewHolder> {
 
-    public FavouriteStopsAdapter(@NonNull DiffUtil.ItemCallback<StopsResponseData> diffCallback) {
-        super(diffCallback);
+
+    private static final DiffUtil.ItemCallback<StopsResponseData> DIFF_CALLBACK = new DiffUtil.ItemCallback<StopsResponseData>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
+            return oldItem == newItem;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
+
+    public FavouriteStopsAdapter() {
+        super(DIFF_CALLBACK);
     }
 
     @NonNull
@@ -49,6 +63,7 @@ public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, Favour
             }
         }
 
+        @SuppressLint("SetTextI18n")
         public void setStopId(Integer id) {
             if (stopId != null && id != null) {
                 stopId.setText(id.toString());
@@ -56,15 +71,4 @@ public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, Favour
         }
     }
 
-    static class FSDiff extends DiffUtil.ItemCallback<StopsResponseData> {
-        @Override
-        public boolean areItemsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
-            return oldItem == newItem;
-        }
-
-        @Override
-        public boolean areContentsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
-            return oldItem.equals(newItem);
-        }
-    }
 }

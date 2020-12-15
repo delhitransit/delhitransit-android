@@ -39,6 +39,8 @@ import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
+import com.delhitransit.delhitransit_android.helperclasses.CircleMarker;
+import com.delhitransit.delhitransit_android.helperclasses.MarkerDetails;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
@@ -88,10 +90,9 @@ public class MapsFragment extends Fragment {
     private RecyclerView routesListRecycleView;
     private RoutesListAdapter routesListAdapter;
     private String currQuery = "";
-    private Integer sourceId, destinationId;
-    private LatLng source, destination, userLocation;
-    private String sourceBusStopName, destinationBusStopName;
-    private HashMap<Marker, StopsResponseData> nearByBusStopsHashMap = new HashMap<>();
+    private MarkerDetails sourceMarkerDetail, destinationMarkerDetail;
+    private LatLng userLocation;
+    private HashMap<Marker, StopsResponseData> busStopsHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
     private View parentView;
     private ImageView blurView;
@@ -112,15 +113,28 @@ public class MapsFragment extends Fragment {
             getUserLocation();
             mMap.setPadding(100, 600, 100, 100);
             mMap.setOnMarkerClickListener(marker -> {
-                if (nearByBusStopsHashMap.containsKey(marker)) {
-                    setStopDataOnSearchView(nearByBusStopsHashMap.get(marker), searchView1, false);
+                StopsResponseData responseData = busStopsHashMap.get(marker);
+                if (responseData != null) {
+                    showToast(responseData.getName());
                 }
+                /*if (busStopsHashMap.containsKey(marker)) {
+                    setStopDataOnSearchView(busStopsHashMap.get(marker), searchView1, false);
+                }*/
+                /*
+                    StopDetail stop = nearByBusStopsHashMap.get(marker);
+                    Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
+                    Activity activity = getActivity();
+                    if (activity instanceof OnStopMarkerClickListener) {
+                        ((OnStopMarkerClickListener) activity).onStopMarkerClicked(stop, runnable);
+                    } else runnable.run();
+                    */
                 return true;
             });
 
         }
 
     };
+    private CircleMarker circleMarker;
 
     @Nullable
     @Override
@@ -166,28 +180,33 @@ public class MapsFragment extends Fragment {
 
         routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
         noRoutesAvailableTextView = routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view);
-        routesListAdapter = new RoutesListAdapter(context, routesList, () -> {
-            progressBarVisibility(true);
-            routesBottomSheetDialog.dismiss();
-        }, values -> {
-            if (!(values[0] instanceof Boolean)) {
-                if (currentPolyline != null)
-                    currentPolyline.remove();
-                currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
-                Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(0)));
-                marker.setZIndex(2);
-                marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context).getBitmap())).anchor(0.5f, 0.5f).position(currentPolyline.getPoints().get(currentPolyline.getPoints().size() - 1)));
-                marker.setZIndex(2);
-            } else {
-                routesBottomSheetDialog.dismiss();
-                showToast("Route plotting not available for this trip");
-            }
-            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(source).include(destination).build(), 0));
-            progressBarVisibility(false);
-        });
+
+        routesListAdapter = new RoutesListAdapter(context, routesList, this::onRouteSelected, this::onTaskDone);
+
         routesListRecycleView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         routesListRecycleView.setAdapter(routesListAdapter);
 
+    }
+
+    private void onRouteSelected() {
+        progressBarVisibility(true);
+        routesBottomSheetDialog.dismiss();
+    }
+
+    private void onTaskDone(Object[] values) {
+        if (!(values[0] instanceof Boolean)) {
+            if (currentPolyline != null) {
+                currentPolyline.remove();
+                circleMarker.remove();
+            }
+            currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+            circleMarker = new CircleMarker(mMap, context, currentPolyline);
+        } else {
+            routesBottomSheetDialog.dismiss();
+            showToast("Route plotting not available for this trip");
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(sourceMarkerDetail.latLng).include(destinationMarkerDetail.latLng).build(), 0));
+        progressBarVisibility(false);
     }
 
     private void viewVisibility(View view, boolean visible) {
@@ -217,38 +236,35 @@ public class MapsFragment extends Fragment {
     }
 
     private void setSearchViewQueryAndSearchListener(FloatingSearchView searchView, boolean isSecondSearchView) {
-        searchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
-            @Override
-            public void onSearchTextChanged(String oldQuery, String newQuery) {
-                if (!isSecondSearchView) {
-                    viewVisibility(searchView2, false);
-                }
-                if (newQuery.equals("")) {
-                    searchView.clearSuggestions();
-                } else if (!newQuery.trim().equals("")) {
-                    currQuery = newQuery;
-                    searchView.showProgress();
-                    apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopsResponseData>>() {
-                        @Override
-                        public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
-                            if (response.body() != null) {
-                                List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
-                                for (StopsResponseData stopsResponseData : response.body()) {
-                                    busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
-                                }
-                                searchView.swapSuggestions(busStopsSuggestions);
+        searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
+            if (!isSecondSearchView) {
+                viewVisibility(searchView2, false);
+            }
+            if (newQuery.equals("")) {
+                searchView.clearSuggestions();
+            } else if (!newQuery.trim().equals("")) {
+                currQuery = newQuery;
+                searchView.showProgress();
+                apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopsResponseData>>() {
+                    @Override
+                    public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
+                        if (response.body() != null) {
+                            List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
+                            for (StopsResponseData stopsResponseData : response.body()) {
+                                busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
                             }
-                            searchView.hideProgress();
+                            searchView.swapSuggestions(busStopsSuggestions);
                         }
+                        searchView.hideProgress();
+                    }
 
-                        @Override
-                        public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
-                            Log.e(TAG, "onFailure: int " + t.getMessage());
-                            searchView.hideProgress();
-                        }
-                    });
+                    @Override
+                    public void onFailure(Call<List<StopsResponseData>> call, Throwable t) {
+                        Log.e(TAG, "onFailure: int " + t.getMessage());
+                        searchView.hideProgress();
+                    }
+                });
 
-                }
             }
         });
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
@@ -263,12 +279,11 @@ public class MapsFragment extends Fragment {
                 apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopsResponseData>>() {
                     @Override
                     public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
-                        if (response.body() != null) {
-                            if (response.body().size() != 0) {
-                                setStopDataOnSearchView(response.body().get(0), searchView, isSecondSearchView);
-                            } else {
-                                showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
-                            }
+
+                        if (response.body() != null && response.body().size() != 0) {
+                            setStopDataOnSearchView(response.body().get(0), searchView, isSecondSearchView);
+                        } else {
+                            showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
                         }
                     }
 
@@ -298,19 +313,25 @@ public class MapsFragment extends Fragment {
     }
 
     private void setStopDataOnSearchView(StopsResponseData stopsDetail, FloatingSearchView searchView, boolean isSecondSearchView) {
-        if (isSecondSearchView) {
-            destinationId = stopsDetail.getStopId();
-            destinationBusStopName = stopsDetail.getName();
 
+        MarkerDetails markerDetails = new MarkerDetails(stopsDetail, isSecondSearchView);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerDetails.latLng, 17));
+        addMarkerIfNotNull(markerDetails);
+
+        if (isSecondSearchView) {
+            if (destinationMarkerDetail != null) {
+                destinationMarkerDetail.remove();
+            }
+            destinationMarkerDetail = markerDetails;
+            searchView2.clearSearchFocus();
             progressBarVisibility(true);
 
-            apiService.getCustomizeRoutesBetweenStops(destinationId, sourceId, ((int) TimeConverter.getSecondsSince12AM())).enqueue(new Callback<List<CustomizeRouteDetail>>() {
+            apiService.getCustomizeRoutesBetweenStops(destinationMarkerDetail.id, sourceMarkerDetail.id, ((int) TimeConverter.getSecondsSince12AM())).enqueue(new Callback<List<CustomizeRouteDetail>>() {
                 @Override
                 public void onResponse(Call<List<CustomizeRouteDetail>> call, Response<List<CustomizeRouteDetail>> response) {
                     if (response.body() != null && !response.body().isEmpty()) {
                         routesList.clear();
-                        routesListAdapter.setSourceAndDestination(source, destination);
-                        routesListAdapter.setSourceBusStopName(sourceBusStopName);
+                        routesListAdapter.setDetail(sourceMarkerDetail.latLng, destinationMarkerDetail.latLng, sourceMarkerDetail.name);
                         routesList.addAll(makeListAdapter(response.body()));
                         routesListAdapter.notifyDataSetChanged();
 
@@ -332,12 +353,15 @@ public class MapsFragment extends Fragment {
                 }
             });
         } else {
-            sourceId = stopsDetail.getStopId();
-            sourceBusStopName = stopsDetail.getName();
+            if (sourceMarkerDetail != null) {
+                sourceMarkerDetail.remove();
+            }
+            sourceMarkerDetail = markerDetails;
+
+            searchView1.clearSearchFocus();
             viewVisibility(searchView2, true);
             searchView2.setSearchFocused(true);
         }
-        setBusStopMarker(stopsDetail, isSecondSearchView);
         searchView.setSearchText(stopsDetail.getName());
     }
 
@@ -356,25 +380,12 @@ public class MapsFragment extends Fragment {
         return list;
     }
 
-    private void setBusStopMarker(StopsResponseData stopsResponseData, boolean isSecondSearchView) {
-        mMap.clear();
-        if (!isSecondSearchView) {
-            source = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(source, 17));
-            searchView1.clearSearchFocus();
-        } else {
-            destination = new LatLng(stopsResponseData.getLatitude(), stopsResponseData.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 17));
-            searchView2.clearSearchFocus();
-        }
-        addMarkerIfNotNull(source, sourceBusStopName, "From");
-        addMarkerIfNotNull(destination, destinationBusStopName, "To");
-        addMarkerIfNotNull(userLocation, "Your Location", null);
-    }
 
-    private void addMarkerIfNotNull(LatLng latLng, String s, String relation) {
-        if (latLng != null) {
-            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, s, relation).getBitmap())).position(latLng));
+    private void addMarkerIfNotNull(MarkerDetails markerDetail) {
+        if (markerDetail.latLng != null) {
+            busStopsHashMap.remove(markerDetail.marker);
+            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetail.name, markerDetail.relation).getBitmap())).position(markerDetail.latLng));
+            busStopsHashMap.put(marker, markerDetail.stopsResponseData);
         }
     }
 
@@ -407,7 +418,7 @@ public class MapsFragment extends Fragment {
             if (isLocationEnabled(locationManager)) {
                 try {
                     horizontalProgressBar.setVisibility(View.VISIBLE);
-                    locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new LocationListener() {
+                    locationManager.requestSingleUpdate("fused", new LocationListener() {
                         @Override
                         public void onLocationChanged(Location location) {
                             horizontalProgressBar.setVisibility(View.GONE);
@@ -471,13 +482,13 @@ public class MapsFragment extends Fragment {
                         public void onResponse(Call<List<StopsResponseData>> call, Response<List<StopsResponseData>> response) {
                             if (response.body() != null) {
                                 if (response.body().size() > 4) {
-                                    nearByBusStopsHashMap = new HashMap<>();
+                                    busStopsHashMap = new HashMap<>();
                                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
                                     builder.include(new LatLng(userLatitude, userLongitude));
                                     for (StopsResponseData data : response.body()) {
                                         LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
                                         Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, data.getName(), Color.RED).getBitmap())));
-                                        nearByBusStopsHashMap.put(marker, data);
+                                        busStopsHashMap.put(marker, data);
                                         builder.include(latLng);
                                     }
                                     LatLngBounds bounds = builder.build();
@@ -516,7 +527,7 @@ public class MapsFragment extends Fragment {
     }
 
     private void showToast(String s, String about) {
-        Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, s, Toast.LENGTH_LONG).show();
         Log.e(TAG, about + "  : " + s);
     }
 
