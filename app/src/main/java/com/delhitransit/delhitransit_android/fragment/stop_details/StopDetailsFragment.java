@@ -1,13 +1,14 @@
 package com.delhitransit.delhitransit_android.fragment.stop_details;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,6 +18,7 @@ import com.delhitransit.delhitransit_android.adapter.StopDetailsAdapter;
 import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 public class StopDetailsFragment extends Fragment {
 
@@ -44,10 +46,25 @@ public class StopDetailsFragment extends Fragment {
         recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
         adapter = new StopDetailsAdapter();
         recyclerView.setAdapter(adapter);
+        recyclerView.setMinimumHeight(Resources.getSystem().getDisplayMetrics().heightPixels);
         //Setup the navigate FAB
-        Button fab = parent.findViewById(R.id.extended_fab);
+        ExtendedFloatingActionButton fab = parent.findViewById(R.id.extended_navigate_fab);
         fab.setOnClickListener(item -> {
             finishMe(fabClickCallback);
+        });
+        NestedScrollView nestedScrollView = parent.findViewById(R.id.stop_details_fragment_scrollable_content);
+        nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            // the delay of the extension of the FAB is set for 12 items
+            int MODE_TOGGLE_THRESHOLD = 12;
+            if (scrollY > oldScrollY + MODE_TOGGLE_THRESHOLD && fab.isExtended()) {
+                fab.shrink();
+            }
+            if (scrollY < oldScrollY - MODE_TOGGLE_THRESHOLD && !fab.isExtended()) {
+                fab.extend();
+            }
+            if (scrollY == 0) {
+                fab.extend();
+            }
         });
         return parent;
     }
