@@ -25,4 +25,6 @@ public interface FavouriteStopsDao {
     @Query("DELETE FROM favourite_stop WHERE stopId==:stopId")
     void deleteByStopId(int stopId);
 
+    @Query("SELECT EXISTS(SELECT 1 FROM favourite_stop WHERE stopId=:stopId)")
+    LiveData<Boolean> contains(int stopId);
 }

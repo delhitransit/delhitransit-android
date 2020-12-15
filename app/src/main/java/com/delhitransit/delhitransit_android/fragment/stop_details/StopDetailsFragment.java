@@ -3,6 +3,7 @@ package com.delhitransit.delhitransit_android.fragment.stop_details;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -10,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,9 +27,10 @@ public class StopDetailsFragment extends Fragment {
     public static final String KEY_FRAGMENT_BACKSTACK = StopDetailsFragment.class.getSimpleName() + System.currentTimeMillis();
     private final StopDetail stop;
     private final Runnable fabClickCallback;
+    private boolean mFavourite = false;
     private StopDetailsViewModel mViewModel;
-    private RecyclerView recyclerView;
     private StopDetailsAdapter adapter;
+    private MaterialToolbar toolbar;
 
     public StopDetailsFragment(StopDetail stop, Runnable fabClickCallback) {
         this.stop = stop;
@@ -39,11 +42,11 @@ public class StopDetailsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.stop_details_fragment, container, false);
         //Setup the toolbar
-        MaterialToolbar toolbar = parent.findViewById(R.id.stop_details_fragment_app_bar);
+        toolbar = parent.findViewById(R.id.stop_details_fragment_app_bar);
         toolbar.setTitle(stop.getName());
         toolbar.setNavigationOnClickListener(item -> finishMe(null));
         //Setup the recycler view
-        recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
+        RecyclerView recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
         adapter = new StopDetailsAdapter();
         recyclerView.setAdapter(adapter);
         recyclerView.setMinimumHeight(Resources.getSystem().getDisplayMetrics().heightPixels);
@@ -52,6 +55,7 @@ public class StopDetailsFragment extends Fragment {
         fab.setOnClickListener(item -> {
             finishMe(fabClickCallback);
         });
+        //Collapse or expand the FAB on scrolling the nestedScrollView
         NestedScrollView nestedScrollView = parent.findViewById(R.id.stop_details_fragment_scrollable_content);
         nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             // the delay of the extension of the FAB is set for 12 items
@@ -73,8 +77,35 @@ public class StopDetailsFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(StopDetailsViewModel.class);
-        if (stop != null) {
-            mViewModel.getAllRoutes(stop.getStopId()).observe(getViewLifecycleOwner(), adapter::submitList);
+        if (stop == null) return;
+        int stopId = stop.getStopId();
+        LifecycleOwner lifecycleOwner = getViewLifecycleOwner();
+        mViewModel.getAllRoutes(stopId).observe(lifecycleOwner, adapter::submitList);
+        final int favouriteStopMenuButtonId = R.id.favourite_stop_menu_button;
+        mViewModel.isStopFavourite(stopId).observe(lifecycleOwner, value -> {
+            mFavourite = value;
+            setMenuItemState(toolbar.getMenu().findItem(favouriteStopMenuButtonId), mFavourite);
+        });
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == favouriteStopMenuButtonId) {
+                mFavourite = !mFavourite;
+                setMenuItemState(item, mFavourite);
+                if (mFavourite) {
+                    mViewModel.addToFavourites(stop);
+                } else mViewModel.removeFromFavourites(stopId);
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void setMenuItemState(MenuItem item, boolean favourited) {
+        if (favourited) {
+            item.setTitle("Unfavourite");
+            item.setIcon(R.drawable.ic_baseline_star_24);
+        } else {
+            item.setTitle("Favourite");
+            item.setIcon(R.drawable.ic_baseline_star_outline_24);
         }
     }
 

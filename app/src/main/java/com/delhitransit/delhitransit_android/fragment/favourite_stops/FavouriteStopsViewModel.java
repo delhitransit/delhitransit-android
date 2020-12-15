@@ -5,12 +5,10 @@ import android.app.Application;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
-import com.delhitransit.delhitransit_android.adapter.FavouriteStopsAdapter;
 import com.delhitransit.delhitransit_android.database.FavouriteStopsRepository;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
-import java.util.Random;
 
 public class FavouriteStopsViewModel extends AndroidViewModel {
     private final LiveData<List<StopDetail>> mAllFavouriteStops;
@@ -24,13 +22,6 @@ public class FavouriteStopsViewModel extends AndroidViewModel {
 
     public LiveData<List<StopDetail>> getAll() {
         return mAllFavouriteStops;
-    }
-
-    public void insertDummyStop() {
-        StopDetail stopDetail = new StopDetail();
-        stopDetail.setName("A name for a stop");
-        stopDetail.setStopId(new Random().nextInt());
-        this.insertAll(stopDetail);
     }
 
     public void insertAll(StopDetail... stop) {

@@ -5,12 +5,15 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
+import com.delhitransit.delhitransit_android.database.FavouriteStopsRepository;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
 
@@ -21,9 +24,11 @@ import retrofit2.Response;
 public class StopDetailsViewModel extends AndroidViewModel {
     private final MutableLiveData<List<RoutesFromStopDetail>> allRoutes = new MutableLiveData<>();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
+    private final FavouriteStopsRepository mRepository;
 
     public StopDetailsViewModel(@NonNull Application application) {
         super(application);
+        mRepository = new FavouriteStopsRepository(application);
     }
 
     private void makeApiRequest(int stopId) {
@@ -45,6 +50,18 @@ public class StopDetailsViewModel extends AndroidViewModel {
     public MutableLiveData<List<RoutesFromStopDetail>> getAllRoutes(int stopId) {
         makeApiRequest(stopId);
         return allRoutes;
+    }
+
+    public LiveData<Boolean> isStopFavourite(int stopId) {
+        return mRepository.contains(stopId);
+    }
+
+    public void addToFavourites(StopDetail stop) {
+        mRepository.insertAll(stop);
+    }
+
+    public void removeFromFavourites(int stopId) {
+        mRepository.deleteByStopId(stopId);
     }
 
 }

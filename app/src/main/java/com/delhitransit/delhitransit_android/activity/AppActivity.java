@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -178,7 +177,6 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
 
     @Override
     public void onStopMarkerClick(StopDetail stop, Runnable fabClickCallback) {
-        Toast.makeText(this, "stop : " + stop.getName(), Toast.LENGTH_SHORT).show();
         StopDetailsFragment fragment = new StopDetailsFragment(stop, fabClickCallback);
         fragmentMap.put(STOP_DETAILS_FRAGMENT, fragment);
         navigateTo(STOP_DETAILS_FRAGMENT);

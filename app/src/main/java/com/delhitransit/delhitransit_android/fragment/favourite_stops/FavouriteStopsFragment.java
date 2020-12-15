@@ -42,7 +42,6 @@ public class FavouriteStopsFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(FavouriteStopsViewModel.class);
-        mViewModel.insertDummyStop();
         mViewModel.getAll().observe(getViewLifecycleOwner(), adapter::submitList);
     }
 
@@ -56,7 +55,7 @@ public class FavouriteStopsFragment extends Fragment {
                 mViewModel.deleteByStopId(element.getStopId());
 
                 // showing snack bar with Undo option
-                Snackbar snackbar = Snackbar.make(viewHolder.itemView, "User deleted", Snackbar.LENGTH_LONG);
+                Snackbar snackbar = Snackbar.make(viewHolder.itemView, "Stop removed from favourites", Snackbar.LENGTH_LONG);
                 snackbar.setAction("UNDO", v -> mViewModel.insertAll(element));
                 snackbar.show();
             }
