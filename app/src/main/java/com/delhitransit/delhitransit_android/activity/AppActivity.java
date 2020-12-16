@@ -205,8 +205,13 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
     @Override
     public void onBackPressed() {
         Optional<Fragment> visibleFragment = getVisibleFragment();
-        if (visibleFragment.isPresent() && visibleFragment.get() instanceof StopDetailsFragment) {
-            ((StopDetailsFragment) visibleFragment.get()).finishMe(null);
+        if (visibleFragment.isPresent()) {
+            Fragment fragment = visibleFragment.get();
+            if (fragment instanceof StopDetailsFragment) {
+                ((StopDetailsFragment) fragment).finishMe(null);
+            } else if (fragment instanceof RouteStopsFragment) {
+                ((RouteStopsFragment) fragment).finishMe(null);
+            }
         } else super.onBackPressed();
     }
 
