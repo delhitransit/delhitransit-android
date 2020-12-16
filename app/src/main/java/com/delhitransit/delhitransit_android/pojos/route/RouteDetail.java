@@ -1,5 +1,6 @@
-package com.delhitransit.delhitransit_android.pojos;
+package com.delhitransit.delhitransit_android.pojos.route;
 
+import com.delhitransit.delhitransit_android.pojos.Trips;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
