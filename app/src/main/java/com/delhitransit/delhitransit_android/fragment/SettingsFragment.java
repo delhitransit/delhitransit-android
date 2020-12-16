@@ -32,14 +32,18 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public boolean onPreferenceTreeClick(Preference preference) {
         String key = preference.getKey();
         if (key != null) {
-            if (key.equals("github")) {
-                openWebpage(getString(R.string.github_url));
-                return true;
-            } else if (key.equals("otd")) {
-                openWebpage(getString(R.string.otd_url));
-                return true;
-            }else if (key.equals("guide")){
-                openWebpage("https://cse.mait.ac.in/index.php/people/faculty?id=386");
+            switch (key) {
+                case "github":
+                    openWebpage(getString(R.string.github_url));
+                    return true;
+                case "otd":
+                    openWebpage(getString(R.string.otd_url));
+                    return true;
+                case "guide":
+                    openWebpage(getString(R.string.guide_url));
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + key);
             }
         }
         return super.onPreferenceTreeClick(preference);
