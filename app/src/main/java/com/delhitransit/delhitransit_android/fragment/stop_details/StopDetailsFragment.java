@@ -2,10 +2,18 @@ package com.delhitransit.delhitransit_android.fragment.stop_details;
 
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.adapter.StopDetailsAdapter;
+import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,13 +22,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.adapter.StopDetailsAdapter;
-import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
-import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
-import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 public class StopDetailsFragment extends Fragment {
 

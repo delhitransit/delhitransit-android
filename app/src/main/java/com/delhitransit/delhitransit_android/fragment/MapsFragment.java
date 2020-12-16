@@ -24,21 +24,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
+import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsViewModel;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
 import com.delhitransit.delhitransit_android.helperclasses.CircleMarker;
 import com.delhitransit.delhitransit_android.helperclasses.MarkerDetails;
@@ -67,6 +59,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import jp.wasabeef.blurry.Blurry;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 import retrofit2.Call;
@@ -100,6 +101,8 @@ public class MapsFragment extends Fragment {
     private ImageView blurView;
     private Context context;
     private MaterialProgressBar horizontalProgressBar;
+    private CircleMarker circleMarker;
+    private List<StopDetail> favouriteStopsLists = new ArrayList<>();
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -128,7 +131,6 @@ public class MapsFragment extends Fragment {
         }
 
     };
-    private CircleMarker circleMarker;
 
     @Nullable
     @Override
@@ -136,10 +138,20 @@ public class MapsFragment extends Fragment {
         parentView = inflater.inflate(R.layout.fragment_map, container, false);
         context = this.getContext();
         apiService = ApiClient.getApiService(context);
+
         setMapFragment();
         init();
+        getAllFavouriteStops();
 
         return parentView;
+    }
+
+    private void getAllFavouriteStops() {
+        FavouriteStopsViewModel favouriteStopsViewModel = new ViewModelProvider(this).get(FavouriteStopsViewModel.class);
+        favouriteStopsViewModel.getAll().observe(getViewLifecycleOwner(), list -> {
+            favouriteStopsLists.clear();
+            favouriteStopsLists.addAll(list);
+        });
     }
 
     private void setMapFragment() {
@@ -239,13 +251,18 @@ public class MapsFragment extends Fragment {
             } else if (!newQuery.trim().equals("")) {
                 currQuery = newQuery;
                 searchView.showProgress();
+
                 apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopDetail>>() {
                     @Override
                     public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
                         if (response.body() != null) {
                             List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
                             for (StopDetail stopsResponseData : response.body()) {
-                                busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
+                                if (favouriteStopsLists.contains(stopsResponseData)) {
+                                    busStopsSuggestions.add(0, new BusStopsSuggestion(stopsResponseData, true));
+                                } else {
+                                    busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
+                                }
                             }
                             searchView.swapSuggestions(busStopsSuggestions);
                         }
@@ -307,6 +324,13 @@ public class MapsFragment extends Fragment {
             }
             textView.setTextColor(context.getColor(R.color.black));
             textView.setText(content);
+            if (((BusStopsSuggestion) item).isFavourite()) {
+                leftIcon.setVisibility(View.VISIBLE);
+                leftIcon.setImageResource(R.drawable.ic_baseline_star_24);
+                leftIcon.setColorFilter(context.getColor(R.color.black));
+            } else {
+                leftIcon.setVisibility(View.INVISIBLE);
+            }
         });
     }
 
