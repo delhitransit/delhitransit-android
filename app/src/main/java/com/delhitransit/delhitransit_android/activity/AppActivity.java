@@ -11,9 +11,12 @@ import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.fragment.MapsFragment;
 import com.delhitransit.delhitransit_android.fragment.SettingsFragment;
 import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment;
+import com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsFragment;
 import com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragment;
 import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
+import com.delhitransit.delhitransit_android.interfaces.OnRouteDetailsSelectedListener;
 import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
+import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -35,12 +38,13 @@ import androidx.fragment.app.FragmentTransaction;
 
 import static androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE;
 
-public class AppActivity extends AppCompatActivity implements OnStopMarkerClickedListener, FragmentFinisherInterface {
+public class AppActivity extends AppCompatActivity implements OnStopMarkerClickedListener, FragmentFinisherInterface, OnRouteDetailsSelectedListener {
 
     public static final short MAPS_FRAGMENT = 0;
     public static final short SETTINGS_FRAGMENT = 1;
     public static final short FAVOURITE_STOPS_FRAGMENT = 2;
     private static final short STOP_DETAILS_FRAGMENT = 3;
+    private static final short ROUTE_STOPS_FRAGMENT = 4;
     private final HashMap<Short, Fragment> fragmentMap = new HashMap<>();
     private short currentFragment = MAPS_FRAGMENT;
     private FragmentManager manager;
@@ -147,6 +151,14 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
                 }
                 break;
             }
+            case ROUTE_STOPS_FRAGMENT: {
+                if (!fragmentMap.containsKey(ROUTE_STOPS_FRAGMENT)) {
+                    transaction = null;
+                } else {
+                    Fragment fragment = showOrAddFragmentTransaction(ROUTE_STOPS_FRAGMENT, null, managerFragments, transaction);
+                    transaction.addToBackStack(fragment instanceof StopDetailsFragment ? RouteStopsFragment.KEY_FRAGMENT_BACKSTACK : null);
+                }
+            }
         }
         if (transaction != null) {
             transaction.commit();
@@ -177,6 +189,7 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
 
     @Override
     public void onStopMarkerClick(StopDetail stop, Runnable fabClickCallback) {
+        if (stop == null) return;
         StopDetailsFragment fragment = new StopDetailsFragment(stop, fabClickCallback);
         fragmentMap.put(STOP_DETAILS_FRAGMENT, fragment);
         navigateTo(STOP_DETAILS_FRAGMENT);
@@ -210,5 +223,13 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
             if (frag == fragment) return key;
         }
         return -1;
+    }
+
+    @Override
+    public void onRouteSelect(RoutesFromStopDetail routeDetail, StopDetail stopDetail) {
+        if (routeDetail == null) return;
+        RouteStopsFragment fragment = new RouteStopsFragment(routeDetail, stopDetail);
+        fragmentMap.put(ROUTE_STOPS_FRAGMENT, fragment);
+        navigateTo(ROUTE_STOPS_FRAGMENT);
     }
 }

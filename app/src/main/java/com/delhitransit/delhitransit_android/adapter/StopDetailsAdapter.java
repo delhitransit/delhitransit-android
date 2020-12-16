@@ -15,6 +15,8 @@ import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.google.android.material.chip.Chip;
 
+import java.util.function.Consumer;
+
 public class StopDetailsAdapter extends ListAdapter<RoutesFromStopDetail, StopDetailsAdapter.SDViewHolder> {
 
     private static final DiffUtil.ItemCallback<RoutesFromStopDetail> DIFF_CALLBACK = new DiffUtil.ItemCallback<RoutesFromStopDetail>() {
@@ -29,8 +31,11 @@ public class StopDetailsAdapter extends ListAdapter<RoutesFromStopDetail, StopDe
         }
     };
 
-    public StopDetailsAdapter() {
+    private final Consumer<RoutesFromStopDetail> mConsumer;
+
+    public StopDetailsAdapter(Consumer<RoutesFromStopDetail> consumer) {
         super(DIFF_CALLBACK);
+        this.mConsumer = consumer;
     }
 
     @NonNull
@@ -59,10 +64,14 @@ public class StopDetailsAdapter extends ListAdapter<RoutesFromStopDetail, StopDe
                 holder.setText(holder.timeUnit, countdownTimer.min > 1 ? "mins" : "min");
             }
         }
+        holder.parentView.setOnClickListener((s) -> {
+            mConsumer.accept(item);
+        });
     }
 
     static class SDViewHolder extends RecyclerView.ViewHolder {
 
+        final View parentView;
         final TextView lastStopName;
         final Chip routeName;
         final TextView exactTime;
@@ -71,6 +80,7 @@ public class StopDetailsAdapter extends ListAdapter<RoutesFromStopDetail, StopDe
 
         public SDViewHolder(@NonNull View itemView) {
             super(itemView);
+            parentView = itemView;
             lastStopName = itemView.findViewById(R.id.stop_details_item_last_stop_name);
             routeName = itemView.findViewById(R.id.stop_details_item_route_name);
             exactTime = itemView.findViewById(R.id.stop_details_item_exact_time);

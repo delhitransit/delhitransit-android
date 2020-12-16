@@ -1,5 +1,6 @@
 package com.delhitransit.delhitransit_android.fragment.route_stops;
 
+import android.app.Activity;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,21 +16,37 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.RouteStopsAdapter;
+import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
+import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
+import com.google.android.material.appbar.MaterialToolbar;
 
 public class RouteStopsFragment extends Fragment {
 
-    private final String tripId;
+    public static final String KEY_FRAGMENT_BACKSTACK = RouteStopsFragment.class.getSimpleName() + System.currentTimeMillis();
+    private final RoutesFromStopDetail route;
+    private final StopDetail stop;
     private RouteStopsViewModel mViewModel;
     private RouteStopsAdapter adapter;
+    private MaterialToolbar toolbar;
+    private Activity activity;
 
-    public RouteStopsFragment(String tripId) {
-        this.tripId = tripId;
+    public RouteStopsFragment(RoutesFromStopDetail tripId, StopDetail stop) {
+        this.route = tripId;
+        this.stop = stop;
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.fragment_route_details, container, false);
+        activity = getActivity();
+        //Setup the toolbar
+        toolbar = parent.findViewById(R.id.route_details_fragment_app_bar);
+        toolbar.setTitle(route.getRouteLongName() + " " + route.getLastStopName());
+        if (stop != null)
+            toolbar.setSubtitle("From " + stop.getName());
+        toolbar.setNavigationOnClickListener(item -> finishMe(null));
         //Setup the recycler view
         RecyclerView recyclerView = parent.findViewById(R.id.route_details_fragment_recycler_view);
         adapter = new RouteStopsAdapter();
@@ -42,9 +59,17 @@ public class RouteStopsFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(RouteStopsViewModel.class);
-        if (tripId == null || tripId.isEmpty()) return;
+        if (route == null) return;
+        String tripId = route.getTripId();
         LifecycleOwner lifecycleOwner = getViewLifecycleOwner();
         mViewModel.getAllStops(tripId).observe(lifecycleOwner, adapter::submitList);
+    }
+
+    public void finishMe(Runnable callback) {
+        if (activity instanceof FragmentFinisherInterface) {
+            ((FragmentFinisherInterface) activity).finishAndExecute(KEY_FRAGMENT_BACKSTACK, callback == null ? () -> {
+            } : callback);
+        }
     }
 
 }

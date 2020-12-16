@@ -42,7 +42,7 @@ public class RouteStopsViewModel extends AndroidViewModel {
     }
 
     public MutableLiveData<List<StopDetail>> getAllStops(String tripId) {
-        makeApiRequest(tripId);
+        if (tripId != null && !tripId.isEmpty()) makeApiRequest(tripId);
         return allStops;
     }
 }

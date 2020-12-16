@@ -1,7 +1,9 @@
 package com.delhitransit.delhitransit_android.fragment.stop_details;
 
+import android.app.Activity;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,9 +20,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.StopDetailsAdapter;
 import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
+import com.delhitransit.delhitransit_android.interfaces.OnRouteDetailsSelectedListener;
+import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+
+import java.util.function.Consumer;
 
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
@@ -34,6 +40,7 @@ public class StopDetailsFragment extends Fragment {
     private StopDetailsAdapter adapter;
     private MaterialToolbar toolbar;
     private MaterialProgressBar horizontalProgressBar;
+    private Activity activity;
 
     public StopDetailsFragment(StopDetail stop, Runnable fabClickCallback) {
         this.stop = stop;
@@ -44,6 +51,7 @@ public class StopDetailsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.stop_details_fragment, container, false);
+        activity = getActivity();
         //Setup the toolbar
         toolbar = parent.findViewById(R.id.stop_details_fragment_app_bar);
         toolbar.setTitle(stop.getName());
@@ -51,7 +59,14 @@ public class StopDetailsFragment extends Fragment {
         //Setup the recycler view
         RecyclerView recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
         horizontalProgressBar = parent.findViewById(R.id.horizontal_loading_bar);
-        adapter = new StopDetailsAdapter();
+        Consumer<RoutesFromStopDetail> consumer = routesFromStopDetail -> {
+            if (activity instanceof OnRouteDetailsSelectedListener) {
+                ((OnRouteDetailsSelectedListener) activity).onRouteSelect(routesFromStopDetail, stop);
+            } else {
+                Log.e(StopDetailsFragment.this.getClass().getSimpleName(), "Calling class does not implement " + OnRouteDetailsSelectedListener.class.getSimpleName());
+            }
+        };
+        adapter = new StopDetailsAdapter(consumer);
         recyclerView.setAdapter(adapter);
         recyclerView.setMinimumHeight(Resources.getSystem().getDisplayMetrics().heightPixels);
         //Setup the navigate FAB
@@ -117,9 +132,8 @@ public class StopDetailsFragment extends Fragment {
     }
 
     public void finishMe(Runnable callback) {
-        FragmentFinisherInterface activity = (FragmentFinisherInterface) getActivity();
-        if (activity != null) {
-            activity.finishAndExecute(KEY_FRAGMENT_BACKSTACK, callback == null ? () -> {
+        if (activity instanceof FragmentFinisherInterface) {
+            ((FragmentFinisherInterface) activity).finishAndExecute(KEY_FRAGMENT_BACKSTACK, callback == null ? () -> {
             } : callback);
         }
     }
