@@ -45,10 +45,9 @@ public class RouteStopsFragment extends Fragment {
         //Setup the toolbar
         toolbar = parent.findViewById(R.id.route_details_fragment_app_bar);
         toolbar.setTitle(route.getRouteLongName() + " " + route.getLastStopName());
-        toolbar.setNavigationOnClickListener(item -> finishMe(null));
-        if (stop != null) {
+        if (stop != null)
             toolbar.setSubtitle("From " + stop.getName());
-        }
+        toolbar.setNavigationOnClickListener(item -> finishMe(null));
         //Setup the recycler view
         RecyclerView recyclerView = parent.findViewById(R.id.route_details_fragment_recycler_view);
         adapter = new RouteStopsAdapter();
@@ -70,7 +69,6 @@ public class RouteStopsFragment extends Fragment {
     public void finishMe(Runnable callback) {
         if (activity instanceof FragmentFinisherInterface) {
             ((FragmentFinisherInterface) activity).finishAndExecute(KEY_FRAGMENT_BACKSTACK, callback == null ? () -> {
-                Toast.makeText(activity, "Closed " + RouteStopsFragment.this.getClass().getSimpleName(), Toast.LENGTH_SHORT).show();
             } : callback);
         }
     }
