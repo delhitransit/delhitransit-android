@@ -13,7 +13,7 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "favourite_stop")
-public class StopsResponseData {
+public class StopDetail {
 
     @SerializedName("latitude")
     @Expose
@@ -65,9 +65,9 @@ public class StopsResponseData {
 
     @Override
     public boolean equals(@Nullable Object obj) {
-        if (!(obj instanceof StopsResponseData)) return super.equals(obj);
+        if (!(obj instanceof StopDetail)) return super.equals(obj);
         else {
-            StopsResponseData otherStop = (StopsResponseData) obj;
+            StopDetail otherStop = (StopDetail) obj;
             return Objects.equals(otherStop.getLatitude(), this.getLatitude()) &&
                     Objects.equals(otherStop.getLongitude(), this.getLongitude()) &&
                     Objects.equals(otherStop.getName(), this.getName()) &&

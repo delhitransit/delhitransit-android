@@ -32,4 +32,23 @@
         <item name="android:background">@color/black_overlay</item>
         <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
     </style>
+
+    <style name="TextAppearance.App.CollapsingToolbar.Expanded" parent="TextAppearance.MaterialComponents.Headline5">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="TextAppearance.App.CollapsingToolbar.Collapsed" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="AppTheme.Chip.Route" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="android:layout_height">40dp</item>
+        <item name="chipBackgroundColor">@color/transparent</item>
+        <item name="chipCornerRadius">4dp</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="textStartPadding">1dp</item>
+        <item name="textEndPadding">1dp</item>
+        <item name="chipStrokeColor">@color/dark_gray</item>
+    </style>
+
 </resources>

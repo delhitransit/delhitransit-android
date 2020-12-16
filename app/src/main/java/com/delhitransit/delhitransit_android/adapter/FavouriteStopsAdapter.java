@@ -12,19 +12,18 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
-public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, FavouriteStopsAdapter.FSViewHolder> {
+public class FavouriteStopsAdapter extends ListAdapter<StopDetail, FavouriteStopsAdapter.FSViewHolder> {
 
-
-    private static final DiffUtil.ItemCallback<StopsResponseData> DIFF_CALLBACK = new DiffUtil.ItemCallback<StopsResponseData>() {
+    private static final DiffUtil.ItemCallback<StopDetail> DIFF_CALLBACK = new DiffUtil.ItemCallback<StopDetail>() {
         @Override
-        public boolean areItemsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
+        public boolean areItemsTheSame(@NonNull StopDetail oldItem, @NonNull StopDetail newItem) {
             return oldItem == newItem;
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull StopsResponseData oldItem, @NonNull StopsResponseData newItem) {
+        public boolean areContentsTheSame(@NonNull StopDetail oldItem, @NonNull StopDetail newItem) {
             return oldItem.equals(newItem);
         }
     };
@@ -41,7 +40,7 @@ public class FavouriteStopsAdapter extends ListAdapter<StopsResponseData, Favour
 
     @Override
     public void onBindViewHolder(@NonNull FSViewHolder holder, int position) {
-        StopsResponseData stop = getItem(position);
+        StopDetail stop = getItem(position);
         holder.setStopName(stop.getName());
         holder.setStopId(stop.getStopId());
     }

@@ -1,6 +1,6 @@
 package com.delhitransit.delhitransit_android.helperclasses;
 
-import com.delhitransit.delhitransit_android.pojos.stops.StopsResponseData;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
@@ -10,10 +10,10 @@ public class MarkerDetails {
     public Integer id;
     public LatLng latLng;
     public String name, relation;
-    public StopsResponseData stopsResponseData;
+    public StopDetail stopsResponseData;
     public Marker marker;
 
-    public MarkerDetails(StopsResponseData stopsResponseData, boolean isSecondSearchView) {
+    public MarkerDetails(StopDetail stopsResponseData, boolean isSecondSearchView) {
         this.stopsResponseData = stopsResponseData;
         id = stopsResponseData.getStopId();
         name = stopsResponseData.getName();
