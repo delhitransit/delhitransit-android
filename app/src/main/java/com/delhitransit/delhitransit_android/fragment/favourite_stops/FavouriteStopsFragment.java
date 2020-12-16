@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.FavouriteStopsAdapter;
-import com.delhitransit.delhitransit_android.fragment.SwipeToDeleteCallback;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.snackbar.Snackbar;
 

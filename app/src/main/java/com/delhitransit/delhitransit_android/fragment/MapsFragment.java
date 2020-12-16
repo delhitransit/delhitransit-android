@@ -121,17 +121,6 @@ public class MapsFragment extends Fragment {
                         ((OnStopMarkerClickedListener) activity).onStopMarkerClick(stop, runnable);
                     } else runnable.run();
                 }
-                /*if (busStopsHashMap.containsKey(marker)) {
-                    setStopDataOnSearchView(busStopsHashMap.get(marker), searchView1, false);
-                }*/
-                /*
-                    StopDetail stop = nearByBusStopsHashMap.get(marker);
-                    Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
-                    Activity activity = getActivity();
-                    if (activity instanceof OnStopMarkerClickListener) {
-                        ((OnStopMarkerClickListener) activity).onStopMarkerClicked(stop, runnable);
-                    } else runnable.run();
-                    */
                 return true;
             });
             getUserLocation();
@@ -385,7 +374,6 @@ public class MapsFragment extends Fragment {
         return list;
     }
 
-
     private void addMarkerIfNotNull(MarkerDetails markerDetail) {
         if (markerDetail.latLng != null) {
             busStopsHashMap.remove(markerDetail.marker);
@@ -394,7 +382,6 @@ public class MapsFragment extends Fragment {
         }
     }
 
-    //TODO fix??
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
