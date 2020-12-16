@@ -22,6 +22,14 @@
             app:widgetLayout="@android:layout/two_line_list_item" />
 
         <Preference
+            app:key="guide"
+            app:enableCopying="true"
+            app:icon="@drawable/ic_baseline_biotech_24"
+            app:summary="Mr. Ashish Sharma (Asst. Professor )"
+            app:title="Guided by"
+            app:widgetLayout="@android:layout/two_line_list_item" />
+
+        <Preference
             app:key="github"
             app:enableCopying="true"
             app:icon="@drawable/ic_baseline_code_24"
