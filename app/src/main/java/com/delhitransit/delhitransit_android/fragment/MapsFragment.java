@@ -35,6 +35,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
+import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
 import com.delhitransit.delhitransit_android.api.ApiClient;
@@ -410,7 +411,8 @@ public class MapsFragment extends Fragment {
             if (isLocationEnabled(locationManager)) {
                 try {
                     horizontalProgressBar.setVisibility(View.VISIBLE);
-                    locationManager.requestSingleUpdate("fused", new LocationListener() {
+                    String locationProvider = ((DelhiTransitApplication) context.getApplicationContext()).getLocationProvider();
+                    locationManager.requestSingleUpdate(locationProvider, new LocationListener() {
                         @Override
                         public void onLocationChanged(Location location) {
                             horizontalProgressBar.setVisibility(View.GONE);

@@ -1,4 +1,5 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory app:title="@string/server_header">
 
@@ -9,6 +10,21 @@
             app:summary="Toggle server IP"
             app:title="@string/server_ip_title"
             app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="GPS Provider">
+
+        <ListPreference
+            app:enableCopying="true"
+            app:icon="@drawable/ic_baseline_settings_input_antenna_24"
+            app:key="locationProvider"
+            app:title="Choose Location Provider"
+            app:summary="Toggle server IP"
+            app:entries="@array/location_provider_titles"
+            app:entryValues="@array/location_provider_values"
+            app:useSimpleSummaryProvider="true" />
+
 
     </PreferenceCategory>
 
