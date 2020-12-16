@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.route_details.RouteDetailsFragment">
+    tools:context=".fragment.route_stops.RouteStopsFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"

@@ -5,7 +5,7 @@
     android:layout_height="wrap_content">
 
     <TextView
-        android:id="@+id/route_details_item_last_route_name"
+        android:id="@+id/route_details_item_stop_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -25,7 +25,7 @@
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="@+id/route_details_item_bus_status"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/route_details_item_last_route_name">
+        app:layout_constraintTop_toTopOf="@+id/route_details_item_stop_name">
 
         <TextView
             android:id="@+id/route_details_item_time_numeral"
@@ -70,6 +70,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/constraintLayout2"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/route_details_item_last_route_name"
-        app:layout_constraintTop_toBottomOf="@+id/route_details_item_last_route_name" />
+        app:layout_constraintStart_toStartOf="@+id/route_details_item_stop_name"
+        app:layout_constraintTop_toBottomOf="@+id/route_details_item_stop_name" />
 </androidx.constraintlayout.widget.ConstraintLayout>

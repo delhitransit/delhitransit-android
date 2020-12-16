@@ -1,4 +1,4 @@
-package com.delhitransit.delhitransit_android.fragment.route_details;
+package com.delhitransit.delhitransit_android.fragment.route_stops;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,9 +12,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.delhitransit.delhitransit_android.R;
 
-public class RouteDetailsFragment extends Fragment {
+public class RouteStopsFragment extends Fragment {
 
-    private RouteDetailsViewModel mViewModel;
+    private RouteStopsViewModel mViewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -25,7 +25,7 @@ public class RouteDetailsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(RouteDetailsViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(RouteStopsViewModel.class);
         // TODO: Use the ViewModel
     }
 
