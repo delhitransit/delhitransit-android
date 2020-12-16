@@ -38,6 +38,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             } else if (key.equals("otd")) {
                 openWebpage(getString(R.string.otd_url));
                 return true;
+            }else if (key.equals("guide")){
+                openWebpage("https://cse.mait.ac.in/index.php/people/faculty?id=386");
             }
         }
         return super.onPreferenceTreeClick(preference);
