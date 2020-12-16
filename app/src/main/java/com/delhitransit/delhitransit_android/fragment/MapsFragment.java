@@ -270,6 +270,8 @@ public class MapsFragment extends Fragment {
 
             @Override
             public void onSearchAction(String currentQuery) {
+                searchView.showProgress();
+
                 apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopDetail>>() {
                     @Override
                     public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
@@ -279,11 +281,13 @@ public class MapsFragment extends Fragment {
                         } else {
                             showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
                         }
+                        searchView.hideProgress();
                     }
 
                     @Override
                     public void onFailure(Call<List<StopDetail>> call, Throwable t) {
                         Log.e(TAG, "onFailure: int " + t.getMessage());
+                        searchView.hideProgress();
                     }
                 });
 
@@ -378,6 +382,7 @@ public class MapsFragment extends Fragment {
         if (markerDetail.latLng != null) {
             busStopsHashMap.remove(markerDetail.marker);
             Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetail.name, markerDetail.relation).getBitmap())).position(markerDetail.latLng));
+            markerDetail.marker = marker;
             busStopsHashMap.put(marker, markerDetail.stopsResponseData);
         }
     }
