@@ -4,4 +4,14 @@
     <string name="github_url">https://github.com/delhitransit/</string>
     <string name="otd_url">https://otd.delhi.gov.in/</string>
     <string name="guide_url">https://cse.mait.ac.in/index.php/people/faculty?id=386</string>
+    <string-array name="location_provider_titles">
+        <item>Fused</item>
+        <item>GPS</item>
+        <item>Network</item>
+    </string-array>
+    <string-array name="location_provider_values">
+        <item>fused</item>
+        <item>gps</item>
+        <item>network</item>
+    </string-array>
 </resources>

@@ -2,20 +2,27 @@ package com.delhitransit.delhitransit_android;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.location.LocationManager;
 
 public class DelhiTransitApplication extends Application {
 
     private static final String SERVER_IP_KEY = "serverIpAddress";
+    private static final String LOCATION_PROVIDER_KEY = "locationProvider";
     private SharedPreferences sharedPreferences;
     private String DEFAULT_SERVER_IP;
+    private String DEFAULT_LOCATION_PROVIDER;
 
     @Override
     public void onCreate() {
         super.onCreate();
         DEFAULT_SERVER_IP = getString(R.string.default_server_ip);
+        DEFAULT_LOCATION_PROVIDER = LocationManager.GPS_PROVIDER;
         sharedPreferences = getSharedPreferences("com.delhitransit.delhitransit_android_preferences", MODE_PRIVATE);
         if (!sharedPreferences.contains(SERVER_IP_KEY)) {
             setServerIP(DEFAULT_SERVER_IP);
+        }
+        if (!sharedPreferences.contains(LOCATION_PROVIDER_KEY)) {
+            setLocationProvider(DEFAULT_LOCATION_PROVIDER);
         }
     }
 
@@ -29,4 +36,13 @@ public class DelhiTransitApplication extends Application {
         editor.apply();
     }
 
+    public String getLocationProvider() {
+        return sharedPreferences.getString(LOCATION_PROVIDER_KEY, DEFAULT_LOCATION_PROVIDER);
+    }
+
+    private void setLocationProvider(String provider) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(LOCATION_PROVIDER_KEY, provider);
+        editor.apply();
+    }
 }

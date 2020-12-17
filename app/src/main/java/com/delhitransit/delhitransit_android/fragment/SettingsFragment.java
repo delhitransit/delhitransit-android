@@ -41,9 +41,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     return true;
                 case "guide":
                     openWebpage(getString(R.string.guide_url));
-                    break;
-                default:
-                    //throw new IllegalStateException("Unexpected value: " + key);
+                    return true;
             }
         }
         return super.onPreferenceTreeClick(preference);
