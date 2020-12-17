@@ -26,10 +26,8 @@ public class RouteStopsFragment extends Fragment {
 
     public static final String KEY_FRAGMENT_BACKSTACK = RouteStopsFragment.class.getSimpleName() + System.currentTimeMillis();
     private RoutesFromStopDetail route;
-    private StopDetail stop;
     private RouteStopsViewModel mViewModel;
     private RouteStopsAdapter adapter;
-    private MaterialToolbar toolbar;
     private Activity activity;
 
     @Override
@@ -38,10 +36,10 @@ public class RouteStopsFragment extends Fragment {
         View parent = inflater.inflate(R.layout.fragment_route_details, container, false);
         RouteStopsFragmentArgs args = RouteStopsFragmentArgs.fromBundle(getArguments());
         this.route = args.getRouteFromStopDetail();
-        this.stop = args.getStopDetail();
+        StopDetail stop = args.getStopDetail();
         activity = getActivity();
         //Setup the toolbar
-        toolbar = parent.findViewById(R.id.route_details_fragment_app_bar);
+        MaterialToolbar toolbar = parent.findViewById(R.id.route_details_fragment_app_bar);
         toolbar.setTitle(route.getRouteLongName() + " " + route.getLastStopName());
         if (stop != null)
             toolbar.setSubtitle("From " + stop.getName());

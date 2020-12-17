@@ -18,7 +18,11 @@
         android:id="@+id/favouriteStopsFragment"
         android:name="com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment"
         android:label="favourite_stops_fragment"
-        tools:layout="@layout/favourite_stops_fragment" />
+        tools:layout="@layout/favourite_stops_fragment">
+        <action
+            android:id="@+id/action_favouriteStopsFragment_to_stopDetailsFragment"
+            app:destination="@id/stopDetailsFragment" />
+    </fragment>
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.delhitransit.delhitransit_android.fragment.SettingsFragment"
