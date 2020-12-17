@@ -7,52 +7,29 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
 
-public class CustomizeStopDetail {
+public class CustomizeStopDetail extends StopDetail {
 
-    @Expose
-    private Double latitude;
     @SerializedName("stopName")
     @Expose
-    private String name;
-    @Expose
-    private int stopId;
-    @Expose
-    private Double longitude;
+    private String stopName;
     @Expose
     private String tripId;
     @Expose
     private int arrivalTime;
 
-    public Double getLatitude() {
-        return latitude;
+    public StopDetail getStopDetail() {
+        super.setName(this.stopName);
+        return this;
     }
 
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
+    @Override
     public String getName() {
-        return name;
+        return stopName;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getStopId() {
-        return stopId;
-    }
-
-    public void setStopId(int stopId) {
-        this.stopId = stopId;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
+    @Override
+    public void setName(String stopName) {
+        this.stopName = stopName;
     }
 
     public String getTripId() {
@@ -79,7 +56,8 @@ public class CustomizeStopDetail {
             return Objects.equals(otherStop.getLatitude(), this.getLatitude()) &&
                     Objects.equals(otherStop.getLongitude(), this.getLongitude()) &&
                     Objects.equals(otherStop.getName(), this.getName()) &&
-                    Objects.equals(otherStop.getStopId(), this.getStopId());
+                    Objects.equals(otherStop.getStopId(), this.getStopId()) &&
+                    super.equals(otherStop);
         }
     }
 }

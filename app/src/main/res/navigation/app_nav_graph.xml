@@ -50,5 +50,8 @@
         <argument
             android:name="stopDetail"
             app:argType="com.delhitransit.delhitransit_android.pojos.stops.StopDetail" />
+        <action
+            android:id="@+id/action_routeStopsFragment_to_stopDetailsFragment"
+            app:destination="@id/stopDetailsFragment" />
     </fragment>
 </navigation>

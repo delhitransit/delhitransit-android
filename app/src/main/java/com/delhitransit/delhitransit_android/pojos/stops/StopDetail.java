@@ -43,8 +43,8 @@ public class StopDetail implements Serializable {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setName(String stopName) {
+        this.name = stopName;
     }
 
     @NotNull
