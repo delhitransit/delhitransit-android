@@ -4,12 +4,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.delhitransit.delhitransit_android.R;
+
 import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
-
-import com.delhitransit.delhitransit_android.R;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 

@@ -11,20 +11,28 @@ public class BusStopsSuggestion implements SearchSuggestion {
     private final String mBusStopName;
     private StopDetail stopDetail;
     private boolean mIsHistory = false;
-
+    private boolean isFavourite;
 
     public BusStopsSuggestion(Parcel source) {
         this.mBusStopName = source.readString();
         this.mIsHistory = source.readInt() != 0;
+        this.isFavourite = source.readInt() != 0;
     }
 
     public BusStopsSuggestion(StopDetail stopDetail) {
         this.stopDetail = stopDetail;
         this.mBusStopName = stopDetail.getName();
+        this.isFavourite = false;
     }
 
-    public void setIsHistory(boolean isHistory) {
-        this.mIsHistory = isHistory;
+    public BusStopsSuggestion(StopDetail stopDetail, boolean isFavourite) {
+        this.stopDetail = stopDetail;
+        this.mBusStopName = stopDetail.getName();
+        this.isFavourite = isFavourite;
+    }
+
+    public boolean isFavourite() {
+        return isFavourite;
     }
 
     public StopDetail getStopDetail() {
@@ -33,6 +41,10 @@ public class BusStopsSuggestion implements SearchSuggestion {
 
     public boolean getIsHistory() {
         return this.mIsHistory;
+    }
+
+    public void setIsHistory(boolean isHistory) {
+        this.mIsHistory = isHistory;
     }
 
     @Override
@@ -61,5 +73,6 @@ public class BusStopsSuggestion implements SearchSuggestion {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(mBusStopName);
         dest.writeInt(mIsHistory ? 1 : 0);
+        dest.writeInt(isFavourite ? 1 : 0);
     }
 }
