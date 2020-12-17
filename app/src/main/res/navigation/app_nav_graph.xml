@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_nav_graph"
+    app:startDestination="@id/mapsFragment">
+
+    <fragment
+        android:id="@+id/mapsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.MapsFragment"
+        android:label="fragment_map"
+        tools:layout="@layout/fragment_map">
+        <action
+            android:id="@+id/action_mapsFragment_to_stopDetailsFragment"
+            app:destination="@id/stopDetailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/favouriteStopsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment"
+        android:label="favourite_stops_fragment"
+        tools:layout="@layout/favourite_stops_fragment" />
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.SettingsFragment"
+        android:label="SettingsFragment" />
+    <fragment
+        android:id="@+id/stopDetailsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragment"
+        android:label="stop_details_fragment"
+        tools:layout="@layout/stop_details_fragment">
+        <action
+            android:id="@+id/action_stopDetailsFragment_to_routeStopsFragment"
+            app:destination="@id/routeStopsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/routeStopsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsFragment"
+        android:label="fragment_route_details"
+        tools:layout="@layout/fragment_route_details" />
+</navigation>
