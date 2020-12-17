@@ -3,12 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/app_nav_graph"
+    android:label="App Nav Graph"
     app:startDestination="@id/mapsFragment">
 
     <fragment
         android:id="@+id/mapsFragment"
         android:name="com.delhitransit.delhitransit_android.fragment.MapsFragment"
-        android:label="fragment_map"
+        android:label="Map"
         tools:layout="@layout/fragment_map">
         <action
             android:id="@+id/action_mapsFragment_to_stopDetailsFragment"
@@ -17,7 +18,7 @@
     <fragment
         android:id="@+id/favouriteStopsFragment"
         android:name="com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment"
-        android:label="favourite_stops_fragment"
+        android:label="Favourite Stops"
         tools:layout="@layout/favourite_stops_fragment">
         <action
             android:id="@+id/action_favouriteStopsFragment_to_stopDetailsFragment"
@@ -26,11 +27,11 @@
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.delhitransit.delhitransit_android.fragment.SettingsFragment"
-        android:label="SettingsFragment" />
+        android:label="Settings" />
     <fragment
         android:id="@+id/stopDetailsFragment"
         android:name="com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragment"
-        android:label="stop_details_fragment"
+        android:label="Stop Details"
         tools:layout="@layout/stop_details_fragment">
         <action
             android:id="@+id/action_stopDetailsFragment_to_routeStopsFragment"
@@ -45,7 +46,7 @@
     <fragment
         android:id="@+id/routeStopsFragment"
         android:name="com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsFragment"
-        android:label="fragment_route_details"
+        android:label="Route Stops"
         tools:layout="@layout/fragment_route_details">
         <argument
             android:name="routeFromStopDetail"

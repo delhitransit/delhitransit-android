@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item
         android:id="@+id/mapsFragment"
         android:enabled="true"
         android:icon="@drawable/ic_baseline_map_24"
+        android:menuCategory="secondary"
         android:title="@string/map_tab_title" />
     <item
         android:id="@+id/favouriteStopsFragment"
         android:enabled="true"
         android:icon="@drawable/ic_baseline_star_24"
+        android:menuCategory="secondary"
         android:title="@string/fav_stops_tab_title" />
     <item
         android:id="@+id/settingsFragment"
         android:enabled="true"
         android:icon="@drawable/ic_baseline_settings_24"
+        android:menuCategory="secondary"
         android:title="@string/settings_tab_title" />
 </menu>
