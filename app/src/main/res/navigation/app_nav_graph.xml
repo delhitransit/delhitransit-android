@@ -39,5 +39,12 @@
         android:id="@+id/routeStopsFragment"
         android:name="com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsFragment"
         android:label="fragment_route_details"
-        tools:layout="@layout/fragment_route_details" />
+        tools:layout="@layout/fragment_route_details">
+        <argument
+            android:name="routeFromStopDetail"
+            app:argType="com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail" />
+        <argument
+            android:name="stopDetail"
+            app:argType="com.delhitransit.delhitransit_android.pojos.stops.StopDetail" />
+    </fragment>
 </navigation>

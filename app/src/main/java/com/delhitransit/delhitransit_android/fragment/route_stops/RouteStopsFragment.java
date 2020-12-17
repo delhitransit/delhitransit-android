@@ -25,22 +25,20 @@ import com.google.android.material.appbar.MaterialToolbar;
 public class RouteStopsFragment extends Fragment {
 
     public static final String KEY_FRAGMENT_BACKSTACK = RouteStopsFragment.class.getSimpleName() + System.currentTimeMillis();
-    private final RoutesFromStopDetail route;
-    private final StopDetail stop;
+    private RoutesFromStopDetail route;
+    private StopDetail stop;
     private RouteStopsViewModel mViewModel;
     private RouteStopsAdapter adapter;
     private MaterialToolbar toolbar;
     private Activity activity;
 
-    public RouteStopsFragment(RoutesFromStopDetail tripId, StopDetail stop) {
-        this.route = tripId;
-        this.stop = stop;
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.fragment_route_details, container, false);
+        RouteStopsFragmentArgs args = RouteStopsFragmentArgs.fromBundle(getArguments());
+        this.route = args.getRouteFromStopDetail();
+        this.stop = args.getStopDetail();
         activity = getActivity();
         //Setup the toolbar
         toolbar = parent.findViewById(R.id.route_details_fragment_app_bar);
