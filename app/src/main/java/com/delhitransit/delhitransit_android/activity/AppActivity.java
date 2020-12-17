@@ -16,6 +16,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.fragment.MapsFragmentDirections;
 import com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsFragment;
 import com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragment;
 import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
@@ -46,6 +47,7 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
     private final HashMap<Short, Fragment> fragmentMap = new HashMap<>();
     private short currentFragment = MAPS_FRAGMENT;
     private FragmentManager manager;
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +56,7 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
         manager = getSupportFragmentManager();
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        NavController navController = navHostFragment.getNavController();
+        navController = navHostFragment.getNavController();
         NavigationUI.setupWithNavController(bottomNav, navController);
     }
 
@@ -150,9 +152,8 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
     @Override
     public void onStopMarkerClick(StopDetail stop, Runnable fabClickCallback) {
         if (stop == null) return;
-        StopDetailsFragment fragment = new StopDetailsFragment(stop, fabClickCallback);
-        fragmentMap.put(STOP_DETAILS_FRAGMENT, fragment);
-        navigateTo(STOP_DETAILS_FRAGMENT);
+        MapsFragmentDirections.ActionMapsFragmentToStopDetailsFragment fragment = MapsFragmentDirections.actionMapsFragmentToStopDetailsFragment(stop);
+        navController.navigate(fragment);
     }
 
     @Override
@@ -160,19 +161,6 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
         manager.popBackStackImmediate(backStackKey, POP_BACK_STACK_INCLUSIVE);
         getVisibleFragment().ifPresent(it -> navigateTo(getFragmentIdFromHashMap(it)));
         runOnFinish.run();
-    }
-
-    @Override
-    public void onBackPressed() {
-        Optional<Fragment> visibleFragment = getVisibleFragment();
-        if (visibleFragment.isPresent()) {
-            Fragment fragment = visibleFragment.get();
-            if (fragment instanceof StopDetailsFragment) {
-                ((StopDetailsFragment) fragment).finishMe(null);
-            } else if (fragment instanceof RouteStopsFragment) {
-                ((RouteStopsFragment) fragment).finishMe(null);
-            }
-        } else super.onBackPressed();
     }
 
     @NotNull

@@ -30,11 +30,12 @@ import java.util.function.Consumer;
 
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
+// TODO implement callback passing
 public class StopDetailsFragment extends Fragment {
 
     public static final String KEY_FRAGMENT_BACKSTACK = StopDetailsFragment.class.getSimpleName() + System.currentTimeMillis();
-    private final StopDetail stop;
-    private final Runnable fabClickCallback;
+    private StopDetail stop;
+    //    private final Runnable fabClickCallback;
     private boolean mFavourite = false;
     private StopDetailsViewModel mViewModel;
     private StopDetailsAdapter adapter;
@@ -42,15 +43,11 @@ public class StopDetailsFragment extends Fragment {
     private MaterialProgressBar horizontalProgressBar;
     private Activity activity;
 
-    public StopDetailsFragment(StopDetail stop, Runnable fabClickCallback) {
-        this.stop = stop;
-        this.fabClickCallback = fabClickCallback;
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.stop_details_fragment, container, false);
+        this.stop = StopDetailsFragmentArgs.fromBundle(getArguments()).getStopDetail();
         activity = getActivity();
         //Setup the toolbar
         toolbar = parent.findViewById(R.id.stop_details_fragment_app_bar);
@@ -72,7 +69,7 @@ public class StopDetailsFragment extends Fragment {
         //Setup the navigate FAB
         ExtendedFloatingActionButton fab = parent.findViewById(R.id.extended_navigate_fab);
         fab.setOnClickListener(item -> {
-            finishMe(fabClickCallback);
+//            finishMe(fabClickCallback);
         });
         //Collapse or expand the FAB on scrolling the nestedScrollView
         NestedScrollView nestedScrollView = parent.findViewById(R.id.stop_details_fragment_scrollable_content);
