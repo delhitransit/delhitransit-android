@@ -405,7 +405,7 @@ public class MapsFragment extends Fragment {
     private void addMarkerIfNotNull(MarkerDetails markerDetail) {
         if (markerDetail.latLng != null) {
             busStopsHashMap.remove(markerDetail.marker);
-            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetail.name, markerDetail.relation).getBitmap())).position(markerDetail.latLng));
+            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetail.name, markerDetail.relation, getMarkerType(markerDetail.stopsResponseData)).getBitmap())).position(markerDetail.latLng));
             markerDetail.marker = marker;
             busStopsHashMap.put(marker, markerDetail.stopsResponseData);
         }
@@ -508,7 +508,7 @@ public class MapsFragment extends Fragment {
                                     builder.include(new LatLng(userLatitude, userLongitude));
                                     for (StopDetail data : response.body()) {
                                         LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
-                                        Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, data.getName(), Color.RED).getBitmap())));
+                                        Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, data.getName(), Color.RED, getMarkerType(data)).getBitmap())));
                                         busStopsHashMap.put(marker, data);
                                         builder.include(latLng);
                                     }
@@ -526,6 +526,17 @@ public class MapsFragment extends Fragment {
                         }
                     });
         }
+    }
+
+    private int getMarkerType(StopDetail data) {
+        int type = ViewMarker.BUS_STOP;
+        for (StopDetail detail : favouriteStopsLists) {
+            if (detail.equals(data)) {
+                type = ViewMarker.FAVOURITE;
+                break;
+            }
+        }
+        return type;
     }
 
     private void setUserLocation() {
