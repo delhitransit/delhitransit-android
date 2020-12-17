@@ -19,11 +19,8 @@ import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.fragment.MapsFragmentDirections;
 import com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsFragment;
 import com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragment;
-import com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragmentDirections;
 import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
-import com.delhitransit.delhitransit_android.interfaces.OnRouteDetailsSelectedListener;
 import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
-import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -40,7 +37,7 @@ import java.util.Optional;
 
 import static androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE;
 
-public class AppActivity extends AppCompatActivity implements OnStopMarkerClickedListener, FragmentFinisherInterface, OnRouteDetailsSelectedListener {
+public class AppActivity extends AppCompatActivity implements OnStopMarkerClickedListener, FragmentFinisherInterface {
 
     public static final short MAPS_FRAGMENT = 0;
     private static final short STOP_DETAILS_FRAGMENT = 3;
@@ -179,10 +176,4 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
         return -1;
     }
 
-    @Override
-    public void onRouteSelect(RoutesFromStopDetail routeDetail, StopDetail stopDetail) {
-        if (routeDetail == null) return;
-        StopDetailsFragmentDirections.ActionStopDetailsFragmentToRouteStopsFragment action = StopDetailsFragmentDirections.actionStopDetailsFragmentToRouteStopsFragment(routeDetail, stopDetail);
-        navController.navigate(action);
-    }
 }

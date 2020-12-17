@@ -3,7 +3,6 @@ package com.delhitransit.delhitransit_android.fragment.stop_details;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,12 +14,13 @@ import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.StopDetailsAdapter;
 import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
-import com.delhitransit.delhitransit_android.interfaces.OnRouteDetailsSelectedListener;
 import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -57,11 +57,9 @@ public class StopDetailsFragment extends Fragment {
         RecyclerView recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
         horizontalProgressBar = parent.findViewById(R.id.horizontal_loading_bar);
         Consumer<RoutesFromStopDetail> consumer = routesFromStopDetail -> {
-            if (activity instanceof OnRouteDetailsSelectedListener) {
-                ((OnRouteDetailsSelectedListener) activity).onRouteSelect(routesFromStopDetail, stop);
-            } else {
-                Log.e(StopDetailsFragment.this.getClass().getSimpleName(), "Calling class does not implement " + OnRouteDetailsSelectedListener.class.getSimpleName());
-            }
+            NavController navController = NavHostFragment.findNavController(this);
+            StopDetailsFragmentDirections.ActionStopDetailsFragmentToRouteStopsFragment action = StopDetailsFragmentDirections.actionStopDetailsFragmentToRouteStopsFragment(routesFromStopDetail, stop);
+            navController.navigate(action);
         };
         adapter = new StopDetailsAdapter(consumer);
         recyclerView.setAdapter(adapter);
