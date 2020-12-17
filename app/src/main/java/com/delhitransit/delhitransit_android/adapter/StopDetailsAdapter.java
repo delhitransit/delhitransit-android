@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.google.android.material.chip.Chip;
 
@@ -43,6 +44,21 @@ public class StopDetailsAdapter extends ListAdapter<RoutesFromStopDetail, StopDe
         RoutesFromStopDetail item = getItem(position);
         holder.setText(holder.routeName, item.getRouteLongName());
         holder.setText(holder.lastStopName, item.getLastStopName());
+        int earliestTime = item.getEarliestTime();
+        holder.setText(holder.exactTime, new TimeConverter(((long) earliestTime)).justHrAndMinWithState);
+        TimeConverter countdownTimer = new TimeConverter(earliestTime - TimeConverter.getSecondsSince12AM());
+        if (countdownTimer.hourOfDay > 0) {
+            holder.setText(holder.timeNumeral, Long.toString(countdownTimer.hourOfDay));
+            holder.setText(holder.timeUnit, countdownTimer.hourOfDay > 1 ? "hours" : "hour");
+        } else {
+            if (countdownTimer.min < 1) {
+                holder.setText(holder.timeNumeral, "Now");
+                holder.timeUnit.setVisibility(View.GONE);
+            } else {
+                holder.setText(holder.timeNumeral, Long.toString(countdownTimer.min));
+                holder.setText(holder.timeUnit, countdownTimer.min > 1 ? "mins" : "min");
+            }
+        }
     }
 
     static class SDViewHolder extends RecyclerView.ViewHolder {

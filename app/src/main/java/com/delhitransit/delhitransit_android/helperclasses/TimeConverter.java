@@ -2,9 +2,9 @@ package com.delhitransit.delhitransit_android.helperclasses;
 
 import android.icu.util.Calendar;
 
-import java.util.Date;
-
 import androidx.annotation.NonNull;
+
+import java.util.Date;
 
 public class TimeConverter {
     public long hr, min, sec, hourOfDay;
