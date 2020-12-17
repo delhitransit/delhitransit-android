@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.Window;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -23,8 +24,11 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 
+import static android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+
 public class AppActivity extends AppCompatActivity implements OnStopMarkerClickedListener {
 
+    private static final int WINDOW_DECORATION_FLAG = FLAG_TRANSLUCENT_STATUS;
     private NavController navController;
 
     @Override
@@ -35,6 +39,14 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
         navController = navHostFragment.getNavController();
         NavigationUI.setupWithNavController(bottomNav, navController);
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            Window window = AppActivity.this.getWindow();
+            if (destination.getId() == R.id.mapsFragment) {
+                window.addFlags(WINDOW_DECORATION_FLAG);
+            } else {
+                window.clearFlags(WINDOW_DECORATION_FLAG);
+            }
+        });
     }
 
     @Override
