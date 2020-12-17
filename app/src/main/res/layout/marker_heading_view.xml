@@ -36,46 +36,16 @@
             <TextView
                 android:id="@+id/heading_text_view"
                 android:layout_width="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@color/white"
                 android:gravity="center"
                 android:minHeight="25dp"
                 android:padding="4dp"
-                android:background="@color/white"
                 android:text="@string/app_name"
                 android:textAppearance="?attr/textAppearanceHeadline6"
                 android:textSize="12sp" />
-            <!-- <LinearLayout
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:minHeight="25dp"
-                 android:background="@color/white"
-                 android:orientation="vertical">
-
-                 <TextView
-                     android:id="@+id/heading_relation_text_view"
-                     android:layout_width="match_parent"
-                     android:layout_height="wrap_content"
-                     android:text="From"
-                     android:textAlignment="center"
-                     android:textAppearance="?attr/textAppearanceCaption"
-                     android:textSize="10sp"
-                     android:visibility="gone" />
-
-                 <TextView
-                     android:id="@+id/heading_text_view"
-                     android:layout_width="wrap_content"
-                     android:gravity="center"
-                     android:layout_height="wrap_content"
-                     android:layout_gravity="center_horizontal"
-                     android:padding="4dp"
-                     android:text="@string/app_name"
-                     android:textAppearance="?attr/textAppearanceHeadline6"
-                     android:textSize="12sp" />
-             </LinearLayout>-->
         </LinearLayout>
-
-
     </com.google.android.material.card.MaterialCardView>
 
     <androidx.cardview.widget.CardView

@@ -14,11 +14,11 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.delhitransit.delhitransit_android.R;
-import com.google.android.material.card.MaterialCardView;
-
 import androidx.annotation.ColorInt;
 import androidx.core.content.ContextCompat;
+
+import com.delhitransit.delhitransit_android.R;
+import com.google.android.material.card.MaterialCardView;
 
 public class ViewMarker {
 
@@ -54,28 +54,19 @@ public class ViewMarker {
             temp.setSpan(new StyleSpan(Typeface.ITALIC), relation.length() + 2, temp.length(), 0);
             headingTextView.setText(temp);
         }
-        if (color != Color.GREEN) {
-            MaterialCardView headingCardView = view.findViewById(R.id.heading_card_view);
-            headingCardView.setCardBackgroundColor(color);
-            headingCardView.setStrokeColor(darkenColor(color));
-        }
-        /*if (s.length() < 15)
-            headingTextView.setText(relation + " \n " + s);
-        else {
-            headingTextView.setText(String.format("%s...", s.substring(0, 15)));
-        }
-        if (relation != null && !relation.isEmpty()) {
-            TextView relationTextView = view.findViewById(R.id.heading_relation_text_view);
-            relationTextView.setText(relation);
-            relationTextView.setVisibility(View.VISIBLE);
-        }*/
         switch (markerType) {
             case BUS_STOP:
                 iconImageView.setBackgroundResource(R.drawable.bus_stop_icon);
                 break;
             case FAVOURITE:
                 iconImageView.setBackgroundResource(R.drawable.ic_baseline_star_24);
+                color = Color.rgb(249, 166, 2);
                 break;
+        }
+        if (color != Color.GREEN) {
+            MaterialCardView headingCardView = view.findViewById(R.id.heading_card_view);
+            headingCardView.setCardBackgroundColor(color);
+            headingCardView.setStrokeColor(darkenColor(color));
         }
         this.view = view;
     }
