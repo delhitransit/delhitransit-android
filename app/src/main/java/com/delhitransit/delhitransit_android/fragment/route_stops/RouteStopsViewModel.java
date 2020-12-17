@@ -9,7 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
-import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
+import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ import retrofit2.Response;
 
 public class RouteStopsViewModel extends AndroidViewModel {
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
-    private final MutableLiveData<List<StopDetail>> allStops = new MutableLiveData<>();
+    private final MutableLiveData<List<CustomizeStopDetail>> allStops = new MutableLiveData<>();
 
     public RouteStopsViewModel(@NonNull Application application) {
         super(application);
@@ -27,21 +27,21 @@ public class RouteStopsViewModel extends AndroidViewModel {
 
     private void makeApiRequest(String tripId) {
         apiService.getStopsByTripId(tripId)
-                .enqueue(new Callback<List<StopDetail>>() {
+                .enqueue(new Callback<List<CustomizeStopDetail>>() {
                     @Override
-                    public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
+                    public void onResponse(Call<List<CustomizeStopDetail>> call, Response<List<CustomizeStopDetail>> response) {
                         if (response.body() != null && response.body().size() != 0)
                             allStops.setValue(response.body());
                     }
 
                     @Override
-                    public void onFailure(Call<List<StopDetail>> call, Throwable t) {
+                    public void onFailure(Call<List<CustomizeStopDetail>> call, Throwable t) {
                         Log.e(RouteStopsViewModel.class.getSimpleName(), "API call failed at getStopsByTripId from tripId : " + tripId);
                     }
                 });
     }
 
-    public MutableLiveData<List<StopDetail>> getAllStops(String tripId) {
+    public MutableLiveData<List<CustomizeStopDetail>> getAllStops(String tripId) {
         if (tripId != null && !tripId.isEmpty()) makeApiRequest(tripId);
         return allStops;
     }
