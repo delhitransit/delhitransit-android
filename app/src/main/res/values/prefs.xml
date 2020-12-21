@@ -14,4 +14,15 @@
         <item>gps</item>
         <item>network</item>
     </string-array>
+
+    <string-array name="server_ip_titles">
+        <item>Azure</item>
+        <item>Heroku</item>
+        <item>Localhost</item>
+    </string-array>
+    <string-array name="server_ip_values">
+        <item>http://delhitransit.centralindia.cloudapp.azure.com</item>
+        <item>http://delhitransit.herokuapp.com</item>
+        <item>http://10.0.2.2:8080</item>
+    </string-array>
 </resources>

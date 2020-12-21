@@ -3,12 +3,14 @@
 
     <PreferenceCategory app:title="@string/server_header">
 
-        <EditTextPreference
+        <ListPreference
             app:enableCopying="true"
             app:icon="@drawable/ic_baseline_cell_wifi_24"
             app:key="serverIpAddress"
             app:summary="Toggle server IP"
             app:title="@string/server_ip_title"
+            app:entries="@array/server_ip_titles"
+            app:entryValues="@array/server_ip_values"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
@@ -20,7 +22,7 @@
             app:icon="@drawable/ic_baseline_settings_input_antenna_24"
             app:key="locationProvider"
             app:title="Choose Location Provider"
-            app:summary="Toggle server IP"
+            app:summary="Toggle location mode"
             app:entries="@array/location_provider_titles"
             app:entryValues="@array/location_provider_values"
             app:useSimpleSummaryProvider="true" />
