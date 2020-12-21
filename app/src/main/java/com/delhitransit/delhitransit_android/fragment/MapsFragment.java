@@ -24,6 +24,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
@@ -60,15 +70,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import jp.wasabeef.blurry.Blurry;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 import retrofit2.Call;
@@ -439,6 +440,7 @@ public class MapsFragment extends Fragment {
             LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             if (isLocationEnabled(locationManager)) {
                 try {
+                    searchView1.setSearchText("Loading Nearby Bus Stops...");
                     horizontalProgressBar.setVisibility(View.VISIBLE);
                     String locationProvider = ((DelhiTransitApplication) context.getApplicationContext()).getLocationProvider();
                     locationManager.requestSingleUpdate(locationProvider, new LocationListener() {
@@ -516,6 +518,7 @@ public class MapsFragment extends Fragment {
                                     }
                                     LatLngBounds bounds = builder.build();
                                     mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
+                                    searchView1.setSearchText("Search Bus Stops");
                                 } else {
                                     setNearByBusStopsWithInDistance(userLatitude, userLongitude, (dist + 0.25));
                                 }
