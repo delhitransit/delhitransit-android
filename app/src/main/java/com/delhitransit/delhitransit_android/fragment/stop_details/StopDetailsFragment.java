@@ -22,6 +22,8 @@ import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
+import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
+
 public class StopDetailsFragment extends Fragment {
 
     public static final String KEY_FRAGMENT_BACKSTACK = StopDetailsFragment.class.getSimpleName() + System.currentTimeMillis();
@@ -31,6 +33,7 @@ public class StopDetailsFragment extends Fragment {
     private StopDetailsViewModel mViewModel;
     private StopDetailsAdapter adapter;
     private MaterialToolbar toolbar;
+    private MaterialProgressBar horizontalProgressBar;
 
     public StopDetailsFragment(StopDetail stop, Runnable fabClickCallback) {
         this.stop = stop;
@@ -47,6 +50,7 @@ public class StopDetailsFragment extends Fragment {
         toolbar.setNavigationOnClickListener(item -> finishMe(null));
         //Setup the recycler view
         RecyclerView recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
+        horizontalProgressBar = parent.findViewById(R.id.horizontal_loading_bar);
         adapter = new StopDetailsAdapter();
         recyclerView.setAdapter(adapter);
         recyclerView.setMinimumHeight(Resources.getSystem().getDisplayMetrics().heightPixels);
@@ -80,7 +84,10 @@ public class StopDetailsFragment extends Fragment {
         if (stop == null) return;
         int stopId = stop.getStopId();
         LifecycleOwner lifecycleOwner = getViewLifecycleOwner();
-        mViewModel.getAllRoutes(stopId).observe(lifecycleOwner, adapter::submitList);
+        mViewModel.getAllRoutes(stopId).observe(lifecycleOwner, list -> {
+            adapter.submitList(list);
+            horizontalProgressBar.setVisibility(View.GONE);
+        });
         final int favouriteStopMenuButtonId = R.id.favourite_stop_menu_button;
         mViewModel.isStopFavourite(stopId).observe(lifecycleOwner, value -> {
             mFavourite = value;
