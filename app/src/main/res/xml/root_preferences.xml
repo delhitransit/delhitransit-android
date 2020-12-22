@@ -17,8 +17,9 @@
             app:key="manualIp"
             app:title="Set IP address manually" />
 
-        <EditTextPreference  app:enableCopying="true"
-            app:key="serverIpAddress"
+        <EditTextPreference
+            app:enableCopying="true"
+            app:key="serverIpAddressM"
             app:summary="Toggle server IP"
             app:dependency="manualIp"
             app:title="@string/server_ip_title"

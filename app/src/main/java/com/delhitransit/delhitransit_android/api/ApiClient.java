@@ -18,30 +18,29 @@ public class ApiClient {
 
     private static Retrofit retrofit = null;
 
-    private static Retrofit getApiClient(Context context) {
+    private static Retrofit getApiClient(Context context, boolean isDefaultFault) {
         String serverIp = context.getString(R.string.default_server_ip);
-
-        if (context.getApplicationContext() instanceof DelhiTransitApplication) {
+        if (isDefaultFault && context.getApplicationContext() instanceof DelhiTransitApplication) {
             serverIp = ((DelhiTransitApplication) context.getApplicationContext()).getServerIP();
         }
-
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
                 .readTimeout(2, TimeUnit.MINUTES)
                 .connectTimeout(2, TimeUnit.MINUTES);
-        try {
-            retrofit = new Retrofit.Builder()
-                    .baseUrl(serverIp)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .client(httpClient.build())
-                    .build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(context, "Please set valid server IP", Toast.LENGTH_SHORT).show();
-        }
+        retrofit = new Retrofit.Builder()
+                .baseUrl(serverIp)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(httpClient.build())
+                .build();
         return retrofit;
     }
 
     public static ApiInterface getApiService(Context context) {
-        return getApiClient(context).create(ApiInterface.class);
+        try {
+            return getApiClient(context, true).create(ApiInterface.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Please set valid server IP", Toast.LENGTH_SHORT).show();
+        }
+        return getApiClient(context, false).create(ApiInterface.class);
     }
 }
