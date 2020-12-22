@@ -1,17 +1,28 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory app:title="@string/server_header">
 
         <ListPreference
             app:enableCopying="true"
+            app:entries="@array/server_ip_titles"
+            app:entryValues="@array/server_ip_values"
             app:icon="@drawable/ic_baseline_cell_wifi_24"
             app:key="serverIpAddress"
             app:summary="Toggle server IP"
-            app:title="@string/server_ip_title"
-            app:entries="@array/server_ip_titles"
-            app:entryValues="@array/server_ip_values"
+            app:title="Choose DelhiTransit Server"
             app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="manualIp"
+            app:title="Set IP address manually" />
+
+        <EditTextPreference  app:enableCopying="true"
+            app:key="serverIpAddress"
+            app:summary="Toggle server IP"
+            app:dependency="manualIp"
+            app:title="@string/server_ip_title"
+            app:useSimpleSummaryProvider="true"/>
 
     </PreferenceCategory>
 
@@ -19,12 +30,12 @@
 
         <ListPreference
             app:enableCopying="true"
-            app:icon="@drawable/ic_baseline_settings_input_antenna_24"
-            app:key="locationProvider"
-            app:title="Choose Location Provider"
-            app:summary="Toggle location mode"
             app:entries="@array/location_provider_titles"
             app:entryValues="@array/location_provider_values"
+            app:icon="@drawable/ic_baseline_settings_input_antenna_24"
+            app:key="locationProvider"
+            app:summary="Toggle location mode"
+            app:title="Choose Location Provider"
             app:useSimpleSummaryProvider="true" />
 
 
@@ -40,29 +51,28 @@
             app:widgetLayout="@android:layout/two_line_list_item" />
 
         <Preference
-            app:key="guide"
             app:enableCopying="true"
             app:icon="@drawable/ic_baseline_biotech_24"
+            app:key="guide"
             app:summary="Mr. Ashish Sharma (Asst. Professor )"
             app:title="Guided by"
             app:widgetLayout="@android:layout/two_line_list_item" />
 
         <Preference
-            app:key="github"
             app:enableCopying="true"
             app:icon="@drawable/ic_baseline_code_24"
+            app:key="github"
             app:summary="@string/github_url"
             app:title="Find the code on GitHub"
             app:widgetLayout="@android:layout/two_line_list_item" />
 
         <Preference
-            app:key="otd"
             app:enableCopying="true"
             app:icon="@drawable/ic_baseline_api_24"
+            app:key="otd"
             app:summary="@string/otd_url"
             app:title="Explore the Open Transit Delhi dataset"
             app:widgetLayout="@android:layout/two_line_list_item" />
 
     </PreferenceCategory>
-
 </PreferenceScreen>
