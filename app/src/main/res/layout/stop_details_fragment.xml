@@ -59,7 +59,7 @@
                 android:layout_marginTop="-6dp"
                 android:indeterminate="true"
                 android:visibility="visible"
-                app:mpb_indeterminateTint="@color/colorPrimary"
+                app:mpb_indeterminateTint="@color/colorAccent"
                 app:mpb_progressStyle="horizontal" />
 
             <androidx.recyclerview.widget.RecyclerView
