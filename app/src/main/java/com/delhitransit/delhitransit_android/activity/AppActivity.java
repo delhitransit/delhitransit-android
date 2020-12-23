@@ -14,7 +14,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
-import com.delhitransit.delhitransit_android.fragment.MapsFragmentDirections;
+import com.delhitransit.delhitransit_android.fragment.maps.MapsFragmentDirections;
 import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.bottomnavigation.BottomNavigationView;

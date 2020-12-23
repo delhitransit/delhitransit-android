@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/ThemeOverlay.DelhiTransitAndroid.FullscreenContainer"
-    tools:context=".fragment.MapsFragment">
+    tools:context=".fragment.maps.MapsFragment">
 
     <RelativeLayout
         android:id="@+id/main_layout"

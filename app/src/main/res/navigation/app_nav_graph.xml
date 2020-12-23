@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/mapsFragment"
-        android:name="com.delhitransit.delhitransit_android.fragment.MapsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.maps.MapsFragment"
         android:label="Map"
         tools:layout="@layout/fragment_map">
         <action
