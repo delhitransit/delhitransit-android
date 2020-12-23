@@ -45,11 +45,30 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/stop_details_fragment_recycler_view"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            android:orientation="vertical"
+            android:layout_height="match_parent">
+
+            <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+                android:id="@+id/horizontal_loading_bar"
+                style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal.NoPadding"
+                android:layout_width="match_parent"
+                android:layout_height="16dp"
+                android:layout_gravity="start"
+                android:layout_marginTop="-6dp"
+                android:indeterminate="true"
+                android:visibility="visible"
+                app:mpb_indeterminateTint="@color/colorAccent"
+                app:mpb_progressStyle="horizontal" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/stop_details_fragment_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        </RelativeLayout>
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
