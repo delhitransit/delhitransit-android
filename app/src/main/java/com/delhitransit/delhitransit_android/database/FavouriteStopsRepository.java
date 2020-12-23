@@ -2,11 +2,11 @@ package com.delhitransit.delhitransit_android.database;
 
 import android.app.Application;
 
+import androidx.lifecycle.LiveData;
+
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
-
-import androidx.lifecycle.LiveData;
 
 public class FavouriteStopsRepository {
 

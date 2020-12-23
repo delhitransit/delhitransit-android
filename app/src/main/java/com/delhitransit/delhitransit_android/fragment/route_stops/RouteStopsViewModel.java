@@ -41,7 +41,7 @@ public class RouteStopsViewModel extends AndroidViewModel {
                 });
     }
 
-    public MutableLiveData<List<StopDetail>> getAllStops(String tripId) {
+    public MutableLiveData<List<CustomizeStopDetail>> getAllStops(String tripId) {
         if (tripId != null && !tripId.isEmpty()) makeApiRequest(tripId);
         return allStops;
     }
