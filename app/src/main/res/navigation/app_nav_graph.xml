@@ -14,6 +14,11 @@
         <action
             android:id="@+id/action_mapsFragment_to_stopDetailsFragment"
             app:destination="@id/stopDetailsFragment" />
+        <argument
+            android:name="sourceStop"
+            android:defaultValue="@null"
+            app:argType="com.delhitransit.delhitransit_android.pojos.stops.StopDetail"
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/favouriteStopsFragment"

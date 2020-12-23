@@ -31,6 +31,8 @@ public class MapsViewModel extends AndroidViewModel {
     private final MutableLiveData<List<RouteDetailForAdapter>> routesList = new MutableLiveData<>();
     private double userLatitude;
     private double userLongitude;
+    private StopDetail sourceStop;
+    private StopDetail destinationStop;
 
     public MapsViewModel(@NonNull Application application) {
         super(application);
@@ -104,4 +106,19 @@ public class MapsViewModel extends AndroidViewModel {
         routesList.setValue(list);
     }
 
+    public StopDetail getSourceStop() {
+        return sourceStop;
+    }
+
+    public void setSourceStop(StopDetail sourceStop) {
+        this.sourceStop = sourceStop;
+    }
+
+    public StopDetail getDestinationStop() {
+        return destinationStop;
+    }
+
+    public void setDestinationStop(StopDetail destinationStop) {
+        this.destinationStop = destinationStop;
+    }
 }

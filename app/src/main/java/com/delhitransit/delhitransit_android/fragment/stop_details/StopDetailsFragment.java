@@ -30,11 +30,9 @@ import java.util.function.Consumer;
 
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
-// TODO implement callback passing
 public class StopDetailsFragment extends Fragment {
 
     private StopDetail stop;
-    //    private final Runnable fabClickCallback;
     private boolean mFavourite = false;
     private StopDetailsViewModel mViewModel;
     private StopDetailsAdapter adapter;
@@ -65,7 +63,9 @@ public class StopDetailsFragment extends Fragment {
         //Setup the navigate FAB
         ExtendedFloatingActionButton fab = parent.findViewById(R.id.extended_navigate_fab);
         fab.setOnClickListener(item -> {
-//            finishMe(fabClickCallback);
+            StopDetailsFragmentDirections.ActionStopDetailsFragmentToMapsFragment action = StopDetailsFragmentDirections.actionStopDetailsFragmentToMapsFragment();
+            action.setSourceStop(stop);
+            navController.navigate(action);
         });
         //Collapse or expand the FAB on scrolling the nestedScrollView
         NestedScrollView nestedScrollView = parent.findViewById(R.id.stop_details_fragment_scrollable_content);

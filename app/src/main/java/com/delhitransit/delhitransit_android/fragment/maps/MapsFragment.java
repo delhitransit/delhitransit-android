@@ -110,24 +110,33 @@ public class MapsFragment extends Fragment {
             viewVisibility(searchView1, true);
             LatLng latLng = new LatLng(28.6172368, 77.2059964);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-
             mMap.setPadding(100, 600, 100, 100);
-            mMap.setOnMarkerClickListener(marker -> {
-                StopDetail stop = busStopsHashMap.get(marker);
-                if (stop != null) {
-                    Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
-                    Activity activity = getActivity();
-                    if (activity instanceof OnStopMarkerClickedListener) {
-                        ((OnStopMarkerClickedListener) activity).onStopMarkerClick(stop, runnable);
-                    } else runnable.run();
+            if (mViewModel != null) {
+                StopDetail sourceStop = mViewModel.getSourceStop();
+                if (sourceStop != null) {
+                    setStopDataOnSearchView(sourceStop, searchView1, false);
                 }
-                return true;
-            });
+            }
+            setOnMarkerClickListeners();
             getUserLocation();
 
         }
 
     };
+
+    private void setOnMarkerClickListeners() {
+        mMap.setOnMarkerClickListener(marker -> {
+            StopDetail stop = busStopsHashMap.get(marker);
+            if (stop != null) {
+                Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
+                Activity activity = getActivity();
+                if (activity instanceof OnStopMarkerClickedListener) {
+                    ((OnStopMarkerClickedListener) activity).onStopMarkerClick(stop, runnable);
+                } else runnable.run();
+            }
+            return true;
+        });
+    }
 
     @Nullable
     @Override
@@ -138,7 +147,6 @@ public class MapsFragment extends Fragment {
         setMapFragment();
         init();
         getAllFavouriteStops();
-
         return parentView;
     }
 
@@ -337,6 +345,7 @@ public class MapsFragment extends Fragment {
         addMarkerIfNotNull(markerDetails);
 
         if (isSecondSearchView) {
+            mViewModel.setDestinationStop(stopsDetail);
             if (destinationMarkerDetail != null) {
                 destinationMarkerDetail.remove();
             }
@@ -347,17 +356,14 @@ public class MapsFragment extends Fragment {
             apiService.getCustomizeRoutesBetweenStops(destinationMarkerDetail.id, sourceMarkerDetail.id, ((int) TimeConverter.getSecondsSince12AM())).enqueue(new Callback<List<CustomizeRouteDetail>>() {
                 @Override
                 public void onResponse(Call<List<CustomizeRouteDetail>> call, Response<List<CustomizeRouteDetail>> response) {
-                    if (response.body() != null && !response.body().isEmpty()) {
+                    boolean responseExists = response.body() != null && !response.body().isEmpty();
+                    if (responseExists) {
                         routesListAdapter.setDetail(sourceMarkerDetail.latLng, destinationMarkerDetail.latLng, sourceMarkerDetail.name);
                         mViewModel.setRoutesList(response.body());
                         routesListAdapter.notifyDataSetChanged();
-
-                        viewVisibility(noRoutesAvailableTextView, false);
-                        viewVisibility(routesListRecycleView, true);
-                    } else {
-                        viewVisibility(routesListRecycleView, false);
-                        viewVisibility(noRoutesAvailableTextView, true);
                     }
+                    viewVisibility(noRoutesAvailableTextView, !responseExists);
+                    viewVisibility(routesListRecycleView, responseExists);
 
                     routesBottomSheetDialog.show();
                     progressBarVisibility(false);
@@ -370,6 +376,7 @@ public class MapsFragment extends Fragment {
                 }
             });
         } else {
+            mViewModel.setSourceStop(stopsDetail);
             if (sourceMarkerDetail != null) {
                 sourceMarkerDetail.remove();
             }
@@ -514,6 +521,11 @@ public class MapsFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(MapsViewModel.class);
+        MapsFragmentArgs args = MapsFragmentArgs.fromBundle(getArguments());
+        StopDetail sourceStop = args.getSourceStop();
+        if (sourceStop != null) {
+            mViewModel.setSourceStop(sourceStop);
+        }
         apiService = mViewModel.getApiService();
         final LifecycleOwner mLifecycleOwner = getViewLifecycleOwner();
         mViewModel.getNearbyStops().observe(mLifecycleOwner, this::setNearByBusStopsWithInDistance);
