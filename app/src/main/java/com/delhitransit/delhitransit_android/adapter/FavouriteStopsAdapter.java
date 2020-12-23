@@ -7,11 +7,14 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragmentDirections;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 public class FavouriteStopsAdapter extends ListAdapter<StopDetail, FavouriteStopsAdapter.FSViewHolder> {
@@ -43,15 +46,21 @@ public class FavouriteStopsAdapter extends ListAdapter<StopDetail, FavouriteStop
         StopDetail stop = getItem(position);
         holder.setStopName(stop.getName());
         holder.setStopId(stop.getStopId());
+        holder.parent.setOnClickListener(v -> {
+            NavController navController = Navigation.findNavController(v);
+            FavouriteStopsFragmentDirections.ActionFavouriteStopsFragmentToStopDetailsFragment action = FavouriteStopsFragmentDirections.actionFavouriteStopsFragmentToStopDetailsFragment(stop);
+            navController.navigate(action);
+        });
     }
 
     static class FSViewHolder extends RecyclerView.ViewHolder {
-
+        private final View parent;
         private final TextView stopName;
         private final TextView stopId;
 
         public FSViewHolder(@NonNull View itemView) {
             super(itemView);
+            parent = itemView;
             stopName = itemView.findViewById(R.id.fav_stop_item_stop_name);
             stopId = itemView.findViewById(R.id.fav_stop_item_stop_id);
         }

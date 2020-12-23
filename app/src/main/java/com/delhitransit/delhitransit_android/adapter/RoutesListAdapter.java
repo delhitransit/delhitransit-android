@@ -9,6 +9,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.helperclasses.RoutePointsMaker;
@@ -21,16 +26,12 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.RoutesListViewHolder> {
+public class RoutesListAdapter extends ListAdapter<RouteDetailForAdapter, RoutesListAdapter.RoutesListViewHolder> {
 
-
-    private final List<RouteDetailForAdapter> list;
     private final OnRouteSelectedListener onRouteSelectedListener;
     private final TaskCompleteCallback taskCompleteCallback;
     private final Context context;
@@ -38,9 +39,21 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
     private LatLng source, destination;
     private String sourceBusStopName;
 
-    public RoutesListAdapter(Context context, List<RouteDetailForAdapter> list, OnRouteSelectedListener onRouteSelectedListener, TaskCompleteCallback taskCompleteCallback) {
+    private static final DiffUtil.ItemCallback<RouteDetailForAdapter> DIFF_CALLBACK = new DiffUtil.ItemCallback<RouteDetailForAdapter>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull RouteDetailForAdapter oldItem, @NonNull RouteDetailForAdapter newItem) {
+            return oldItem == newItem;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull RouteDetailForAdapter oldItem, @NonNull RouteDetailForAdapter newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
+
+    public RoutesListAdapter(Context context, OnRouteSelectedListener onRouteSelectedListener, TaskCompleteCallback taskCompleteCallback) {
+        super(DIFF_CALLBACK);
         this.context = context;
-        this.list = list;
         this.onRouteSelectedListener = onRouteSelectedListener;
         this.taskCompleteCallback = taskCompleteCallback;
     }
@@ -53,7 +66,7 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
 
     @Override
     public void onBindViewHolder(@NonNull RoutesListViewHolder holder, int position) {
-        RouteDetailForAdapter routeDetail = list.get(position);
+        RouteDetailForAdapter routeDetail = getItem(position);
 
         if (routeDetail.getRouteId() <= 533) {
             holder.busStopIcon.setImageResource(R.drawable.bus_icon);
@@ -109,11 +122,6 @@ public class RoutesListAdapter extends RecyclerView.Adapter<RoutesListAdapter.Ro
             minDisplay.setVisibility(View.VISIBLE);
             travelTimeMin.setText(("" + converter.min));
         }
-    }
-
-    @Override
-    public int getItemCount() {
-        return list.size();
     }
 
     public void setDetail(LatLng source, LatLng destination, String sourceBusStopName) {

@@ -4,9 +4,10 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.annotations.Expose;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class RoutesFromStopDetail {
+public class RoutesFromStopDetail implements Serializable {
     @Expose
     private int earliestTime;
     @Expose

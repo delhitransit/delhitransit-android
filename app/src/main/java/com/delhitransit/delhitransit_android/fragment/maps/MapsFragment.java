@@ -1,4 +1,4 @@
-package com.delhitransit.delhitransit_android.fragment;
+package com.delhitransit.delhitransit_android.fragment.maps;
 
 import android.Manifest;
 import android.app.Activity;
@@ -30,6 +30,7 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,7 +40,6 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
-import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsViewModel;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
@@ -49,7 +49,6 @@ import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
-import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -66,7 +65,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -76,15 +74,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
-
 public class MapsFragment extends Fragment {
 
     private static final String TAG = MapsFragment.class.getSimpleName();
-    private static final int WINDOW_DECORATION_FLAG = FLAG_TRANSLUCENT_STATUS;
     private final int LOCATION_PERMISSION_REQUEST_CODE = 101;
     private final int LOCATION_ON_REQUEST_CODE = 101;
-    private final List<RouteDetailForAdapter> routesList = new ArrayList<>();
+    private final List<StopDetail> favouriteStopsLists = new ArrayList<>();
     private GoogleMap mMap;
     private Polyline currentPolyline;
     private ApiInterface apiService;
@@ -104,7 +99,7 @@ public class MapsFragment extends Fragment {
     private Context context;
     private MaterialProgressBar horizontalProgressBar;
     private CircleMarker circleMarker;
-    private List<StopDetail> favouriteStopsLists = new ArrayList<>();
+    private MapsViewModel mViewModel;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -115,45 +110,44 @@ public class MapsFragment extends Fragment {
             viewVisibility(searchView1, true);
             LatLng latLng = new LatLng(28.6172368, 77.2059964);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-
             mMap.setPadding(100, 600, 100, 100);
-            mMap.setOnMarkerClickListener(marker -> {
-                StopDetail stop = busStopsHashMap.get(marker);
-                if (stop != null) {
-                    Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
-                    Activity activity = getActivity();
-                    if (activity instanceof OnStopMarkerClickedListener) {
-                        ((OnStopMarkerClickedListener) activity).onStopMarkerClick(stop, runnable);
-                    } else runnable.run();
+            if (mViewModel != null) {
+                StopDetail sourceStop = mViewModel.getSourceStop();
+                if (sourceStop != null) {
+                    setStopDataOnSearchView(sourceStop, searchView1, false);
                 }
-                return true;
-            });
+            }
+            setOnMarkerClickListeners();
             getUserLocation();
 
         }
 
     };
 
+    private void setOnMarkerClickListeners() {
+        mMap.setOnMarkerClickListener(marker -> {
+            StopDetail stop = busStopsHashMap.get(marker);
+            if (stop != null) {
+                Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
+                Activity activity = getActivity();
+                if (activity instanceof OnStopMarkerClickedListener) {
+                    ((OnStopMarkerClickedListener) activity).onStopMarkerClick(stop, runnable);
+                } else runnable.run();
+            }
+            return true;
+        });
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         parentView = inflater.inflate(R.layout.fragment_map, container, false);
         context = this.getContext();
-        apiService = ApiClient.getApiService(context);
 
         setMapFragment();
         init();
         getAllFavouriteStops();
-
         return parentView;
-    }
-
-    private void getAllFavouriteStops() {
-        FavouriteStopsViewModel favouriteStopsViewModel = new ViewModelProvider(this).get(FavouriteStopsViewModel.class);
-        favouriteStopsViewModel.getAll().observe(getViewLifecycleOwner(), list -> {
-            favouriteStopsLists.clear();
-            favouriteStopsLists.addAll(list);
-        });
     }
 
     private void setMapFragment() {
@@ -179,7 +173,15 @@ public class MapsFragment extends Fragment {
         setSearchViewQueryAndSearchListener(searchView2, true);
         setRoutesBottomSheetDialog();
 
-        bottomButton.setOnClickListener(this::showRoutesBottomSheet);
+        bottomButton.setOnClickListener(it -> routesBottomSheetDialog.show());
+    }
+
+    private void getAllFavouriteStops() {
+        FavouriteStopsViewModel favouriteStopsViewModel = new ViewModelProvider(this).get(FavouriteStopsViewModel.class);
+        favouriteStopsViewModel.getAll().observe(getViewLifecycleOwner(), list -> {
+            favouriteStopsLists.clear();
+            favouriteStopsLists.addAll(list);
+        });
     }
 
     private void setRoutesBottomSheetDialog() {
@@ -189,7 +191,7 @@ public class MapsFragment extends Fragment {
         routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
         noRoutesAvailableTextView = routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view);
 
-        routesListAdapter = new RoutesListAdapter(context, routesList, this::onRouteSelected, this::onTaskDone);
+        routesListAdapter = new RoutesListAdapter(context, this::onRouteSelected, this::onTaskDone);
 
         routesListRecycleView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         routesListRecycleView.setAdapter(routesListAdapter);
@@ -343,6 +345,7 @@ public class MapsFragment extends Fragment {
         addMarkerIfNotNull(markerDetails);
 
         if (isSecondSearchView) {
+            mViewModel.setDestinationStop(stopsDetail);
             if (destinationMarkerDetail != null) {
                 destinationMarkerDetail.remove();
             }
@@ -353,18 +356,14 @@ public class MapsFragment extends Fragment {
             apiService.getCustomizeRoutesBetweenStops(destinationMarkerDetail.id, sourceMarkerDetail.id, ((int) TimeConverter.getSecondsSince12AM())).enqueue(new Callback<List<CustomizeRouteDetail>>() {
                 @Override
                 public void onResponse(Call<List<CustomizeRouteDetail>> call, Response<List<CustomizeRouteDetail>> response) {
-                    if (response.body() != null && !response.body().isEmpty()) {
-                        routesList.clear();
+                    boolean responseExists = response.body() != null && !response.body().isEmpty();
+                    if (responseExists) {
                         routesListAdapter.setDetail(sourceMarkerDetail.latLng, destinationMarkerDetail.latLng, sourceMarkerDetail.name);
-                        routesList.addAll(makeListAdapter(response.body()));
+                        mViewModel.setRoutesList(response.body());
                         routesListAdapter.notifyDataSetChanged();
-
-                        viewVisibility(noRoutesAvailableTextView, false);
-                        viewVisibility(routesListRecycleView, true);
-                    } else {
-                        viewVisibility(routesListRecycleView, false);
-                        viewVisibility(noRoutesAvailableTextView, true);
                     }
+                    viewVisibility(noRoutesAvailableTextView, !responseExists);
+                    viewVisibility(routesListRecycleView, responseExists);
 
                     routesBottomSheetDialog.show();
                     progressBarVisibility(false);
@@ -377,6 +376,7 @@ public class MapsFragment extends Fragment {
                 }
             });
         } else {
+            mViewModel.setSourceStop(stopsDetail);
             if (sourceMarkerDetail != null) {
                 sourceMarkerDetail.remove();
             }
@@ -387,21 +387,6 @@ public class MapsFragment extends Fragment {
             searchView2.setSearchFocused(true);
         }
         searchView.setSearchText(stopsDetail.getName());
-    }
-
-    private List<RouteDetailForAdapter> makeListAdapter(List<CustomizeRouteDetail> customizeRouteDetailList) {
-        List<RouteDetailForAdapter> list = new ArrayList<>();
-        for (CustomizeRouteDetail customizeRouteDetail : customizeRouteDetailList) {
-            for (String busTiming : customizeRouteDetail.getBusTimings()) {
-                list.add(new RouteDetailForAdapter(customizeRouteDetail.getTravelTime(),
-                        customizeRouteDetail.getRouteId(),
-                        customizeRouteDetail.getTripId(),
-                        TimeConverter.getTimeInSeconds(busTiming),
-                        customizeRouteDetail.getLongName()));
-            }
-        }
-        list.sort(Comparator.comparingLong(RouteDetailForAdapter::getBusTimings));
-        return list;
     }
 
     private void addMarkerIfNotNull(MarkerDetails markerDetail) {
@@ -447,9 +432,11 @@ public class MapsFragment extends Fragment {
                         @Override
                         public void onLocationChanged(Location location) {
                             horizontalProgressBar.setVisibility(View.GONE);
-                            userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                            double latitude = location.getLatitude();
+                            double longitude = location.getLongitude();
+                            userLocation = new LatLng(latitude, longitude);
                             setUserLocation();
-                            setNearByBusStopsWithInDistance(userLocation.latitude, userLocation.longitude, 1);
+                            mViewModel.setUserCoordinates(latitude, longitude);
                         }
 
                         @Override
@@ -499,40 +486,6 @@ public class MapsFragment extends Fragment {
         }
     }
 
-    private void setNearByBusStopsWithInDistance(double userLatitude, double userLongitude, double dist) {
-        if (dist < 5) {
-            apiService.getNearByStops(dist, userLatitude, userLongitude)
-                    .enqueue(new Callback<List<StopDetail>>() {
-                        @Override
-                        public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
-                            if (response.body() != null) {
-                                if (response.body().size() > 4) {
-                                    busStopsHashMap = new HashMap<>();
-                                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                                    builder.include(new LatLng(userLatitude, userLongitude));
-                                    for (StopDetail data : response.body()) {
-                                        LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
-                                        Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, data.getName(), Color.RED, getMarkerType(data)).getBitmap())));
-                                        busStopsHashMap.put(marker, data);
-                                        builder.include(latLng);
-                                    }
-                                    LatLngBounds bounds = builder.build();
-                                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
-                                    searchView1.setSearchHint("Search Bus Stops");
-                                } else {
-                                    setNearByBusStopsWithInDistance(userLatitude, userLongitude, (dist + 0.25));
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<List<StopDetail>> call, Throwable t) {
-                            Log.e(TAG, "onFailure: " + t.getMessage());
-                        }
-                    });
-        }
-    }
-
     private int getMarkerType(StopDetail data) {
         int type = ViewMarker.BUS_STOP;
         for (StopDetail detail : favouriteStopsLists) {
@@ -555,10 +508,6 @@ public class MapsFragment extends Fragment {
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
 
-    public void showRoutesBottomSheet(View view) {
-        routesBottomSheetDialog.show();
-    }
-
     private void showToast(String s) {
         showToast(s, "info");
     }
@@ -569,19 +518,32 @@ public class MapsFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if (getActivity() != null && getActivity().getWindow() != null) {
-            getActivity().getWindow().addFlags(WINDOW_DECORATION_FLAG);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mViewModel = new ViewModelProvider(this).get(MapsViewModel.class);
+        MapsFragmentArgs args = MapsFragmentArgs.fromBundle(getArguments());
+        StopDetail sourceStop = args.getSourceStop();
+        if (sourceStop != null) {
+            mViewModel.setSourceStop(sourceStop);
         }
+        apiService = mViewModel.getApiService();
+        final LifecycleOwner mLifecycleOwner = getViewLifecycleOwner();
+        mViewModel.getNearbyStops().observe(mLifecycleOwner, this::setNearByBusStopsWithInDistance);
+        mViewModel.getRoutesList().observe(mLifecycleOwner, routesListAdapter::submitList);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (getActivity() != null && getActivity().getWindow() != null) {
-            getActivity().getWindow().clearFlags(WINDOW_DECORATION_FLAG);
+    private void setNearByBusStopsWithInDistance(List<StopDetail> nearbyStops) {
+        busStopsHashMap = new HashMap<>();
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(new LatLng(mViewModel.getUserLatitude(), mViewModel.getUserLongitude()));
+        for (StopDetail data : nearbyStops) {
+            LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
+            Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, data.getName(), Color.RED, getMarkerType(data)).getBitmap())));
+            busStopsHashMap.put(marker, data);
+            builder.include(latLng);
         }
+        LatLngBounds bounds = builder.build();
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
+        searchView1.setSearchHint("Search Bus Stops");
     }
-
 }

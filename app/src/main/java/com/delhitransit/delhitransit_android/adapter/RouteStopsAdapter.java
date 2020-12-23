@@ -6,13 +6,17 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsFragmentDirections;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 public class RouteStopsAdapter extends ListAdapter<CustomizeStopDetail, RouteStopsAdapter.RDViewHolder> {
 
@@ -69,6 +73,14 @@ public class RouteStopsAdapter extends ListAdapter<CustomizeStopDetail, RouteSto
         builder.append(" ");
         builder.append(timeDeltaString);
         holder.setText(holder.timeCountdown, builder.toString());
+
+        holder.parentView.setOnClickListener(v -> {
+            NavController navController = Navigation.findNavController(v);
+            StopDetail stopDetail = stop.getStopDetail();
+            RouteStopsFragmentDirections.ActionRouteStopsFragmentToStopDetailsFragment action = RouteStopsFragmentDirections.actionRouteStopsFragmentToStopDetailsFragment(stopDetail);
+            navController.navigate(action);
+        });
+
     }
 
     static class RDViewHolder extends RecyclerView.ViewHolder {

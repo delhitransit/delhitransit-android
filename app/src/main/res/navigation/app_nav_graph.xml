@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_nav_graph"
+    android:label="App Nav Graph"
+    app:startDestination="@id/mapsFragment">
+
+    <fragment
+        android:id="@+id/mapsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.maps.MapsFragment"
+        android:label="Map"
+        tools:layout="@layout/fragment_map">
+        <action
+            android:id="@+id/action_mapsFragment_to_stopDetailsFragment"
+            app:destination="@id/stopDetailsFragment" />
+        <argument
+            android:name="sourceStop"
+            android:defaultValue="@null"
+            app:argType="com.delhitransit.delhitransit_android.pojos.stops.StopDetail"
+            app:nullable="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/favouriteStopsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsFragment"
+        android:label="Favourite Stops"
+        tools:layout="@layout/favourite_stops_fragment">
+        <action
+            android:id="@+id/action_favouriteStopsFragment_to_stopDetailsFragment"
+            app:destination="@id/stopDetailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.SettingsFragment"
+        android:label="Settings" />
+    <fragment
+        android:id="@+id/stopDetailsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.stop_details.StopDetailsFragment"
+        android:label="Stop Details"
+        tools:layout="@layout/stop_details_fragment">
+        <action
+            android:id="@+id/action_stopDetailsFragment_to_routeStopsFragment"
+            app:destination="@id/routeStopsFragment" />
+        <argument
+            android:name="stopDetail"
+            app:argType="com.delhitransit.delhitransit_android.pojos.stops.StopDetail" />
+        <action
+            android:id="@+id/action_stopDetailsFragment_to_mapsFragment"
+            app:destination="@id/mapsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/routeStopsFragment"
+        android:name="com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsFragment"
+        android:label="Route Stops"
+        tools:layout="@layout/fragment_route_details">
+        <argument
+            android:name="routeFromStopDetail"
+            app:argType="com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail" />
+        <argument
+            android:name="stopDetail"
+            app:argType="com.delhitransit.delhitransit_android.pojos.stops.StopDetail" />
+        <action
+            android:id="@+id/action_routeStopsFragment_to_stopDetailsFragment"
+            app:destination="@id/stopDetailsFragment" />
+    </fragment>
+</navigation>

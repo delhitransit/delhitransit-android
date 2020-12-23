@@ -1,9 +1,7 @@
 package com.delhitransit.delhitransit_android.fragment.stop_details;
 
-import android.app.Activity;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,12 +13,14 @@ import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.StopDetailsAdapter;
-import com.delhitransit.delhitransit_android.interfaces.FragmentFinisherInterface;
-import com.delhitransit.delhitransit_android.interfaces.OnRouteDetailsSelectedListener;
 import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -32,39 +32,30 @@ import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class StopDetailsFragment extends Fragment {
 
-    public static final String KEY_FRAGMENT_BACKSTACK = StopDetailsFragment.class.getSimpleName() + System.currentTimeMillis();
-    private final StopDetail stop;
-    private final Runnable fabClickCallback;
+    private StopDetail stop;
     private boolean mFavourite = false;
     private StopDetailsViewModel mViewModel;
     private StopDetailsAdapter adapter;
     private MaterialToolbar toolbar;
     private MaterialProgressBar horizontalProgressBar;
-    private Activity activity;
-
-    public StopDetailsFragment(StopDetail stop, Runnable fabClickCallback) {
-        this.stop = stop;
-        this.fabClickCallback = fabClickCallback;
-    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View parent = inflater.inflate(R.layout.stop_details_fragment, container, false);
-        activity = getActivity();
+        this.stop = StopDetailsFragmentArgs.fromBundle(getArguments()).getStopDetail();
+        NavController navController = NavHostFragment.findNavController(this);
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         //Setup the toolbar
         toolbar = parent.findViewById(R.id.stop_details_fragment_app_bar);
+        NavigationUI.setupWithNavController(toolbar, navController, appBarConfiguration);
         toolbar.setTitle(stop.getName());
-        toolbar.setNavigationOnClickListener(item -> finishMe(null));
         //Setup the recycler view
         RecyclerView recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
         horizontalProgressBar = parent.findViewById(R.id.horizontal_loading_bar);
         Consumer<RoutesFromStopDetail> consumer = routesFromStopDetail -> {
-            if (activity instanceof OnRouteDetailsSelectedListener) {
-                ((OnRouteDetailsSelectedListener) activity).onRouteSelect(routesFromStopDetail, stop);
-            } else {
-                Log.e(StopDetailsFragment.this.getClass().getSimpleName(), "Calling class does not implement " + OnRouteDetailsSelectedListener.class.getSimpleName());
-            }
+            StopDetailsFragmentDirections.ActionStopDetailsFragmentToRouteStopsFragment action = StopDetailsFragmentDirections.actionStopDetailsFragmentToRouteStopsFragment(routesFromStopDetail, stop);
+            navController.navigate(action);
         };
         adapter = new StopDetailsAdapter(consumer);
         recyclerView.setAdapter(adapter);
@@ -72,7 +63,9 @@ public class StopDetailsFragment extends Fragment {
         //Setup the navigate FAB
         ExtendedFloatingActionButton fab = parent.findViewById(R.id.extended_navigate_fab);
         fab.setOnClickListener(item -> {
-            finishMe(fabClickCallback);
+            StopDetailsFragmentDirections.ActionStopDetailsFragmentToMapsFragment action = StopDetailsFragmentDirections.actionStopDetailsFragmentToMapsFragment();
+            action.setSourceStop(stop);
+            navController.navigate(action);
         });
         //Collapse or expand the FAB on scrolling the nestedScrollView
         NestedScrollView nestedScrollView = parent.findViewById(R.id.stop_details_fragment_scrollable_content);
@@ -128,13 +121,6 @@ public class StopDetailsFragment extends Fragment {
         } else {
             item.setTitle("Favourite");
             item.setIcon(R.drawable.ic_baseline_star_outline_24);
-        }
-    }
-
-    public void finishMe(Runnable callback) {
-        if (activity instanceof FragmentFinisherInterface) {
-            ((FragmentFinisherInterface) activity).finishAndExecute(KEY_FRAGMENT_BACKSTACK, callback == null ? () -> {
-            } : callback);
         }
     }
 
