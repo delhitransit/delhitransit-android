@@ -1,9 +1,10 @@
 package com.delhitransit.delhitransit_android.api;
 
-import com.delhitransit.delhitransit_android.pojos.route.RouteDetail;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
+import com.delhitransit.delhitransit_android.pojos.route.RouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
+import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
@@ -32,4 +33,7 @@ public interface ApiInterface {
 
     @GET("/v1/client/routes/stop/{stop}")
     Call<List<RoutesFromStopDetail>> getAllRoutesByStopId(@Path("stop") int stopId, @Query("time") int time);
+
+    @GET("/v1/client/stops/trip/{trip}")
+    Call<List<CustomizeStopDetail>> getStopsByTripId(@Path("trip") String tripId);
 }
