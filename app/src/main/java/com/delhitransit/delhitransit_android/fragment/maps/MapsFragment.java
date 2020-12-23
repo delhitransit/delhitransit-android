@@ -40,7 +40,6 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.RoutesListAdapter;
-import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsViewModel;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
@@ -82,7 +81,6 @@ public class MapsFragment extends Fragment {
     private static final String TAG = MapsFragment.class.getSimpleName();
     private final int LOCATION_PERMISSION_REQUEST_CODE = 101;
     private final int LOCATION_ON_REQUEST_CODE = 101;
-    private final List<RouteDetailForAdapter> routesList = new ArrayList<>();
     private final List<StopDetail> favouriteStopsLists = new ArrayList<>();
     private GoogleMap mMap;
     private Polyline currentPolyline;
@@ -132,28 +130,18 @@ public class MapsFragment extends Fragment {
         }
 
     };
-    private LifecycleOwner mLifecycleOwner;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         parentView = inflater.inflate(R.layout.fragment_map, container, false);
         context = this.getContext();
-        apiService = ApiClient.getApiService(context);
 
         setMapFragment();
         init();
         getAllFavouriteStops();
 
         return parentView;
-    }
-
-    private void getAllFavouriteStops() {
-        FavouriteStopsViewModel favouriteStopsViewModel = new ViewModelProvider(this).get(FavouriteStopsViewModel.class);
-        favouriteStopsViewModel.getAll().observe(getViewLifecycleOwner(), list -> {
-            favouriteStopsLists.clear();
-            favouriteStopsLists.addAll(list);
-        });
     }
 
     private void setMapFragment() {
@@ -179,7 +167,15 @@ public class MapsFragment extends Fragment {
         setSearchViewQueryAndSearchListener(searchView2, true);
         setRoutesBottomSheetDialog();
 
-        bottomButton.setOnClickListener(this::showRoutesBottomSheet);
+        bottomButton.setOnClickListener(it -> routesBottomSheetDialog.show());
+    }
+
+    private void getAllFavouriteStops() {
+        FavouriteStopsViewModel favouriteStopsViewModel = new ViewModelProvider(this).get(FavouriteStopsViewModel.class);
+        favouriteStopsViewModel.getAll().observe(getViewLifecycleOwner(), list -> {
+            favouriteStopsLists.clear();
+            favouriteStopsLists.addAll(list);
+        });
     }
 
     private void setRoutesBottomSheetDialog() {
@@ -189,7 +185,7 @@ public class MapsFragment extends Fragment {
         routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
         noRoutesAvailableTextView = routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view);
 
-        routesListAdapter = new RoutesListAdapter(context, routesList, this::onRouteSelected, this::onTaskDone);
+        routesListAdapter = new RoutesListAdapter(context, this::onRouteSelected, this::onTaskDone);
 
         routesListRecycleView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
         routesListRecycleView.setAdapter(routesListAdapter);
@@ -354,9 +350,8 @@ public class MapsFragment extends Fragment {
                 @Override
                 public void onResponse(Call<List<CustomizeRouteDetail>> call, Response<List<CustomizeRouteDetail>> response) {
                     if (response.body() != null && !response.body().isEmpty()) {
-                        routesList.clear();
                         routesListAdapter.setDetail(sourceMarkerDetail.latLng, destinationMarkerDetail.latLng, sourceMarkerDetail.name);
-                        routesList.addAll(makeListAdapter(response.body()));
+                        mViewModel.setRoutesList(makeListAdapter(response.body()));
                         routesListAdapter.notifyDataSetChanged();
 
                         viewVisibility(noRoutesAvailableTextView, false);
@@ -523,10 +518,6 @@ public class MapsFragment extends Fragment {
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
 
-    public void showRoutesBottomSheet(View view) {
-        routesBottomSheetDialog.show();
-    }
-
     private void showToast(String s) {
         showToast(s, "info");
     }
@@ -540,8 +531,10 @@ public class MapsFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(MapsViewModel.class);
-        mLifecycleOwner = getViewLifecycleOwner();
+        apiService = mViewModel.getApiService();
+        final LifecycleOwner mLifecycleOwner = getViewLifecycleOwner();
         mViewModel.getNearbyStops().observe(mLifecycleOwner, this::setNearByBusStopsWithInDistance);
+        mViewModel.getRoutesList().observe(mLifecycleOwner, routesListAdapter::submitList);
     }
 
     private void setNearByBusStopsWithInDistance(List<StopDetail> nearbyStops) {

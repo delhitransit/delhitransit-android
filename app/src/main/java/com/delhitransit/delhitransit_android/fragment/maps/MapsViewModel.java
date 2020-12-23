@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
+import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class MapsViewModel extends AndroidViewModel {
     private static final String TAG = MapsViewModel.class.getSimpleName();
     private final MutableLiveData<List<StopDetail>> nearbyStops = new MutableLiveData<>();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
+    private final MutableLiveData<List<RouteDetailForAdapter>> routesList = new MutableLiveData<>();
     private double userLatitude;
     private double userLongitude;
 
@@ -73,4 +75,17 @@ public class MapsViewModel extends AndroidViewModel {
     public double getUserLongitude() {
         return userLongitude;
     }
+
+    public ApiInterface getApiService() {
+        return apiService;
+    }
+
+    public MutableLiveData<List<RouteDetailForAdapter>> getRoutesList() {
+        return routesList;
+    }
+
+    public void setRoutesList(List<RouteDetailForAdapter> list) {
+        routesList.setValue(list);
+    }
+
 }
