@@ -39,8 +39,6 @@
         android:ellipsize="end"
         android:layout_marginStart="8dp"
         android:text="Kanjhawala Depot"
-        android:maxLines="1"
-        android:ellipsize="end"
         android:textSize="16sp"
         android:textAppearance="?attr/textAppearanceBody2"
         app:layout_constraintBottom_toBottomOf="@+id/stop_details_item_route_name"
