@@ -9,9 +9,13 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
+import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
+import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -84,7 +88,19 @@ public class MapsViewModel extends AndroidViewModel {
         return routesList;
     }
 
-    public void setRoutesList(List<RouteDetailForAdapter> list) {
+    public void setRoutesList(List<CustomizeRouteDetail> customizeRouteDetailList) {
+        List<RouteDetailForAdapter> list = new LinkedList<>();
+        for (CustomizeRouteDetail customizeRouteDetail : customizeRouteDetailList) {
+            for (String busTiming : customizeRouteDetail.getBusTimings()) {
+                list.add(new RouteDetailForAdapter(
+                        customizeRouteDetail.getTravelTime(),
+                        customizeRouteDetail.getRouteId(),
+                        customizeRouteDetail.getTripId(),
+                        TimeConverter.getTimeInSeconds(busTiming),
+                        customizeRouteDetail.getLongName()));
+            }
+        }
+        list.sort(Comparator.comparingLong(RouteDetailForAdapter::getBusTimings));
         routesList.setValue(list);
     }
 

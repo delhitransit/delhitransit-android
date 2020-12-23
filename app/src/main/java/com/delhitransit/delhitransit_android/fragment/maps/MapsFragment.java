@@ -49,7 +49,6 @@ import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
-import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -66,7 +65,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -351,7 +349,7 @@ public class MapsFragment extends Fragment {
                 public void onResponse(Call<List<CustomizeRouteDetail>> call, Response<List<CustomizeRouteDetail>> response) {
                     if (response.body() != null && !response.body().isEmpty()) {
                         routesListAdapter.setDetail(sourceMarkerDetail.latLng, destinationMarkerDetail.latLng, sourceMarkerDetail.name);
-                        mViewModel.setRoutesList(makeListAdapter(response.body()));
+                        mViewModel.setRoutesList(response.body());
                         routesListAdapter.notifyDataSetChanged();
 
                         viewVisibility(noRoutesAvailableTextView, false);
@@ -382,21 +380,6 @@ public class MapsFragment extends Fragment {
             searchView2.setSearchFocused(true);
         }
         searchView.setSearchText(stopsDetail.getName());
-    }
-
-    private List<RouteDetailForAdapter> makeListAdapter(List<CustomizeRouteDetail> customizeRouteDetailList) {
-        List<RouteDetailForAdapter> list = new ArrayList<>();
-        for (CustomizeRouteDetail customizeRouteDetail : customizeRouteDetailList) {
-            for (String busTiming : customizeRouteDetail.getBusTimings()) {
-                list.add(new RouteDetailForAdapter(customizeRouteDetail.getTravelTime(),
-                        customizeRouteDetail.getRouteId(),
-                        customizeRouteDetail.getTripId(),
-                        TimeConverter.getTimeInSeconds(busTiming),
-                        customizeRouteDetail.getLongName()));
-            }
-        }
-        list.sort(Comparator.comparingLong(RouteDetailForAdapter::getBusTimings));
-        return list;
     }
 
     private void addMarkerIfNotNull(MarkerDetails markerDetail) {
