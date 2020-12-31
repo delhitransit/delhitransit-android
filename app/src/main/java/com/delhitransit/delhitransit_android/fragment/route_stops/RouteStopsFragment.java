@@ -47,6 +47,7 @@ public class RouteStopsFragment extends Fragment {
         adapter = new RouteStopsAdapter();
         recyclerView.setAdapter(adapter);
         recyclerView.setMinimumHeight(Resources.getSystem().getDisplayMetrics().heightPixels);
+        recyclerView.setItemAnimator(null);
         return parent;
     }
 
