@@ -57,8 +57,7 @@ public class RouteStopsAdapter extends ListAdapter<CustomizeStopDetail, RouteSto
         if (timeDelta == 0) builder.append("Now");
         else if (timeDelta < 0) {
             builder.append("Departed");
-            // TODO FIX does'nt work
-            holder.parentView.setAlpha(0.75f);
+            holder.parentView.setAlpha(0.6f);
         } else builder.append("Scheduled");
         String timeDeltaString = "";
         if (countdownTimer.hourOfDay > 0) {
