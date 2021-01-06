@@ -115,6 +115,7 @@ public class MapsFragment extends Fragment {
             LatLng latLng = new LatLng(28.6172368, 77.2059964);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
             mMap.setPadding(100, 600, 100, 100);
+            mMap.clear();
             if (mViewModel != null) {
                 StopDetail sourceStop = mViewModel.getSourceStop();
                 if (sourceStop != null) {
@@ -431,6 +432,7 @@ public class MapsFragment extends Fragment {
         if (markerDetail.latLng != null) {
             busStopsHashMap.remove(markerDetail.marker);
             Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetail.name, markerDetail.relation, getMarkerType(markerDetail.stopsResponseData)).getBitmap())).position(markerDetail.latLng));
+            marker.setZIndex(3);
             markerDetail.marker = marker;
             busStopsHashMap.put(marker, markerDetail.stopsResponseData);
         }
@@ -445,8 +447,7 @@ public class MapsFragment extends Fragment {
     }
 
     @Override
-    public void
-    onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
