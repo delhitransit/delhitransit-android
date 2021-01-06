@@ -103,7 +103,6 @@ public class MapsFragment extends Fragment {
     private CircleMarker circleMarker;
     private MapsViewModel mViewModel;
     private DelhiTransitApplication application;
-    private LifecycleOwner mLifecycleOwner;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -115,6 +114,7 @@ public class MapsFragment extends Fragment {
             LatLng latLng = new LatLng(28.6172368, 77.2059964);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
             mMap.setPadding(100, 600, 100, 100);
+            mMap.clear();
             if (mViewModel != null) {
                 StopDetail sourceStop = mViewModel.getSourceStop();
                 if (sourceStop != null) {
@@ -127,6 +127,7 @@ public class MapsFragment extends Fragment {
         }
 
     };
+    private LifecycleOwner mLifecycleOwner;
 
     private void setOnMarkerClickListeners() {
         mMap.setOnMarkerClickListener(marker -> {
@@ -178,6 +179,17 @@ public class MapsFragment extends Fragment {
         setRoutesBottomSheetDialog();
 
         bottomButton.setOnClickListener(it -> routesBottomSheetDialog.show());
+        parentView.findViewById(R.id.fab).setOnClickListener(this::setSearchViewWithFlip);
+
+    }
+
+
+    public void setSearchViewWithFlip(View v) {
+        StopDetail sourceStop = mViewModel.getSourceStop();
+        StopDetail destinationStop = mViewModel.getDestinationStop();
+        setStopDataOnSearchView(destinationStop, searchView1, false);
+        setStopDataOnSearchView(sourceStop, searchView2, true);
+
     }
 
     private void getAllFavouriteStops() {
@@ -318,9 +330,9 @@ public class MapsFragment extends Fragment {
             public void onSearchAction(String currentQuery) {
                 searchView.showProgress();
 
-                if(isSecondSearchView && application.isDestinationStopsFiltered()){
+                if (isSecondSearchView && application.isDestinationStopsFiltered()) {
                     MutableLiveData<List<StopDetail>> reachable = mViewModel.getStopsReachableFromSourceStop();
-                    reachable.observe(mLifecycleOwner, stops ->{
+                    reachable.observe(mLifecycleOwner, stops -> {
                         if (stops != null && stops.size() != 0) {
                             stops = stops.stream().filter(it -> it.getName().toUpperCase().contains(currentQuery.toUpperCase())).collect(Collectors.toList());
                             if (stops != null && stops.size() != 0)
@@ -330,7 +342,7 @@ public class MapsFragment extends Fragment {
                         }
                         searchView.hideProgress();
                     });
-                }else {
+                } else {
                     apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopDetail>>() {
                         @Override
                         public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
@@ -431,6 +443,7 @@ public class MapsFragment extends Fragment {
         if (markerDetail.latLng != null) {
             busStopsHashMap.remove(markerDetail.marker);
             Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetail.name, markerDetail.relation, getMarkerType(markerDetail.stopsResponseData)).getBitmap())).position(markerDetail.latLng));
+            marker.setZIndex(3);
             markerDetail.marker = marker;
             busStopsHashMap.put(marker, markerDetail.stopsResponseData);
         }
@@ -445,8 +458,7 @@ public class MapsFragment extends Fragment {
     }
 
     @Override
-    public void
-    onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {

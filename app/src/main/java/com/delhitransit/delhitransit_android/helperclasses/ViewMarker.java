@@ -2,9 +2,11 @@ package com.delhitransit.delhitransit_android.helperclasses;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
@@ -15,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
-import androidx.core.content.ContextCompat;
 
 import com.delhitransit.delhitransit_android.R;
 import com.google.android.material.card.MaterialCardView;
@@ -27,7 +28,6 @@ public class ViewMarker {
     public static final int FAVOURITE = 13;
     final int SIZE = 50;
     private final View view;
-    boolean forCircleMarker = false;
 
     public ViewMarker(Context context, String s) {
         this(context, s, Color.GREEN, YOUR_LOCATION);
@@ -73,12 +73,10 @@ public class ViewMarker {
 
     public ViewMarker(Context context) {
         view = new View(context);
-        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.circle_marker_icon_150);
-        if (drawable != null) {
-            drawable.setBounds(0, 0, SIZE, SIZE);
-            view.setBackground(drawable);
-        }
-        forCircleMarker = true;
+        Bitmap bMap = BitmapFactory.decodeResource(context.getResources(), R.drawable.circle_marker_icon_150);
+        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, SIZE, SIZE, true);
+        view.setBackground(new BitmapDrawable(context.getResources(), bMapScaled));
+
     }
 
     private String getString(String s) {
@@ -101,12 +99,7 @@ public class ViewMarker {
         int spec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
         view.measure(spec, spec);
         view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-        Bitmap bitmap;
-        if (forCircleMarker) {
-            bitmap = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888);
-        } else {
-            bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-        }
+        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         Drawable bgDrawable = view.getBackground();
         if (bgDrawable != null)

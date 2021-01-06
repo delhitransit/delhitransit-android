@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
+import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
@@ -30,12 +31,12 @@ public class MapsViewModel extends AndroidViewModel {
     private final MutableLiveData<List<StopDetail>> nearbyStops = new MutableLiveData<>();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
     private final MutableLiveData<List<RouteDetailForAdapter>> routesList = new MutableLiveData<>();
+    private final HashMap<Long, List<StopDetail>> reachableStops = new HashMap<>();
+    private final HashMap<Long, Long> reachableStopsRecentlyQuery = new HashMap<>();
     private double userLatitude;
     private double userLongitude;
     private StopDetail sourceStop;
     private StopDetail destinationStop;
-    private final HashMap<Long, List<StopDetail>> reachableStops = new HashMap<>();
-    private final HashMap<Long, Long> reachableStopsRecentlyQuery = new HashMap<>();
 
     public MapsViewModel(@NonNull Application application) {
         super(application);
@@ -115,7 +116,10 @@ public class MapsViewModel extends AndroidViewModel {
 
     public void setSourceStop(StopDetail sourceStop) {
         this.sourceStop = sourceStop;
-        getStopsReachableFromSourceStop();
+        Application application = getApplication();
+        if (application instanceof DelhiTransitApplication && ((DelhiTransitApplication) application).isDestinationStopsFiltered()) {
+            getStopsReachableFromSourceStop();
+        }
     }
 
     public StopDetail getDestinationStop() {
@@ -126,17 +130,17 @@ public class MapsViewModel extends AndroidViewModel {
         this.destinationStop = destinationStop;
     }
 
-    public MutableLiveData<List<StopDetail>> getStopsReachableFromSourceStop(){
+    public MutableLiveData<List<StopDetail>> getStopsReachableFromSourceStop() {
         return getStopsReachableFrom(this.getSourceStop().getStopId());
     }
 
-    public MutableLiveData<List<StopDetail>> getStopsReachableFrom(long stopId){
+    public MutableLiveData<List<StopDetail>> getStopsReachableFrom(long stopId) {
         final MutableLiveData<List<StopDetail>> stops = new MutableLiveData<>();
         if (reachableStops.containsKey(stopId)) {
             stops.setValue(reachableStops.get(stopId));
         } else {
             long currentTime = System.currentTimeMillis();
-            if (currentTime - reachableStopsRecentlyQuery.getOrDefault(stopId, 0L) < 4000){
+            if (currentTime - reachableStopsRecentlyQuery.getOrDefault(stopId, 0L) < 4000) {
                 return stops;
             } else reachableStopsRecentlyQuery.put(stopId, currentTime);
             apiService.getStopsReachableFromStop(stopId).enqueue(new Callback<List<StopDetail>>() {
@@ -148,6 +152,7 @@ public class MapsViewModel extends AndroidViewModel {
                         reachableStops.put(stopId, resp);
                     }
                 }
+
                 @Override
                 public void onFailure(Call<List<StopDetail>> call, Throwable t) {
                     Log.e(TAG, "onFailure: int " + t.getMessage());

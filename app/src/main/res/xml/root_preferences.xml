@@ -42,7 +42,9 @@
         <SwitchPreferenceCompat
             app:key="filtered_destination_stops"
             android:icon="@drawable/ic_baseline_filter_b_and_w_24"
-            app:title="Only show destination stops that are reachable from the source stop" />
+            app:title="Filter destination stops"
+            app:summaryOn="Only showing destination stops that are reachable from the source stop"
+            app:summaryOff="Showing all stops regardless of reachability"/>
 
 
     </PreferenceCategory>

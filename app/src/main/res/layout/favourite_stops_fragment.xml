@@ -23,6 +23,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/fav_stops_recycler_view"
         android:layout_width="match_parent"
+        tools:itemCount="5"
+        tools:listitem="@layout/favourite_stop_item"
         android:layout_height="match_parent"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
