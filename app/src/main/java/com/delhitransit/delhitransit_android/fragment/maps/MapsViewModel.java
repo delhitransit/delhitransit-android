@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
+import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
@@ -115,7 +116,10 @@ public class MapsViewModel extends AndroidViewModel {
 
     public void setSourceStop(StopDetail sourceStop) {
         this.sourceStop = sourceStop;
-        getStopsReachableFromSourceStop();
+        Application application = getApplication();
+        if (application instanceof DelhiTransitApplication && ((DelhiTransitApplication) application).isDestinationStopsFiltered()) {
+            getStopsReachableFromSourceStop();
+        }
     }
 
     public StopDetail getDestinationStop() {
