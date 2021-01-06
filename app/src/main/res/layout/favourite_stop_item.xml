@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="wrap_content">
 
     <com.google.android.material.card.MaterialCardView
@@ -21,7 +22,7 @@
                 android:id="@+id/fav_stop_item_stop_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pushpanjali Encalve"
+                tools:text="@tools:sample/first_names"
                 android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <TextView
@@ -29,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Stop: 2346"
+                tools:text="@tools:sample/cities"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?android:attr/textColorSecondary" />
 
