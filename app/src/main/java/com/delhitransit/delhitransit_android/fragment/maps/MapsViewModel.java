@@ -115,6 +115,7 @@ public class MapsViewModel extends AndroidViewModel {
 
     public void setSourceStop(StopDetail sourceStop) {
         this.sourceStop = sourceStop;
+        getStopsReachableFromSourceStop();
     }
 
     public StopDetail getDestinationStop() {
@@ -135,7 +136,7 @@ public class MapsViewModel extends AndroidViewModel {
             stops.setValue(reachableStops.get(stopId));
         } else {
             long currentTime = System.currentTimeMillis();
-            if (currentTime - reachableStopsRecentlyQuery.getOrDefault(stopId, Long.MIN_VALUE) < 4000){
+            if (currentTime - reachableStopsRecentlyQuery.getOrDefault(stopId, 0L) < 4000){
                 return stops;
             } else reachableStopsRecentlyQuery.put(stopId, currentTime);
             apiService.getStopsReachableFromStop(stopId).enqueue(new Callback<List<StopDetail>>() {

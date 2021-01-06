@@ -420,7 +420,6 @@ public class MapsFragment extends Fragment {
             }
             sourceMarkerDetail = markerDetails;
 
-            mViewModel.getStopsReachableFrom(stopsDetail.getStopId());
             searchView1.clearSearchFocus();
             viewVisibility(searchView2, true);
             searchView2.setSearchFocused(true);
