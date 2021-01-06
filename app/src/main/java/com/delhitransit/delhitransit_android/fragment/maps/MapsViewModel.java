@@ -15,6 +15,7 @@ import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,6 +34,8 @@ public class MapsViewModel extends AndroidViewModel {
     private double userLongitude;
     private StopDetail sourceStop;
     private StopDetail destinationStop;
+    private final HashMap<Long, List<StopDetail>> reachableStops = new HashMap<>();
+    private final HashMap<Long, Long> reachableStopsRecentlyQuery = new HashMap<>();
 
     public MapsViewModel(@NonNull Application application) {
         super(application);
@@ -112,6 +115,7 @@ public class MapsViewModel extends AndroidViewModel {
 
     public void setSourceStop(StopDetail sourceStop) {
         this.sourceStop = sourceStop;
+        getStopsReachableFromSourceStop();
     }
 
     public StopDetail getDestinationStop() {
@@ -120,5 +124,36 @@ public class MapsViewModel extends AndroidViewModel {
 
     public void setDestinationStop(StopDetail destinationStop) {
         this.destinationStop = destinationStop;
+    }
+
+    public MutableLiveData<List<StopDetail>> getStopsReachableFromSourceStop(){
+        return getStopsReachableFrom(this.getSourceStop().getStopId());
+    }
+
+    public MutableLiveData<List<StopDetail>> getStopsReachableFrom(long stopId){
+        final MutableLiveData<List<StopDetail>> stops = new MutableLiveData<>();
+        if (reachableStops.containsKey(stopId)) {
+            stops.setValue(reachableStops.get(stopId));
+        } else {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - reachableStopsRecentlyQuery.getOrDefault(stopId, 0L) < 4000){
+                return stops;
+            } else reachableStopsRecentlyQuery.put(stopId, currentTime);
+            apiService.getStopsReachableFromStop(stopId).enqueue(new Callback<List<StopDetail>>() {
+                @Override
+                public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
+                    List<StopDetail> resp = response.body();
+                    if (resp != null && resp.size() != 0) {
+                        stops.setValue(resp);
+                        reachableStops.put(stopId, resp);
+                    }
+                }
+                @Override
+                public void onFailure(Call<List<StopDetail>> call, Throwable t) {
+                    Log.e(TAG, "onFailure: int " + t.getMessage());
+                }
+            });
+        }
+        return (stops);
     }
 }
