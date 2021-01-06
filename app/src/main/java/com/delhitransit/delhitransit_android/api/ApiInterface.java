@@ -36,4 +36,7 @@ public interface ApiInterface {
 
     @GET("/v1/client/stops/trip/{trip}")
     Call<List<CustomizeStopDetail>> getStopsByTripId(@Path("trip") String tripId);
+
+    @GET("/v1/stops/source/{source}")
+    Call<List<StopDetail>> getStopsReachableFromStop(@Path("source") long source);
 }

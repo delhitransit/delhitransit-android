@@ -31,6 +31,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -67,6 +68,7 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jp.wasabeef.blurry.Blurry;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
@@ -100,6 +102,8 @@ public class MapsFragment extends Fragment {
     private MaterialProgressBar horizontalProgressBar;
     private CircleMarker circleMarker;
     private MapsViewModel mViewModel;
+    private DelhiTransitApplication application;
+    private LifecycleOwner mLifecycleOwner;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -143,7 +147,7 @@ public class MapsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         parentView = inflater.inflate(R.layout.fragment_map, container, false);
         context = this.getContext();
-
+        application = (DelhiTransitApplication) context.getApplicationContext();
         setMapFragment();
         init();
         getAllFavouriteStops();
@@ -252,34 +256,55 @@ public class MapsFragment extends Fragment {
             }
             if (newQuery.equals("")) {
                 searchView.clearSuggestions();
-            } else if (!newQuery.trim().equals("")) {
-                currQuery = newQuery;
-                searchView.showProgress();
+            } else {
+                if (!newQuery.trim().equals("")) {
+                    currQuery = newQuery;
+                    searchView.showProgress();
 
-                apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopDetail>>() {
-                    @Override
-                    public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
-                        if (response.body() != null) {
-                            List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
-                            for (StopDetail stopsResponseData : response.body()) {
-                                if (favouriteStopsLists.contains(stopsResponseData)) {
-                                    busStopsSuggestions.add(0, new BusStopsSuggestion(stopsResponseData, true));
-                                } else {
-                                    busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
+                    if (isSecondSearchView && application.isDestinationStopsFiltered()) {
+                        MutableLiveData<List<StopDetail>> reachable = mViewModel.getStopsReachableFromSourceStop();
+                        reachable.observe(mLifecycleOwner, stops -> {
+                            if (stops != null) {
+                                stops = stops.stream().filter(it -> it.getName().toUpperCase().contains(newQuery.toUpperCase())).collect(Collectors.toList());
+                                List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
+                                for (StopDetail stopsResponseData : stops) {
+                                    if (favouriteStopsLists.contains(stopsResponseData)) {
+                                        busStopsSuggestions.add(0, new BusStopsSuggestion(stopsResponseData, true));
+                                    } else {
+                                        busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
+                                    }
                                 }
+                                searchView.swapSuggestions(busStopsSuggestions);
                             }
-                            searchView.swapSuggestions(busStopsSuggestions);
-                        }
-                        searchView.hideProgress();
+                            searchView.hideProgress();
+                        });
+                    } else {
+                        apiService.getStopsByName(newQuery, false).enqueue(new Callback<List<StopDetail>>() {
+                            @Override
+                            public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
+                                if (response.body() != null) {
+                                    List<BusStopsSuggestion> busStopsSuggestions = new ArrayList<>();
+                                    for (StopDetail stopsResponseData : response.body()) {
+                                        if (favouriteStopsLists.contains(stopsResponseData)) {
+                                            busStopsSuggestions.add(0, new BusStopsSuggestion(stopsResponseData, true));
+                                        } else {
+                                            busStopsSuggestions.add(new BusStopsSuggestion(stopsResponseData));
+                                        }
+                                    }
+                                    searchView.swapSuggestions(busStopsSuggestions);
+                                }
+                                searchView.hideProgress();
+                            }
+
+                            @Override
+                            public void onFailure(Call<List<StopDetail>> call, Throwable t) {
+                                Log.e(TAG, "onFailure: int " + t.getMessage());
+                                searchView.hideProgress();
+                            }
+                        });
                     }
 
-                    @Override
-                    public void onFailure(Call<List<StopDetail>> call, Throwable t) {
-                        Log.e(TAG, "onFailure: int " + t.getMessage());
-                        searchView.hideProgress();
-                    }
-                });
-
+                }
             }
         });
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
@@ -293,25 +318,38 @@ public class MapsFragment extends Fragment {
             public void onSearchAction(String currentQuery) {
                 searchView.showProgress();
 
-                apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopDetail>>() {
-                    @Override
-                    public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
-
-                        if (response.body() != null && response.body().size() != 0) {
-                            setStopDataOnSearchView(response.body().get(0), searchView, isSecondSearchView);
+                if(isSecondSearchView && application.isDestinationStopsFiltered()){
+                    MutableLiveData<List<StopDetail>> reachable = mViewModel.getStopsReachableFromSourceStop();
+                    reachable.observe(mLifecycleOwner, stops ->{
+                        if (stops != null && stops.size() != 0) {
+                            stops = stops.stream().filter(it -> it.getName().toUpperCase().contains(currentQuery.toUpperCase())).collect(Collectors.toList());
+                            if (stops != null && stops.size() != 0)
+                                setStopDataOnSearchView(stops.get(0), searchView, isSecondSearchView);
                         } else {
                             showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
                         }
                         searchView.hideProgress();
-                    }
+                    });
+                }else {
+                    apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopDetail>>() {
+                        @Override
+                        public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
 
-                    @Override
-                    public void onFailure(Call<List<StopDetail>> call, Throwable t) {
-                        Log.e(TAG, "onFailure: int " + t.getMessage());
-                        searchView.hideProgress();
-                    }
-                });
+                            if (response.body() != null && response.body().size() != 0) {
+                                setStopDataOnSearchView(response.body().get(0), searchView, isSecondSearchView);
+                            } else {
+                                showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
+                            }
+                            searchView.hideProgress();
+                        }
 
+                        @Override
+                        public void onFailure(Call<List<StopDetail>> call, Throwable t) {
+                            Log.e(TAG, "onFailure: int " + t.getMessage());
+                            searchView.hideProgress();
+                        }
+                    });
+                }
             }
         });
         searchView.setOnBindSuggestionCallback((View suggestionView, ImageView leftIcon, TextView textView, SearchSuggestion item, int itemPosition) -> {
@@ -382,6 +420,7 @@ public class MapsFragment extends Fragment {
             }
             sourceMarkerDetail = markerDetails;
 
+            mViewModel.getStopsReachableFrom(stopsDetail.getStopId());
             searchView1.clearSearchFocus();
             viewVisibility(searchView2, true);
             searchView2.setSearchFocused(true);
@@ -427,7 +466,7 @@ public class MapsFragment extends Fragment {
                 try {
                     searchView1.setSearchHint("Loading Nearby Bus Stops...");
                     horizontalProgressBar.setVisibility(View.VISIBLE);
-                    String locationProvider = ((DelhiTransitApplication) context.getApplicationContext()).getLocationProvider();
+                    String locationProvider = application.getLocationProvider();
                     locationManager.requestSingleUpdate(locationProvider, new LocationListener() {
                         @Override
                         public void onLocationChanged(Location location) {
@@ -527,7 +566,7 @@ public class MapsFragment extends Fragment {
             mViewModel.setSourceStop(sourceStop);
         }
         apiService = mViewModel.getApiService();
-        final LifecycleOwner mLifecycleOwner = getViewLifecycleOwner();
+        mLifecycleOwner = getViewLifecycleOwner();
         mViewModel.getNearbyStops().observe(mLifecycleOwner, this::setNearByBusStopsWithInDistance);
         mViewModel.getRoutesList().observe(mLifecycleOwner, routesListAdapter::submitList);
     }

@@ -10,6 +10,7 @@ public class DelhiTransitApplication extends Application {
     private static final String SERVER_IP_KEY_M = "serverIpAddressM";
     private static final String SERVER_IP_TOGGLE = "manualIp";
     private static final String LOCATION_PROVIDER_KEY = "locationProvider";
+    private static final String DESTINATION_STOPS_FILTERED_KEY = "filtered_destination_stops";
     private SharedPreferences sharedPreferences;
     private String DEFAULT_SERVER_IP;
     private String DEFAULT_LOCATION_PROVIDER;
@@ -58,5 +59,9 @@ public class DelhiTransitApplication extends Application {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(LOCATION_PROVIDER_KEY, provider);
         editor.apply();
+    }
+
+    public boolean isDestinationStopsFiltered(){
+        return sharedPreferences.getBoolean(DESTINATION_STOPS_FILTERED_KEY, false);
     }
 }

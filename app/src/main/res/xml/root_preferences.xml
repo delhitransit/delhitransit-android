@@ -27,7 +27,7 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="GPS Provider">
+    <PreferenceCategory app:title="Configuration">
 
         <ListPreference
             app:enableCopying="true"
@@ -38,6 +38,11 @@
             app:summary="Toggle location mode"
             app:title="Choose Location Provider"
             app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            app:key="filtered_destination_stops"
+            android:icon="@drawable/ic_baseline_filter_b_and_w_24"
+            app:title="Only show destination stops that are reachable from the source stop" />
 
 
     </PreferenceCategory>
