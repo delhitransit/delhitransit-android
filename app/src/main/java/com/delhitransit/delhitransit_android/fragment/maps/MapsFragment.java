@@ -103,7 +103,6 @@ public class MapsFragment extends Fragment {
     private CircleMarker circleMarker;
     private MapsViewModel mViewModel;
     private DelhiTransitApplication application;
-    private LifecycleOwner mLifecycleOwner;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -128,6 +127,7 @@ public class MapsFragment extends Fragment {
         }
 
     };
+    private LifecycleOwner mLifecycleOwner;
 
     private void setOnMarkerClickListeners() {
         mMap.setOnMarkerClickListener(marker -> {
@@ -179,6 +179,17 @@ public class MapsFragment extends Fragment {
         setRoutesBottomSheetDialog();
 
         bottomButton.setOnClickListener(it -> routesBottomSheetDialog.show());
+        parentView.findViewById(R.id.fab).setOnClickListener(this::setSearchViewWithFlip);
+
+    }
+
+
+    public void setSearchViewWithFlip(View v) {
+        StopDetail sourceStop = mViewModel.getSourceStop();
+        StopDetail destinationStop = mViewModel.getDestinationStop();
+        setStopDataOnSearchView(destinationStop, searchView1, false);
+        setStopDataOnSearchView(sourceStop, searchView2, true);
+
     }
 
     private void getAllFavouriteStops() {
@@ -319,9 +330,9 @@ public class MapsFragment extends Fragment {
             public void onSearchAction(String currentQuery) {
                 searchView.showProgress();
 
-                if(isSecondSearchView && application.isDestinationStopsFiltered()){
+                if (isSecondSearchView && application.isDestinationStopsFiltered()) {
                     MutableLiveData<List<StopDetail>> reachable = mViewModel.getStopsReachableFromSourceStop();
-                    reachable.observe(mLifecycleOwner, stops ->{
+                    reachable.observe(mLifecycleOwner, stops -> {
                         if (stops != null && stops.size() != 0) {
                             stops = stops.stream().filter(it -> it.getName().toUpperCase().contains(currentQuery.toUpperCase())).collect(Collectors.toList());
                             if (stops != null && stops.size() != 0)
@@ -331,7 +342,7 @@ public class MapsFragment extends Fragment {
                         }
                         searchView.hideProgress();
                     });
-                }else {
+                } else {
                     apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopDetail>>() {
                         @Override
                         public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
