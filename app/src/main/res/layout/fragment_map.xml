@@ -31,10 +31,10 @@
             android:layout_height="16dp"
             android:layout_gravity="start"
             android:layout_marginStart="14dp"
+            android:layout_marginTop="82dp"
             android:layout_marginEnd="14dp"
             android:indeterminate="true"
             android:visibility="visible"
-            android:layout_marginTop="82dp"
             app:mpb_indeterminateTint="@color/colorPrimary"
             app:mpb_progressStyle="horizontal" />
 
@@ -67,6 +67,19 @@
             app:floatingSearch_showSearchKey="true"
             app:floatingSearch_suggestionsListAnimDuration="250" />
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/flip_search_items_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="70dp"
+            android:layout_marginEnd="24dp"
+            android:alpha="0.96"
+            android:src="@drawable/ic_baseline_swap_vert_24"
+            android:visibility="gone"
+            app:backgroundTint="#E1BEE7"
+            app:fabSize="mini" />
+
         <Button
             android:id="@+id/bottom_button"
             android:layout_width="wrap_content"
@@ -78,11 +91,6 @@
             android:padding="15dp"
             android:text="Show Routes"
             android:textColor="@android:color/white" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
 
     </RelativeLayout>
 

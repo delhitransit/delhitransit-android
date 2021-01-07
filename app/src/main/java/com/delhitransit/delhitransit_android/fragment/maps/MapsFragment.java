@@ -63,6 +63,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -128,6 +129,7 @@ public class MapsFragment extends Fragment {
 
     };
     private LifecycleOwner mLifecycleOwner;
+    private FloatingActionButton mFlipSearchItemsFab;
 
     private void setOnMarkerClickListeners() {
         mMap.setOnMarkerClickListener(marker -> {
@@ -169,6 +171,7 @@ public class MapsFragment extends Fragment {
         progressCardView = parentView.findViewById(R.id.progress_bar);
         blurView = parentView.findViewById(R.id.blur_view);
         horizontalProgressBar = parentView.findViewById(R.id.horizontal_loading_bar);
+        mFlipSearchItemsFab = parentView.findViewById(R.id.flip_search_items_fab);
 
         viewVisibility(searchView1, false);
         viewVisibility(searchView2, false);
@@ -179,17 +182,17 @@ public class MapsFragment extends Fragment {
         setRoutesBottomSheetDialog();
 
         bottomButton.setOnClickListener(it -> routesBottomSheetDialog.show());
-        parentView.findViewById(R.id.fab).setOnClickListener(this::setSearchViewWithFlip);
-
+        mFlipSearchItemsFab.setOnClickListener(this::setSearchViewWithFlip);
     }
 
 
     public void setSearchViewWithFlip(View v) {
         StopDetail sourceStop = mViewModel.getSourceStop();
         StopDetail destinationStop = mViewModel.getDestinationStop();
-        setStopDataOnSearchView(destinationStop, searchView1, false);
-        setStopDataOnSearchView(sourceStop, searchView2, true);
-
+        if (sourceStop != null && destinationStop != null) {
+            setStopDataOnSearchView(destinationStop, searchView1, false);
+            setStopDataOnSearchView(sourceStop, searchView2, true);
+        }
     }
 
     private void getAllFavouriteStops() {
@@ -265,9 +268,11 @@ public class MapsFragment extends Fragment {
         searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
             if (!isSecondSearchView) {
                 viewVisibility(searchView2, false);
+                viewVisibility(mFlipSearchItemsFab, false);
             }
             if (newQuery.equals("")) {
                 searchView.clearSuggestions();
+                viewVisibility(mFlipSearchItemsFab, false);
             } else {
                 if (!newQuery.trim().equals("")) {
                     currQuery = newQuery;
@@ -315,7 +320,6 @@ public class MapsFragment extends Fragment {
                             }
                         });
                     }
-
                 }
             }
         });
@@ -324,6 +328,7 @@ public class MapsFragment extends Fragment {
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
                 StopDetail stopsDetail = ((BusStopsSuggestion) searchSuggestion).getStopDetail();
                 setStopDataOnSearchView(stopsDetail, searchView, isSecondSearchView);
+                if (isSecondSearchView) viewVisibility(mFlipSearchItemsFab, true);
             }
 
             @Override
@@ -341,6 +346,7 @@ public class MapsFragment extends Fragment {
                             showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
                         }
                         searchView.hideProgress();
+                        viewVisibility(mFlipSearchItemsFab, true);
                     });
                 } else {
                     apiService.getStopsByName(currentQuery, true).enqueue(new Callback<List<StopDetail>>() {
@@ -353,12 +359,14 @@ public class MapsFragment extends Fragment {
                                 showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
                             }
                             searchView.hideProgress();
+                            viewVisibility(mFlipSearchItemsFab, true);
                         }
 
                         @Override
                         public void onFailure(Call<List<StopDetail>> call, Throwable t) {
                             Log.e(TAG, "onFailure: int " + t.getMessage());
                             searchView.hideProgress();
+                            viewVisibility(mFlipSearchItemsFab, true);
                         }
                     });
                 }
