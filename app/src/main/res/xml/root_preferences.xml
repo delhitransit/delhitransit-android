@@ -57,15 +57,7 @@
             app:summary="Ankit Varshney\nAbhishek Jain\nTanmay Singal"
             app:title="Created by"
             app:widgetLayout="@android:layout/two_line_list_item" />
-
-        <Preference
-            app:enableCopying="true"
-            app:icon="@drawable/ic_baseline_biotech_24"
-            app:key="guide"
-            app:summary="Mr. Ashish Sharma (Asst. Professor )"
-            app:title="Guided by"
-            app:widgetLayout="@android:layout/two_line_list_item" />
-
+        
         <Preference
             app:enableCopying="true"
             app:icon="@drawable/ic_baseline_code_24"
