@@ -1,5 +1,6 @@
 package com.delhitransit.delhitransit_android.api;
 
+import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetail;
@@ -39,4 +40,7 @@ public interface ApiInterface {
 
     @GET("/v1/stops/source/{source}")
     Call<List<StopDetail>> getStopsReachableFromStop(@Path("source") long source);
+
+    @GET("/v1/realtime/update")
+    Call<List<RealtimeUpdate>> getRealtimeUpdate();
 }

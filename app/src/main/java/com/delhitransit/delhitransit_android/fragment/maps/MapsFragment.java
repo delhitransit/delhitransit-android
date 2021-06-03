@@ -5,8 +5,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -24,10 +27,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
@@ -45,16 +52,19 @@ import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.fragment.favourite_stops.FavouriteStopsViewModel;
 import com.delhitransit.delhitransit_android.helperclasses.BusStopsSuggestion;
 import com.delhitransit.delhitransit_android.helperclasses.CircleMarker;
+import com.delhitransit.delhitransit_android.helperclasses.GeoLocationHelper;
 import com.delhitransit.delhitransit_android.helperclasses.MarkerDetails;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
+import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -588,6 +598,7 @@ public class MapsFragment extends Fragment {
         mLifecycleOwner = getViewLifecycleOwner();
         mViewModel.getNearbyStops().observe(mLifecycleOwner, this::setNearByBusStopsWithInDistance);
         mViewModel.getRoutesList().observe(mLifecycleOwner, routesListAdapter::submitList);
+        mViewModel.getRealtimeUpdate().observe(mLifecycleOwner, this::setNearbyBusesRealtime);
     }
 
     private void setNearByBusStopsWithInDistance(List<StopDetail> nearbyStops) {
@@ -603,5 +614,40 @@ public class MapsFragment extends Fragment {
         LatLngBounds bounds = builder.build();
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
         searchView1.setSearchHint("Search Bus Stops");
+    }
+
+    /**
+     * Demonstrates converting a {@link Drawable} to a {@link BitmapDescriptor},
+     * for use as a marker icon.
+     */
+    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color, float scale) {
+        Drawable vectorDrawable = ResourcesCompat.getDrawable(getResources(), id, null);
+        Bitmap bitmap = Bitmap.createBitmap(
+                (int) (scale * vectorDrawable.getIntrinsicWidth()),
+                (int) (scale * vectorDrawable.getIntrinsicHeight()),
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        DrawableCompat.setTint(vectorDrawable, color);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    private void setNearbyBusesRealtime(List<RealtimeUpdate> realtimeUpdateList) {
+        Log.v(MapsFragment.class.getSimpleName(), String.valueOf(realtimeUpdateList.size()));
+        double userLatitude = mViewModel.getUserLatitude();
+        double userLongitude = mViewModel.getUserLongitude();
+        GeoLocationHelper userLocationHelper = GeoLocationHelper.fromDegrees(userLatitude, userLongitude);
+        realtimeUpdateList.forEach(realtimeUpdate -> {
+            double distanceFromUser = userLocationHelper.distanceTo(GeoLocationHelper.fromDegrees(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude()), null);
+            if (distanceFromUser <= 2) {
+                LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
+                MarkerOptions marker = new MarkerOptions()
+                        .position(latLng)
+                        .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#A4C639"), 0.5f))
+                        .title(realtimeUpdate.getVehicleID());
+                mMap.addMarker(marker);
+            }
+        });
     }
 }

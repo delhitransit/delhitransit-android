@@ -11,6 +11,7 @@ import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
+import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
@@ -28,9 +29,10 @@ public class MapsViewModel extends AndroidViewModel {
 
     public static final double NEARBY_STOPS_DEFAULT_DISTANCE = 1;
     private static final String TAG = MapsViewModel.class.getSimpleName();
-    private final MutableLiveData<List<StopDetail>> nearbyStops = new MutableLiveData<>();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
+    private final MutableLiveData<List<StopDetail>> nearbyStops = new MutableLiveData<>();
     private final MutableLiveData<List<RouteDetailForAdapter>> routesList = new MutableLiveData<>();
+    private final MutableLiveData<List<RealtimeUpdate>> realtimeUpdateList = new MutableLiveData<>();
     private final HashMap<Long, List<StopDetail>> reachableStops = new HashMap<>();
     private final HashMap<Long, Long> reachableStopsRecentlyQuery = new HashMap<>();
     private double userLatitude;
@@ -160,5 +162,20 @@ public class MapsViewModel extends AndroidViewModel {
             });
         }
         return (stops);
+    }
+
+    public MutableLiveData<List<RealtimeUpdate>> getRealtimeUpdate() {
+        apiService.getRealtimeUpdate().enqueue(new Callback<List<RealtimeUpdate>>() {
+            @Override
+            public void onResponse(Call<List<RealtimeUpdate>> call, Response<List<RealtimeUpdate>> response) {
+                realtimeUpdateList.setValue(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<List<RealtimeUpdate>> call, Throwable t) {
+                Log.d(MapsViewModel.class.getSimpleName(), "Request to get realtime update from server failed");
+            }
+        });
+        return realtimeUpdateList;
     }
 }

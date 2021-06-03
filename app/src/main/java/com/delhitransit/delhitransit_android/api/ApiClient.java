@@ -13,8 +13,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
-    //private static final String BASE_URL = "http://delhitransit.herokuapp.com/";
-    //private static final String BASE_URL = "http://www.delhitransit.ml/";
 
     private static Retrofit retrofit = null;
 
