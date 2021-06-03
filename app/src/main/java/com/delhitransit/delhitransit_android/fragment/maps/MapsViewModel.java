@@ -13,6 +13,7 @@ import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
+import com.delhitransit.delhitransit_android.pojos.route.Route;
 import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
@@ -168,7 +169,8 @@ public class MapsViewModel extends AndroidViewModel {
         apiService.getRealtimeUpdate().enqueue(new Callback<List<RealtimeUpdate>>() {
             @Override
             public void onResponse(Call<List<RealtimeUpdate>> call, Response<List<RealtimeUpdate>> response) {
-                realtimeUpdateList.setValue(response.body());
+                if (response.body() != null)
+                    realtimeUpdateList.setValue(response.body());
             }
 
             @Override
@@ -177,5 +179,25 @@ public class MapsViewModel extends AndroidViewModel {
             }
         });
         return realtimeUpdateList;
+    }
+
+    public MutableLiveData<Route> getRouteByRouteId(String routeId) {
+        final MutableLiveData<Route> route = new MutableLiveData<>();
+        apiService.getRouteByRouteId(routeId).enqueue(new Callback<List<Route>>() {
+            @Override
+            public void onResponse(Call<List<Route>> call, Response<List<Route>> response) {
+                if (response.body() != null) {
+                    Route route1 = response.body().get(0);
+                    Log.e(TAG, "onSuccess: getRouteByRouteId " + route1.getLongName());
+                    route.setValue(route1);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Route>> call, Throwable t) {
+                Log.e(TAG, "onFailure: getRouteByRouteId " + t.getMessage());
+            }
+        });
+        return route;
     }
 }
