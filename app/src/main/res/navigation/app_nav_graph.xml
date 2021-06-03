@@ -19,6 +19,9 @@
             android:defaultValue="@null"
             app:argType="com.delhitransit.delhitransit_android.pojos.stops.StopDetail"
             app:nullable="true" />
+        <action
+            android:id="@+id/action_mapsFragment_to_routeStopsFragment"
+            app:destination="@id/routeStopsFragment" />
     </fragment>
     <fragment
         android:id="@+id/favouriteStopsFragment"
@@ -56,9 +59,6 @@
         <argument
             android:name="routeFromStopDetail"
             app:argType="com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail" />
-        <argument
-            android:name="stopDetail"
-            app:argType="com.delhitransit.delhitransit_android.pojos.stops.StopDetail" />
         <action
             android:id="@+id/action_routeStopsFragment_to_stopDetailsFragment"
             app:destination="@id/stopDetailsFragment" />

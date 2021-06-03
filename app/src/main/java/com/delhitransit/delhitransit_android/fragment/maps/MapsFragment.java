@@ -3,6 +3,7 @@ package com.delhitransit.delhitransit_android.fragment.maps;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -31,6 +32,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -40,6 +42,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -59,6 +63,7 @@ import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
+import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -106,6 +111,7 @@ public class MapsFragment extends Fragment {
     private MarkerDetails sourceMarkerDetail, destinationMarkerDetail;
     private LatLng userLocation;
     private HashMap<Marker, StopDetail> busStopsHashMap = new HashMap<>();
+    private HashMap<Marker, RealtimeUpdate> realtimeUpdateHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
     private View parentView;
     private ImageView blurView;
@@ -144,6 +150,7 @@ public class MapsFragment extends Fragment {
     private void setOnMarkerClickListeners() {
         mMap.setOnMarkerClickListener(marker -> {
             StopDetail stop = busStopsHashMap.get(marker);
+            RealtimeUpdate realtimeUpdate = realtimeUpdateHashMap.get(marker);
             if (stop != null) {
                 Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
                 Activity activity = getActivity();
@@ -151,8 +158,49 @@ public class MapsFragment extends Fragment {
                     ((OnStopMarkerClickedListener) activity).onStopMarkerClick(stop, runnable);
                 } else runnable.run();
             }
+            if (realtimeUpdate != null) {
+                setDialogBox(realtimeUpdate);
+            }
             return true;
         });
+    }
+
+    private void setDialogBox(RealtimeUpdate realtimeUpdate) {
+        final AlertDialog.Builder alert = new AlertDialog.Builder(requireActivity());
+        View mView = getLayoutInflater().inflate(R.layout.realtime_dialog_layout, null);
+        TextView busRoute, busLastUpdate, busSpeed;
+        Button moreButton;
+        busRoute = mView.findViewById(R.id.realtime_route_text);
+        busLastUpdate = mView.findViewById(R.id.realtime_updated_text);
+        busSpeed = mView.findViewById(R.id.realtime_speed_text);
+        RoutesFromStopDetail routesFromStopDetail = new RoutesFromStopDetail();
+        alert.setView(mView);
+        alert.setPositiveButton("More Info", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                NavController navController = NavHostFragment.findNavController(MapsFragment.this);
+                MapsFragmentDirections.ActionMapsFragmentToRouteStopsFragment action = MapsFragmentDirections.actionMapsFragmentToRouteStopsFragment(routesFromStopDetail);
+                navController.navigate(action);
+
+            }
+        });
+        alert.setTitle(realtimeUpdate.getVehicleID());
+        busSpeed.setText(String.valueOf(realtimeUpdate.getSpeed() * 3.6));
+        busLastUpdate.setText(String.valueOf(realtimeUpdate.getTimestamp()));
+        mViewModel.getRouteByRouteId(realtimeUpdate.getRouteID()).observe(mLifecycleOwner, route -> {
+            if (route != null) {
+                busRoute.setText(route.getLongName());
+                routesFromStopDetail.setEarliestTime(-1);
+                routesFromStopDetail.setRouteLongName(route.getLongName());
+                routesFromStopDetail.setRouteId(route.getRouteId());
+                routesFromStopDetail.setLastStopName(" ");
+                routesFromStopDetail.setTripId(realtimeUpdate.getTripID());
+                Log.e(TAG, "setDialogBox: " + realtimeUpdate.getTripID());
+            }
+        });
+        final AlertDialog alertDialog = alert.create();
+        alertDialog.setCanceledOnTouchOutside(true);
+        alertDialog.show();
     }
 
     @Nullable
@@ -640,13 +688,13 @@ public class MapsFragment extends Fragment {
         GeoLocationHelper userLocationHelper = GeoLocationHelper.fromDegrees(userLatitude, userLongitude);
         realtimeUpdateList.forEach(realtimeUpdate -> {
             double distanceFromUser = userLocationHelper.distanceTo(GeoLocationHelper.fromDegrees(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude()), null);
-            if (distanceFromUser <= 2) {
+            if (distanceFromUser <= 20) {
                 LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
-                MarkerOptions marker = new MarkerOptions()
+                Marker marker = mMap.addMarker(new MarkerOptions()
                         .position(latLng)
                         .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#A4C639"), 0.5f))
-                        .title(realtimeUpdate.getVehicleID());
-                mMap.addMarker(marker);
+                        .title(realtimeUpdate.getVehicleID()));
+                realtimeUpdateHashMap.put(marker, realtimeUpdate);
             }
         });
     }

@@ -20,7 +20,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.adapter.RouteStopsAdapter;
 import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
-import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.material.appbar.MaterialToolbar;
 
 public class RouteStopsFragment extends Fragment {
@@ -35,7 +34,6 @@ public class RouteStopsFragment extends Fragment {
         View parent = inflater.inflate(R.layout.fragment_route_details, container, false);
         RouteStopsFragmentArgs args = RouteStopsFragmentArgs.fromBundle(getArguments());
         this.route = args.getRouteFromStopDetail();
-        StopDetail stop = args.getStopDetail();
         NavController navController = NavHostFragment.findNavController(this);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         //Setup the toolbar

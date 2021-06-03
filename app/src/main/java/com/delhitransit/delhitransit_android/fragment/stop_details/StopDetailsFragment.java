@@ -54,7 +54,7 @@ public class StopDetailsFragment extends Fragment {
         RecyclerView recyclerView = parent.findViewById(R.id.stop_details_fragment_recycler_view);
         horizontalProgressBar = parent.findViewById(R.id.horizontal_loading_bar);
         Consumer<RoutesFromStopDetail> consumer = routesFromStopDetail -> {
-            StopDetailsFragmentDirections.ActionStopDetailsFragmentToRouteStopsFragment action = StopDetailsFragmentDirections.actionStopDetailsFragmentToRouteStopsFragment(routesFromStopDetail, stop);
+            StopDetailsFragmentDirections.ActionStopDetailsFragmentToRouteStopsFragment action = StopDetailsFragmentDirections.actionStopDetailsFragmentToRouteStopsFragment(routesFromStopDetail);
             navController.navigate(action);
         };
         adapter = new StopDetailsAdapter(consumer);
