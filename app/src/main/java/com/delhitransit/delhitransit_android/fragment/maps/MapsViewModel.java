@@ -3,6 +3,7 @@ package com.delhitransit.delhitransit_android.fragment.maps;
 import android.app.Application;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.util.Pair;
@@ -48,10 +49,12 @@ public class MapsViewModel extends AndroidViewModel {
     private double userLongitude;
     private StopDetail sourceStop;
     private StopDetail destinationStop;
+    private DelhiTransitApplication applicationPrefrences;
     private boolean isRealtimeUpdateScheduled = false;
 
     public MapsViewModel(@NonNull Application application) {
         super(application);
+        applicationPrefrences = (DelhiTransitApplication) getApplication();
     }
 
     private void makeNearbyStopsApiRequest(double dist) {
