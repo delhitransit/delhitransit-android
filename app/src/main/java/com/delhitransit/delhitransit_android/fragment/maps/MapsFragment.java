@@ -98,6 +98,7 @@ public class MapsFragment extends Fragment {
     private final int LOCATION_PERMISSION_REQUEST_CODE = 101;
     private final int LOCATION_ON_REQUEST_CODE = 101;
     private final List<StopDetail> favouriteStopsLists = new ArrayList<>();
+    private final HashMap<Marker, RealtimeUpdate> realtimeUpdateHashMap = new HashMap<>();
     private GoogleMap mMap;
     private Polyline currentPolyline;
     private ApiInterface apiService;
@@ -111,7 +112,6 @@ public class MapsFragment extends Fragment {
     private MarkerDetails sourceMarkerDetail, destinationMarkerDetail;
     private LatLng userLocation;
     private HashMap<Marker, StopDetail> busStopsHashMap = new HashMap<>();
-    private final HashMap<Marker, RealtimeUpdate> realtimeUpdateHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
     private View parentView;
     private ImageView blurView;
@@ -181,7 +181,6 @@ public class MapsFragment extends Fragment {
                 NavController navController = NavHostFragment.findNavController(MapsFragment.this);
                 MapsFragmentDirections.ActionMapsFragmentToRouteStopsFragment action = MapsFragmentDirections.actionMapsFragmentToRouteStopsFragment(routesFromStopDetail);
                 navController.navigate(action);
-
             }
         });
         alert.setTitle(realtimeUpdate.getVehicleID());
@@ -647,6 +646,7 @@ public class MapsFragment extends Fragment {
         mViewModel.getNearbyStops().observe(mLifecycleOwner, this::setNearByBusStopsWithInDistance);
         mViewModel.getRoutesList().observe(mLifecycleOwner, routesListAdapter::submitList);
         mViewModel.getRealtimeUpdate().observe(mLifecycleOwner, this::setNearbyBusesRealtime);
+        mViewModel.scheduleRealtimeUpdates();
     }
 
     private void setNearByBusStopsWithInDistance(List<StopDetail> nearbyStops) {
@@ -683,9 +683,12 @@ public class MapsFragment extends Fragment {
 
     private void setNearbyBusesRealtime(List<RealtimeUpdate> realtimeUpdateList) {
         Log.v(MapsFragment.class.getSimpleName(), String.valueOf(realtimeUpdateList.size()));
+        // Clear old markers from the map and hashmap
+        realtimeUpdateHashMap.keySet().forEach(Marker::remove);
+        realtimeUpdateHashMap.clear();
         double userLatitude = mViewModel.getUserLatitude();
         double userLongitude = mViewModel.getUserLongitude();
-        GeoLocationHelper userLocationHelper = GeoLocationHelper.fromDegrees(userLatitude != 0 ? userLatitude : 28.6330146, userLongitude != 0 ? userLongitude : 77.2245515);
+        GeoLocationHelper userLocationHelper = GeoLocationHelper.fromDegrees(userLatitude, userLongitude);
         realtimeUpdateList.forEach(realtimeUpdate -> {
             double distanceFromUser = userLocationHelper.distanceTo(GeoLocationHelper.fromDegrees(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude()), null);
             if (distanceFromUser <= 1.75) {

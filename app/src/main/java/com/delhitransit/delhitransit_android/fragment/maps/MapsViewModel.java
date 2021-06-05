@@ -1,6 +1,7 @@
 package com.delhitransit.delhitransit_android.fragment.maps;
 
 import android.app.Application;
+import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -30,6 +31,7 @@ public class MapsViewModel extends AndroidViewModel {
 
     public static final double NEARBY_STOPS_DEFAULT_DISTANCE = 1;
     private static final String TAG = MapsViewModel.class.getSimpleName();
+    final Handler handler = new Handler();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
     private final MutableLiveData<List<StopDetail>> nearbyStops = new MutableLiveData<>();
     private final MutableLiveData<List<RouteDetailForAdapter>> routesList = new MutableLiveData<>();
@@ -199,5 +201,15 @@ public class MapsViewModel extends AndroidViewModel {
             }
         });
         return route;
+    }
+
+    public void scheduleRealtimeUpdates() {
+        int FIVE_SECONDS = 5000;
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                getRealtimeUpdate();         // this method will contain your almost-finished HTTP calls
+                handler.postDelayed(this, FIVE_SECONDS);
+            }
+        }, FIVE_SECONDS);
     }
 }
