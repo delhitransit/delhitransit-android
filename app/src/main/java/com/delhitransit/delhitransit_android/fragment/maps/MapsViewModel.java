@@ -5,12 +5,14 @@ import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.util.Pair;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
 import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
+import com.delhitransit.delhitransit_android.helperclasses.GeoLocationHelper;
 import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
@@ -30,18 +32,23 @@ import retrofit2.Response;
 public class MapsViewModel extends AndroidViewModel {
 
     public static final double NEARBY_STOPS_DEFAULT_DISTANCE = 1;
+    public static final String REALTIME_OBSERVER_USER_LOCATION = "555160b5-688b-49d2-808c-86e7a0f74a94";
     private static final String TAG = MapsViewModel.class.getSimpleName();
-    final Handler handler = new Handler();
+    public final MutableLiveData<List<RealtimeUpdate>> realtimeObserverUpdateList = new MutableLiveData<>();
+    public final MutableLiveData<Pair<Double, Double>> userCoordinatesLiveData = new MutableLiveData<>();
+    private final Handler realtimeUpdateHandler = new Handler();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
     private final MutableLiveData<List<StopDetail>> nearbyStops = new MutableLiveData<>();
     private final MutableLiveData<List<RouteDetailForAdapter>> routesList = new MutableLiveData<>();
     private final MutableLiveData<List<RealtimeUpdate>> realtimeUpdateList = new MutableLiveData<>();
     private final HashMap<Long, List<StopDetail>> reachableStops = new HashMap<>();
     private final HashMap<Long, Long> reachableStopsRecentlyQuery = new HashMap<>();
+    private final HashMap<String, GeoLocationHelper> realtimeObserverLocationsHashMap = new HashMap<>();
     private double userLatitude;
     private double userLongitude;
     private StopDetail sourceStop;
     private StopDetail destinationStop;
+    private boolean isRealtimeUpdateScheduled = false;
 
     public MapsViewModel(@NonNull Application application) {
         super(application);
@@ -80,6 +87,7 @@ public class MapsViewModel extends AndroidViewModel {
     public void setUserCoordinates(double userLatitude, double userLongitude) {
         this.userLatitude = userLatitude;
         this.userLongitude = userLongitude;
+        this.userCoordinatesLiveData.setValue(new Pair<>(userLatitude, userLongitude));
         makeNearbyStopsApiRequest(NEARBY_STOPS_DEFAULT_DISTANCE);
     }
 
@@ -167,12 +175,25 @@ public class MapsViewModel extends AndroidViewModel {
         return (stops);
     }
 
-    public MutableLiveData<List<RealtimeUpdate>> getRealtimeUpdate() {
+    public void fetchRealtimeUpdate() {
         apiService.getRealtimeUpdate().enqueue(new Callback<List<RealtimeUpdate>>() {
             @Override
             public void onResponse(Call<List<RealtimeUpdate>> call, Response<List<RealtimeUpdate>> response) {
-                if (response.body() != null)
-                    realtimeUpdateList.setValue(response.body());
+                List<RealtimeUpdate> updateList = response.body();
+                if (updateList != null) {
+                    realtimeUpdateList.setValue(updateList);
+                    final LinkedList<RealtimeUpdate> observerUpdatesList = new LinkedList<>();
+                    updateList.parallelStream().forEach(realtimeUpdate -> {
+                        final GeoLocationHelper currItem = GeoLocationHelper.fromDegrees(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
+                        realtimeObserverLocationsHashMap.values().forEach(observerLocation -> {
+                            double distanceFromObserver = currItem.distanceTo(observerLocation, null);
+                            if (distanceFromObserver <= 1.75) {
+                                observerUpdatesList.add(realtimeUpdate);
+                            }
+                        });
+                    });
+                    realtimeObserverUpdateList.setValue(observerUpdatesList);
+                }
             }
 
             @Override
@@ -180,7 +201,6 @@ public class MapsViewModel extends AndroidViewModel {
                 Log.d(MapsViewModel.class.getSimpleName(), "Request to get realtime update from server failed");
             }
         });
-        return realtimeUpdateList;
     }
 
     public MutableLiveData<Route> getRouteByRouteId(String routeId) {
@@ -203,13 +223,23 @@ public class MapsViewModel extends AndroidViewModel {
         return route;
     }
 
-    public void scheduleRealtimeUpdates() {
-        int FIVE_SECONDS = 5000;
-        handler.postDelayed(new Runnable() {
+    public void scheduleRealtimeUpdates(boolean scheduled) {
+        this.isRealtimeUpdateScheduled = scheduled;
+        if (!this.isRealtimeUpdateScheduled) return;
+        int refreshInterval = 5000;
+        realtimeUpdateHandler.postDelayed(new Runnable() {
             public void run() {
-                getRealtimeUpdate();         // this method will contain your almost-finished HTTP calls
-                handler.postDelayed(this, FIVE_SECONDS);
+                fetchRealtimeUpdate();
+                realtimeUpdateHandler.postDelayed(this, refreshInterval);
             }
-        }, FIVE_SECONDS);
+        }, refreshInterval);
+    }
+
+    public void addRealtimeLocationObserver(String tag, GeoLocationHelper observer) {
+        realtimeObserverLocationsHashMap.putIfAbsent(tag, observer);
+    }
+
+    public void removeRealtimeLocationObserver(String tag) {
+        realtimeObserverLocationsHashMap.remove(tag);
     }
 }

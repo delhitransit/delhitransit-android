@@ -91,6 +91,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.delhitransit.delhitransit_android.fragment.maps.MapsViewModel.REALTIME_OBSERVER_USER_LOCATION;
+
 public class MapsFragment extends Fragment {
 
     private static final String TAG = MapsFragment.class.getSimpleName();
@@ -662,8 +664,11 @@ public class MapsFragment extends Fragment {
         mLifecycleOwner = getViewLifecycleOwner();
         mViewModel.getNearbyStops().observe(mLifecycleOwner, this::setNearByBusStopsWithInDistance);
         mViewModel.getRoutesList().observe(mLifecycleOwner, routesListAdapter::submitList);
-        mViewModel.getRealtimeUpdate().observe(mLifecycleOwner, this::setNearbyBusesRealtime);
-        mViewModel.scheduleRealtimeUpdates();
+        mViewModel.userCoordinatesLiveData.observe(mLifecycleOwner, coordinates -> {
+            mViewModel.addRealtimeLocationObserver(REALTIME_OBSERVER_USER_LOCATION, GeoLocationHelper.fromDegrees(coordinates.first, coordinates.second));
+        });
+        mViewModel.realtimeObserverUpdateList.observe(mLifecycleOwner, this::setNearbyBusesRealtime);
+        mViewModel.scheduleRealtimeUpdates(true);
     }
 
     private void setNearByBusStopsWithInDistance(List<StopDetail> nearbyStops) {
@@ -685,8 +690,7 @@ public class MapsFragment extends Fragment {
      * Demonstrates converting a {@link Drawable} to a {@link BitmapDescriptor},
      * for use as a marker icon.
      */
-    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color,
-                                            float scale) {
+    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color, float scale) {
         Drawable vectorDrawable = ResourcesCompat.getDrawable(getResources(), id, null);
         Bitmap bitmap = Bitmap.createBitmap(
                 (int) (scale * vectorDrawable.getIntrinsicWidth()),
@@ -704,19 +708,13 @@ public class MapsFragment extends Fragment {
         // Clear old markers from the map and hashmap
         realtimeUpdateHashMap.keySet().forEach(Marker::remove);
         realtimeUpdateHashMap.clear();
-        double userLatitude = mViewModel.getUserLatitude();
-        double userLongitude = mViewModel.getUserLongitude();
-        GeoLocationHelper userLocationHelper = GeoLocationHelper.fromDegrees(userLatitude, userLongitude);
         realtimeUpdateList.forEach(realtimeUpdate -> {
-            double distanceFromUser = userLocationHelper.distanceTo(GeoLocationHelper.fromDegrees(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude()), null);
-            if (distanceFromUser <= 1.75) {
-                LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
-                Marker marker = mMap.addMarker(new MarkerOptions()
-                        .position(latLng)
-                        .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
-                        .title(realtimeUpdate.getVehicleID()));
-                realtimeUpdateHashMap.put(marker, realtimeUpdate);
-            }
+            LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
+                    .title(realtimeUpdate.getVehicleID()));
+            realtimeUpdateHashMap.put(marker, realtimeUpdate);
         });
     }
 }
