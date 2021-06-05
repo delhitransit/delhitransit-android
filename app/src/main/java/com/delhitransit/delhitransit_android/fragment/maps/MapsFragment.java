@@ -111,7 +111,7 @@ public class MapsFragment extends Fragment {
     private MarkerDetails sourceMarkerDetail, destinationMarkerDetail;
     private LatLng userLocation;
     private HashMap<Marker, StopDetail> busStopsHashMap = new HashMap<>();
-    private HashMap<Marker, RealtimeUpdate> realtimeUpdateHashMap = new HashMap<>();
+    private final HashMap<Marker, RealtimeUpdate> realtimeUpdateHashMap = new HashMap<>();
     private TextView noRoutesAvailableTextView;
     private View parentView;
     private ImageView blurView;
@@ -120,6 +120,7 @@ public class MapsFragment extends Fragment {
     private CircleMarker circleMarker;
     private MapsViewModel mViewModel;
     private DelhiTransitApplication application;
+    private LifecycleOwner mLifecycleOwner;
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         @Override
@@ -144,7 +145,6 @@ public class MapsFragment extends Fragment {
         }
 
     };
-    private LifecycleOwner mLifecycleOwner;
     private FloatingActionButton mFlipSearchItemsFab;
 
     private void setOnMarkerClickListeners() {
@@ -685,14 +685,14 @@ public class MapsFragment extends Fragment {
         Log.v(MapsFragment.class.getSimpleName(), String.valueOf(realtimeUpdateList.size()));
         double userLatitude = mViewModel.getUserLatitude();
         double userLongitude = mViewModel.getUserLongitude();
-        GeoLocationHelper userLocationHelper = GeoLocationHelper.fromDegrees(userLatitude, userLongitude);
+        GeoLocationHelper userLocationHelper = GeoLocationHelper.fromDegrees(userLatitude != 0 ? userLatitude : 28.6330146, userLongitude != 0 ? userLongitude : 77.2245515);
         realtimeUpdateList.forEach(realtimeUpdate -> {
             double distanceFromUser = userLocationHelper.distanceTo(GeoLocationHelper.fromDegrees(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude()), null);
-            if (distanceFromUser <= 20) {
+            if (distanceFromUser <= 1.75) {
                 LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
                 Marker marker = mMap.addMarker(new MarkerOptions()
                         .position(latLng)
-                        .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#A4C639"), 0.5f))
+                        .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#296332"), 0.4f))
                         .title(realtimeUpdate.getVehicleID()));
                 realtimeUpdateHashMap.put(marker, realtimeUpdate);
             }
