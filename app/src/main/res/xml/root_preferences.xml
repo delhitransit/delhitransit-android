@@ -44,8 +44,13 @@
             android:icon="@drawable/ic_baseline_filter_b_and_w_24"
             app:title="Filter destination stops"
             app:summaryOn="Only showing destination stops that are reachable from the source stop"
-            app:summaryOff="Showing all stops regardless of reachability"/>
+            app:summaryOff="Showing all stops regardless of reachability" />
 
+        <EditTextPreference
+            app:key="realtime_update_time"
+            app:summary="Set the time in seconds for refreshing realtime data"
+            app:title="Realtime Location Time Interval"
+            app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 

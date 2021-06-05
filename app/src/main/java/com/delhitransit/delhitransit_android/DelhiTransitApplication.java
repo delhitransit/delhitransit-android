@@ -11,15 +11,18 @@ public class DelhiTransitApplication extends Application {
     private static final String SERVER_IP_TOGGLE = "manualIp";
     private static final String LOCATION_PROVIDER_KEY = "locationProvider";
     private static final String DESTINATION_STOPS_FILTERED_KEY = "filtered_destination_stops";
+    private static final String UPDATE_TIME_KEY = "realtime_update_time";
     private SharedPreferences sharedPreferences;
     private String DEFAULT_SERVER_IP;
     private String DEFAULT_LOCATION_PROVIDER;
+    private String DEFAULT_UPDATE_TIME;
 
     @Override
     public void onCreate() {
         super.onCreate();
         DEFAULT_SERVER_IP = getString(R.string.default_server_ip);
         DEFAULT_LOCATION_PROVIDER = LocationManager.GPS_PROVIDER;
+        DEFAULT_UPDATE_TIME = "5";
         sharedPreferences = getSharedPreferences("com.delhitransit.delhitransit_android_preferences", MODE_PRIVATE);
 
         if (sharedPreferences.getBoolean(SERVER_IP_TOGGLE, false)) {
@@ -38,6 +41,10 @@ public class DelhiTransitApplication extends Application {
 
         if (!sharedPreferences.contains(LOCATION_PROVIDER_KEY)) {
             setLocationProvider(DEFAULT_LOCATION_PROVIDER);
+        }
+
+        if (!sharedPreferences.contains(UPDATE_TIME_KEY)) {
+            setUpdateTime(DEFAULT_UPDATE_TIME);
         }
     }
 
@@ -61,7 +68,17 @@ public class DelhiTransitApplication extends Application {
         editor.apply();
     }
 
-    public boolean isDestinationStopsFiltered(){
+    public boolean isDestinationStopsFiltered() {
         return sharedPreferences.getBoolean(DESTINATION_STOPS_FILTERED_KEY, false);
+    }
+
+    public String getUpdateTime() {
+        return sharedPreferences.getString(UPDATE_TIME_KEY, DEFAULT_UPDATE_TIME);
+    }
+
+    public void setUpdateTime(String timeInSec) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(UPDATE_TIME_KEY, timeInSec.trim());
+        editor.apply();
     }
 }
