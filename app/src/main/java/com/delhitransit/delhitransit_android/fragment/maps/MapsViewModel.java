@@ -229,13 +229,26 @@ public class MapsViewModel extends AndroidViewModel {
     public void scheduleRealtimeUpdates(boolean scheduled) {
         this.isRealtimeUpdateScheduled = scheduled;
         if (!this.isRealtimeUpdateScheduled) return;
-        int refreshInterval = 5000;
+        int refreshInterval;
+        try {
+            refreshInterval = Integer.parseInt(applicationPrefrences.getUpdateTime());
+            if (refreshInterval < 1) {
+                Toast.makeText(getApplication().getApplicationContext(), "Time can't be negative", Toast.LENGTH_LONG);
+                applicationPrefrences.setUpdateTime("1");
+                refreshInterval = 1;
+            }
+        } catch (Exception exception) {
+            Toast.makeText(getApplication().getApplicationContext(), "Please enter valid positive integer", Toast.LENGTH_LONG);
+            refreshInterval = 5;
+            applicationPrefrences.setUpdateTime("5");
+        }
+        int intervalInMillis = refreshInterval * 1000;
         realtimeUpdateHandler.postDelayed(new Runnable() {
             public void run() {
                 fetchRealtimeUpdate();
-                realtimeUpdateHandler.postDelayed(this, refreshInterval);
+                realtimeUpdateHandler.postDelayed(this, intervalInMillis);
             }
-        }, refreshInterval);
+        }, intervalInMillis);
     }
 
     public void addRealtimeLocationObserver(String tag, GeoLocationHelper observer) {
