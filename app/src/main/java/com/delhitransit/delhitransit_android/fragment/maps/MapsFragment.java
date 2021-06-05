@@ -3,7 +3,6 @@ package com.delhitransit.delhitransit_android.fragment.maps;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -169,30 +168,44 @@ public class MapsFragment extends Fragment {
         final AlertDialog.Builder alert = new AlertDialog.Builder(requireActivity());
         View mView = getLayoutInflater().inflate(R.layout.realtime_dialog_layout, null);
         TextView busRoute, busLastUpdate, busSpeed;
-        Button moreButton;
         busRoute = mView.findViewById(R.id.realtime_route_text);
         busLastUpdate = mView.findViewById(R.id.realtime_updated_text);
         busSpeed = mView.findViewById(R.id.realtime_speed_text);
         RoutesFromStopDetail routesFromStopDetail = new RoutesFromStopDetail();
         alert.setView(mView);
-        alert.setPositiveButton("More Info", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                NavController navController = NavHostFragment.findNavController(MapsFragment.this);
-                MapsFragmentDirections.ActionMapsFragmentToRouteStopsFragment action = MapsFragmentDirections.actionMapsFragmentToRouteStopsFragment(routesFromStopDetail);
-                navController.navigate(action);
-            }
+        alert.setPositiveButton("More Info", (dialog, which) -> {
+            NavController navController = NavHostFragment.findNavController(MapsFragment.this);
+            MapsFragmentDirections.ActionMapsFragmentToRouteStopsFragment action = MapsFragmentDirections.actionMapsFragmentToRouteStopsFragment(routesFromStopDetail);
+            navController.navigate(action);
         });
-        alert.setTitle(realtimeUpdate.getVehicleID());
-        busSpeed.setText(String.valueOf(realtimeUpdate.getSpeed() * 3.6));
-        busLastUpdate.setText(String.valueOf(realtimeUpdate.getTimestamp()));
+        alert.setNegativeButton(android.R.string.cancel, (dialog, x) -> dialog.dismiss());
+        alert.setTitle("License Plate: " + realtimeUpdate.getVehicleID());
+        busSpeed.setText(String.format("%d km/h", (int) (realtimeUpdate.getSpeed() * 3.6)));
+        long updateTimeDelta = (int) (System.currentTimeMillis() / 1000) - realtimeUpdate.getTimestamp();
+        String updateTimeString = "Last updated ";
+        if (updateTimeDelta < 60) {
+            updateTimeString += updateTimeDelta + " seconds ago";
+        } else {
+            long minutes = updateTimeDelta / 60;
+            if (minutes < 2) {
+                updateTimeString += minutes + " minute ago";
+            } else if (minutes > 59) {
+                long hours = minutes / 60;
+                if (hours < 2) {
+                    updateTimeString += hours + " hour ago";
+                } else {
+                    updateTimeString += hours + " hours ago";
+                }
+            } else updateTimeString += minutes + " minutes ago";
+        }
+        busLastUpdate.setText(updateTimeString);
         mViewModel.getRouteByRouteId(realtimeUpdate.getRouteID()).observe(mLifecycleOwner, route -> {
             if (route != null) {
                 busRoute.setText(route.getLongName());
                 routesFromStopDetail.setEarliestTime(-1);
                 routesFromStopDetail.setRouteLongName(route.getLongName());
                 routesFromStopDetail.setRouteId(route.getRouteId());
-                routesFromStopDetail.setLastStopName(" ");
+                routesFromStopDetail.setLastStopName("");
                 routesFromStopDetail.setTripId(realtimeUpdate.getTripID());
                 Log.e(TAG, "setDialogBox: " + realtimeUpdate.getTripID());
             }
@@ -204,7 +217,8 @@ public class MapsFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup
+            container, @Nullable Bundle savedInstanceState) {
         parentView = inflater.inflate(R.layout.fragment_map, container, false);
         context = this.getContext();
         application = (DelhiTransitApplication) context.getApplicationContext();
@@ -321,7 +335,8 @@ public class MapsFragment extends Fragment {
         }
     }
 
-    private void setSearchViewQueryAndSearchListener(FloatingSearchView searchView, boolean isSecondSearchView) {
+    private void setSearchViewQueryAndSearchListener(FloatingSearchView searchView,
+                                                     boolean isSecondSearchView) {
         searchView.setOnQueryChangeListener((oldQuery, newQuery) -> {
             if (!isSecondSearchView) {
                 viewVisibility(searchView2, false);
@@ -453,7 +468,8 @@ public class MapsFragment extends Fragment {
         });
     }
 
-    private void setStopDataOnSearchView(StopDetail stopsDetail, FloatingSearchView searchView, boolean isSecondSearchView) {
+    private void setStopDataOnSearchView(StopDetail stopsDetail, FloatingSearchView searchView,
+                                         boolean isSecondSearchView) {
 
         MarkerDetails markerDetails = new MarkerDetails(stopsDetail, isSecondSearchView);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerDetails.latLng, 17));
@@ -523,7 +539,8 @@ public class MapsFragment extends Fragment {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
@@ -668,7 +685,8 @@ public class MapsFragment extends Fragment {
      * Demonstrates converting a {@link Drawable} to a {@link BitmapDescriptor},
      * for use as a marker icon.
      */
-    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color, float scale) {
+    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color,
+                                            float scale) {
         Drawable vectorDrawable = ResourcesCompat.getDrawable(getResources(), id, null);
         Bitmap bitmap = Bitmap.createBitmap(
                 (int) (scale * vectorDrawable.getIntrinsicWidth()),
@@ -695,7 +713,7 @@ public class MapsFragment extends Fragment {
                 LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
                 Marker marker = mMap.addMarker(new MarkerOptions()
                         .position(latLng)
-                        .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#296332"), 0.4f))
+                        .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
                         .title(realtimeUpdate.getVehicleID()));
                 realtimeUpdateHashMap.put(marker, realtimeUpdate);
             }
