@@ -76,6 +76,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.RuntimeRemoteException;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -91,6 +92,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.delhitransit.delhitransit_android.fragment.maps.MapsViewModel.REALTIME_OBSERVER_FROM_STOP;
 import static com.delhitransit.delhitransit_android.fragment.maps.MapsViewModel.REALTIME_OBSERVER_USER_LOCATION;
 
 public class MapsFragment extends Fragment {
@@ -518,6 +520,9 @@ public class MapsFragment extends Fragment {
             searchView1.clearSearchFocus();
             viewVisibility(searchView2, true);
             searchView2.setSearchFocused(true);
+            // Show realtime bus updates near the from stop
+            final GeoLocationHelper toStopGlh = GeoLocationHelper.fromDegrees(stopsDetail.getLatitude(), stopsDetail.getLongitude());
+            mViewModel.addRealtimeLocationObserver(REALTIME_OBSERVER_FROM_STOP, toStopGlh);
         }
         searchView.setSearchText(stopsDetail.getName());
     }
@@ -559,6 +564,8 @@ public class MapsFragment extends Fragment {
             LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             if (isLocationEnabled(locationManager)) {
                 try {
+                    // Show user's current location
+                    mMap.setMyLocationEnabled(true);
                     searchView1.setSearchHint("Loading Nearby Bus Stops...");
                     horizontalProgressBar.setVisibility(View.VISIBLE);
                     String locationProvider = application.getLocationProvider();
@@ -593,6 +600,8 @@ public class MapsFragment extends Fragment {
                     Log.e(TAG, "getLastLocation: " + e.getMessage());
                     e.printStackTrace();
                     horizontalProgressBar.setVisibility(View.GONE);
+                } catch (RuntimeRemoteException runtimeRemoteException) {
+                    runtimeRemoteException.printStackTrace();
                 }
             } else {
                 Snackbar.make(parentView.findViewById(R.id.map), "Please turn on your location", Snackbar.LENGTH_LONG)
@@ -708,13 +717,20 @@ public class MapsFragment extends Fragment {
         // Clear old markers from the map and hashmap
         realtimeUpdateHashMap.keySet().forEach(Marker::remove);
         realtimeUpdateHashMap.clear();
-        realtimeUpdateList.forEach(realtimeUpdate -> {
-            LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                    .position(latLng)
-                    .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
-                    .title(realtimeUpdate.getVehicleID()));
-            realtimeUpdateHashMap.put(marker, realtimeUpdate);
-        });
+        try {
+            if (realtimeUpdateList.size() > 0) {
+                for (RealtimeUpdate realtimeUpdate : realtimeUpdateList) {
+                    if (realtimeUpdate == null) continue;
+                    LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
+                    Marker marker = mMap.addMarker(new MarkerOptions()
+                            .position(latLng)
+                            .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
+                            .title(realtimeUpdate.getVehicleID()));
+                    realtimeUpdateHashMap.put(marker, realtimeUpdate);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, e.toString());
+        }
     }
 }

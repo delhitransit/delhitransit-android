@@ -34,6 +34,7 @@ public class MapsViewModel extends AndroidViewModel {
 
     public static final double NEARBY_STOPS_DEFAULT_DISTANCE = 1;
     public static final String REALTIME_OBSERVER_USER_LOCATION = "555160b5-688b-49d2-808c-86e7a0f74a94";
+    public static final String REALTIME_OBSERVER_FROM_STOP = "80d94964-846c-4b6f-9ee6-5050ff8d3aba";
     private static final String TAG = MapsViewModel.class.getSimpleName();
     public final MutableLiveData<List<RealtimeUpdate>> realtimeObserverUpdateList = new MutableLiveData<>();
     public final MutableLiveData<Pair<Double, Double>> userCoordinatesLiveData = new MutableLiveData<>();
@@ -252,7 +253,7 @@ public class MapsViewModel extends AndroidViewModel {
     }
 
     public void addRealtimeLocationObserver(String tag, GeoLocationHelper observer) {
-        realtimeObserverLocationsHashMap.putIfAbsent(tag, observer);
+        realtimeObserverLocationsHashMap.put(tag, observer);
     }
 
     public void removeRealtimeLocationObserver(String tag) {
