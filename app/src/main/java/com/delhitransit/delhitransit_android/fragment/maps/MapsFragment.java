@@ -650,7 +650,7 @@ public class MapsFragment extends Fragment {
         mViewModel.realtimeUpdateList.observe(mLifecycleOwner, realtimeUpdates -> {
             if (routeDetail != null && realtimeUpdates.size() > 0) {
                 List<RealtimeUpdate> routeRealtimeUpdate = realtimeUpdates.parallelStream().filter(realtimeUpdate -> Integer.parseInt(realtimeUpdate.getRouteID()) == (routeDetail.getRouteId())).collect(Collectors.toList());
-                Log.e(TAG, "showRealtimeRouteBus: route" + routeRealtimeUpdate.get(0).getRouteID() + " size:" + routeRealtimeUpdate.size());
+                Log.e(TAG, "showRealtimeRouteBus:  routeUpdateListsize:" + routeRealtimeUpdate.size());
                 setNearbyBusesRealtime(routeRealtimeUpdate, routeMarkerHashMap, "#0c1159");
             }
         });
