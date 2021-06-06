@@ -15,6 +15,7 @@ import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
 import com.delhitransit.delhitransit_android.pojos.route.Route;
 import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,11 +30,12 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
 
     private static final String TAG = RealtimeTrackerViewModel.class.getSimpleName();
     public final MutableLiveData<List<RealtimeUpdate>> realtimeUpdateList = new MutableLiveData<>();
-    public final MutableLiveData<List<CustomizeStopDetail>> allStops = new MutableLiveData<>();
+    public final MutableLiveData<List<StopDetail>> allStops = new MutableLiveData<>();
+    public final MutableLiveData<RealtimeUpdate> realtimeUpdate = new MutableLiveData<>();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
     private final Handler realtimeUpdateHandler = new Handler();
     public List<ShapePoint> routeShapePointList = new LinkedList<>();
-    public List<CustomizeStopDetail> routeBusStopsList = new LinkedList<>();
+    public List<StopDetail> routeBusStopsList = new LinkedList<>();
 
     public RealtimeTrackerViewModel(@NonNull @NotNull Application application) {
         super(application);
@@ -108,6 +110,25 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
 
             @Override
             public void onFailure(Call<List<CustomizeStopDetail>> call, Throwable t) {
+                Log.e(TAG, "Call to get Bus Stops failed : " + t.toString());
+            }
+        });
+    }
+
+    public void fetchStopsByRouteId(int routeId) {
+        apiService.getStopsByRouteId(routeId).enqueue(new Callback<List<StopDetail>>() {
+            @Override
+            public void onResponse(Call<List<StopDetail>> call, Response<List<StopDetail>> response) {
+                routeBusStopsList.clear();
+                final List<StopDetail> body = response.body();
+                if (body != null) {
+                    routeBusStopsList.addAll(body);
+                    allStops.setValue(routeBusStopsList);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<StopDetail>> call, Throwable t) {
                 Log.e(TAG, "Call to get Bus Stops failed : " + t.toString());
             }
         });

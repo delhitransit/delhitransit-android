@@ -24,7 +24,7 @@ import com.delhitransit.delhitransit_android.helperclasses.TrackerStopMarker;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
-import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
+import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -43,6 +43,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
+
 import static com.delhitransit.delhitransit_android.helperclasses.ViewMarker.vectorToBitmap;
 
 public class RealtimeTrackerFragment extends Fragment {
@@ -50,7 +52,7 @@ public class RealtimeTrackerFragment extends Fragment {
     private static final String TAG = RealtimeTrackerFragment.class.getSimpleName();
     private static final int USER_ZOOM_RETENTION_CYCLES = 7;
     private static final float DEFAULT_CAMERA_ZOOM = 17.5f;
-    private final HashMap<Marker, CustomizeStopDetail> stopDetailHashMap = new HashMap<>();
+    private final HashMap<Marker, StopDetail> stopDetailHashMap = new HashMap<>();
     private LifecycleOwner mLifecycleOwner;
     private String tripId;
     private GoogleMap mMap;
@@ -82,6 +84,7 @@ public class RealtimeTrackerFragment extends Fragment {
     private TextView lastUpdatedTextView;
     private Polyline routeCoveredPolyline;
     private Polyline routeRemainingPolyline;
+    private MaterialProgressBar horizontalProgressBar;
     private int userZoomRetainIntervalsRemaining = 1;
 
     @NotNull
@@ -114,12 +117,13 @@ public class RealtimeTrackerFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         RealtimeTrackerFragmentArgs args = RealtimeTrackerFragmentArgs.fromBundle(getArguments());
-        this.tripId = "28_21_40";//args.getTripId();
+        this.tripId = args.getTripId();
         final View view = inflater.inflate(R.layout.fragment_realtime_tracker, container, false);
         licensePlateTextView = view.findViewById(R.id.realtime_tracker_textView3);
         routeNameTextView = view.findViewById(R.id.realtime_tracker_realtime_route_text);
         speedTextView = view.findViewById(R.id.realtime_tracker_realtime_speed_text);
         lastUpdatedTextView = view.findViewById(R.id.realtime_tracker_realtime_updated_text);
+        horizontalProgressBar = view.findViewById(R.id.realtime_tracker_realtime_progress_bar);
         return view;
     }
 
@@ -150,6 +154,7 @@ public class RealtimeTrackerFragment extends Fragment {
         final Optional<RealtimeUpdate> update = updateList.stream().filter(it -> it.getTripID().equals(tripId)).findAny();
         final boolean isUpdatePresent = update.isPresent();
         Log.v(TAG, "Response filtered. Update present? " + isUpdatePresent + ". Trip Id required: " + this.tripId);
+        horizontalProgressBar.setVisibility(View.GONE);
         if (!isUpdatePresent) {
             if (licensePlateTextView.getText().equals(getString(R.string.loading_tracking_information))) {
                 licensePlateTextView.setText("Tracking not available");
@@ -157,6 +162,7 @@ public class RealtimeTrackerFragment extends Fragment {
             return;
         }
         final RealtimeUpdate realtimeUpdate = update.get();
+        mViewModel.realtimeUpdate.setValue(realtimeUpdate);
         if (licensePlateTextView.getText().equals(getString(R.string.loading_tracking_information))) {
             licensePlateTextView.setText("Tracking " + realtimeUpdate.getVehicleID());
         }
@@ -187,10 +193,10 @@ public class RealtimeTrackerFragment extends Fragment {
         }
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, cameraZoom));
         final List<ShapePoint> routeShapePointList = mViewModel.routeShapePointList;
-        final List<CustomizeStopDetail> routeBusStopsList = mViewModel.routeBusStopsList;
+        final List<StopDetail> routeBusStopsList = mViewModel.routeBusStopsList;
         if (routeBusStopsList.size() > 0) {
-            final CustomizeStopDetail firstStop = routeBusStopsList.get(0);
-            final CustomizeStopDetail lastStop = routeBusStopsList.get(routeBusStopsList.size() - 1);
+            final StopDetail firstStop = routeBusStopsList.get(0);
+            final StopDetail lastStop = routeBusStopsList.get(routeBusStopsList.size() - 1);
             final LatLng firstStopLatLng = new LatLng(firstStop.getLatitude(), firstStop.getLongitude());
             final LatLng lastStopLatLng = new LatLng(lastStop.getLatitude(), lastStop.getLongitude());
             final TaskCompleteCallback routeCoveredCallback = (values) -> {
@@ -211,8 +217,8 @@ public class RealtimeTrackerFragment extends Fragment {
             };
             final LatLng nearestShapePoint = getNearestShapePoint(latLng);
             if (nearestShapePoint != null) {
-                new RoutePointsMaker(Color.parseColor("#fca964"), routeCoveredCallback, firstStopLatLng, nearestShapePoint).execute(routeShapePointList);
-                new RoutePointsMaker(Color.parseColor("#ff7300"), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
+                new RoutePointsMaker(getResources().getColor(R.color.orange_faded), routeCoveredCallback, firstStopLatLng, nearestShapePoint).execute(routeShapePointList);
+                new RoutePointsMaker(Color.parseColor(getString(R.string.orange_dark)), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
             }
         }
     }
@@ -238,7 +244,13 @@ public class RealtimeTrackerFragment extends Fragment {
 
     private void setStopsOnMap() {
         mViewModel.allStops.observe(mLifecycleOwner, customizeStopDetails -> {
-            for (CustomizeStopDetail stopDetail : customizeStopDetails) {
+            if (customizeStopDetails.size() == 0) {
+                mViewModel.realtimeUpdate.observe(mLifecycleOwner, realtimeUpdate -> {
+                    mViewModel.fetchStopsByRouteId(Integer.parseInt(realtimeUpdate.getRouteID()));
+                });
+                return;
+            }
+            for (StopDetail stopDetail : customizeStopDetails) {
                 if (stopDetail == null) continue;
                 LatLng latLng = new LatLng(stopDetail.getLatitude(), stopDetail.getLongitude());
                 final TrackerStopMarker viewMarker = new TrackerStopMarker(getContext(), stopDetail.getName());
