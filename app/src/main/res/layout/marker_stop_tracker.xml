@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/marker_stop_tracker_heading_card_view"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="8dp"
+    android:paddingTop="8dp"
+    tools:background="@android:color/background_dark">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="0dp"
+        android:orientation="horizontal"
+        app:cardBackgroundColor="@color/transparent"
+        app:cardCornerRadius="4dp"
+        app:strokeColor="#cccccc"
+        app:strokeWidth="1dp">
+
+        <TextView
+            android:id="@+id/marker_stop_tracker_heading_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/transparent"
+            android:gravity="center"
+            android:minHeight="25dp"
+            android:padding="4dp"
+            android:text="@string/app_name"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <FrameLayout
+        android:layout_width="2dp"
+        android:layout_height="16dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/white" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center_horizontal"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="3dp" />
+
+</LinearLayout>

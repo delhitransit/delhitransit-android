@@ -445,7 +445,8 @@ public class MapsFragment extends Fragment {
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerDetails.latLng, 17));
         if (markerDetails.latLng != null) {
             busStopsHashMap.remove(markerDetails.marker);
-            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetails.name, markerDetails.relation, getMarkerType(markerDetails.stopsResponseData)).getBitmap())).position(markerDetails.latLng));
+            final ViewMarker viewMarker = new ViewMarker(context, markerDetails.name, markerDetails.relation, getMarkerType(markerDetails.stopsResponseData));
+            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(viewMarker.getBitmap(viewMarker.view))).position(markerDetails.latLng));
             marker.setZIndex(3);
             markerDetails.marker = marker;
             busStopsHashMap.put(marker, markerDetails.stopsResponseData);
@@ -537,7 +538,8 @@ public class MapsFragment extends Fragment {
                             double longitude = location.getLongitude();
                             userLocation = new LatLng(latitude, longitude);
                             if (userLocation != null) {
-                                mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, "Your location ").getBitmap())).position(userLocation));
+                                final ViewMarker your_location_ = new ViewMarker(context, "Your location ");
+                                mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(your_location_.getBitmap(your_location_.view))).position(userLocation));
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 17));
                             }
                             mViewModel.setUserCoordinates(latitude, longitude);
@@ -634,7 +636,8 @@ public class MapsFragment extends Fragment {
         builder.include(new LatLng(mViewModel.getUserLatitude(), mViewModel.getUserLongitude()));
         for (StopDetail data : nearbyStops) {
             LatLng latLng = new LatLng(data.getLatitude(), data.getLongitude());
-            Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, data.getName(), Color.RED, getMarkerType(data)).getBitmap())));
+            final ViewMarker viewMarker = new ViewMarker(context, data.getName(), Color.RED, getMarkerType(data));
+            Marker marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(viewMarker.getBitmap(viewMarker.view))));
             busStopsHashMap.put(marker, data);
             builder.include(latLng);
         }

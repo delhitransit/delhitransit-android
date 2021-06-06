@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.helperclasses.GeoLocationHelper;
 import com.delhitransit.delhitransit_android.helperclasses.RoutePointsMaker;
+import com.delhitransit.delhitransit_android.helperclasses.TrackerStopMarker;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
@@ -28,6 +29,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -37,6 +39,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +50,7 @@ public class RealtimeTrackerFragment extends Fragment {
     private static final String TAG = RealtimeTrackerFragment.class.getSimpleName();
     private static final int USER_ZOOM_RETENTION_CYCLES = 7;
     private static final float DEFAULT_CAMERA_ZOOM = 17.5f;
+    private final HashMap<Marker, CustomizeStopDetail> stopDetailHashMap = new HashMap<>();
     private LifecycleOwner mLifecycleOwner;
     private String tripId;
     private GoogleMap mMap;
@@ -110,7 +114,7 @@ public class RealtimeTrackerFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         RealtimeTrackerFragmentArgs args = RealtimeTrackerFragmentArgs.fromBundle(getArguments());
-        this.tripId = "28_21_40";//"3_13_10";//args.getTripId();
+        this.tripId = "28_21_40";//args.getTripId();
         final View view = inflater.inflate(R.layout.fragment_realtime_tracker, container, false);
         licensePlateTextView = view.findViewById(R.id.realtime_tracker_textView3);
         routeNameTextView = view.findViewById(R.id.realtime_tracker_realtime_route_text);
@@ -138,6 +142,7 @@ public class RealtimeTrackerFragment extends Fragment {
         mViewModel.scheduleRealtimeUpdates();
         mViewModel.fetchShapePointsByTripId(this.tripId);
         mViewModel.fetchStopsByTripId(this.tripId);
+        setStopsOnMap();
     }
 
     private void onRealtimeUpdate(List<RealtimeUpdate> updateList) {
@@ -229,5 +234,19 @@ public class RealtimeTrackerFragment extends Fragment {
         }
         if (nearestShapePoint == null) return null;
         return new LatLng(nearestShapePoint.getLatitude(), nearestShapePoint.getLongitude());
+    }
+
+    private void setStopsOnMap() {
+        mViewModel.allStops.observe(mLifecycleOwner, customizeStopDetails -> {
+            for (CustomizeStopDetail stopDetail : customizeStopDetails) {
+                if (stopDetail == null) continue;
+                LatLng latLng = new LatLng(stopDetail.getLatitude(), stopDetail.getLongitude());
+                final TrackerStopMarker viewMarker = new TrackerStopMarker(getContext(), stopDetail.getName());
+                Marker marker = mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .icon(BitmapDescriptorFactory.fromBitmap(viewMarker.getBitmap())));
+                stopDetailHashMap.put(marker, stopDetail);
+            }
+        });
     }
 }

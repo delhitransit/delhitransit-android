@@ -32,8 +32,8 @@ public class ViewMarker {
     public static final int YOUR_LOCATION = 11;
     public static final int BUS_STOP = 12;
     public static final int FAVOURITE = 13;
+    public final View view;
     final int SIZE = 50;
-    private final View view;
 
     public ViewMarker(Context context, String s) {
         this(context, s, Color.GREEN, YOUR_LOCATION);
@@ -52,9 +52,9 @@ public class ViewMarker {
         TextView headingTextView = view.findViewById(R.id.heading_text_view);
         ImageView iconImageView = view.findViewById(R.id.icon_image_view);
         if (relation.isEmpty()) {
-            headingTextView.setText(getString(s));
+            headingTextView.setText(getTruncatedStopNameString(s));
         } else {
-            SpannableString temp = new SpannableString(relation + " \n" + getString(s));
+            SpannableString temp = new SpannableString(relation + " \n" + getTruncatedStopNameString(s));
             temp.setSpan(new RelativeSizeSpan(1.2f), relation.length() + 2, temp.length(), 0);
             temp.setSpan(new StyleSpan(Typeface.BOLD), relation.length() + 2, temp.length(), 0);
             temp.setSpan(new StyleSpan(Typeface.ITALIC), relation.length() + 2, temp.length(), 0);
@@ -102,7 +102,7 @@ public class ViewMarker {
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
-    private String getString(String s) {
+    public static String getTruncatedStopNameString(String s) {
         if (s.length() < 15) {
             return s;
         } else {
@@ -110,15 +110,7 @@ public class ViewMarker {
         }
     }
 
-    @ColorInt
-    int darkenColor(@ColorInt int color) {
-        float[] hsv = new float[3];
-        Color.colorToHSV(color, hsv);
-        hsv[2] *= 0.8f;
-        return Color.HSVToColor(hsv);
-    }
-
-    public Bitmap getBitmap() {
+    public static Bitmap getBitmap(View view) {
         int spec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
         view.measure(spec, spec);
         view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
@@ -130,5 +122,13 @@ public class ViewMarker {
         else canvas.drawColor(Color.TRANSPARENT);
         view.draw(canvas);
         return bitmap;
+    }
+
+    @ColorInt
+    int darkenColor(@ColorInt int color) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        hsv[2] *= 0.8f;
+        return Color.HSVToColor(hsv);
     }
 }

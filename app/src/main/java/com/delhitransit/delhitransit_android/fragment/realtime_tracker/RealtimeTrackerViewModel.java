@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
-import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.fragment.maps.MapsViewModel;
@@ -30,15 +29,14 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
 
     private static final String TAG = RealtimeTrackerViewModel.class.getSimpleName();
     public final MutableLiveData<List<RealtimeUpdate>> realtimeUpdateList = new MutableLiveData<>();
+    public final MutableLiveData<List<CustomizeStopDetail>> allStops = new MutableLiveData<>();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
-    private final DelhiTransitApplication applicationPreferences;
     private final Handler realtimeUpdateHandler = new Handler();
     public List<ShapePoint> routeShapePointList = new LinkedList<>();
     public List<CustomizeStopDetail> routeBusStopsList = new LinkedList<>();
 
     public RealtimeTrackerViewModel(@NonNull @NotNull Application application) {
         super(application);
-        applicationPreferences = getApplication();
     }
 
     private void fetchRealtimeUpdate() {
@@ -104,6 +102,7 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
                 final List<CustomizeStopDetail> body = response.body();
                 if (body != null) {
                     routeBusStopsList.addAll(body);
+                    allStops.setValue(routeBusStopsList);
                 }
             }
 
