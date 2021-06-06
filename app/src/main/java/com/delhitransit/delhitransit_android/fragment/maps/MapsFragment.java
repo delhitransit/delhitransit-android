@@ -660,7 +660,7 @@ public class MapsFragment extends Fragment {
         mViewModel.userCoordinatesLiveData.observe(mLifecycleOwner, coordinates -> {
             mViewModel.addRealtimeLocationObserver(REALTIME_OBSERVER_USER_LOCATION, GeoLocationHelper.fromDegrees(coordinates.first, coordinates.second));
         });
-        mViewModel.realtimeObserverUpdateList.observe(mLifecycleOwner, realtimeUpdateList -> setNearbyBusesRealtime(realtimeUpdateList, realtimeUpdateHashMap));
+        mViewModel.realtimeObserverUpdateList.observe(mLifecycleOwner, realtimeUpdateList -> setNearbyBusesRealtime(realtimeUpdateList, realtimeUpdateHashMap, "#296332"));
         mViewModel.scheduleRealtimeUpdates(true);
     }
 
@@ -684,13 +684,12 @@ public class MapsFragment extends Fragment {
             if (routeDetail != null && routeDetail.getRouteId() < 534 && realtimeUpdates.size() > 0) {
                 List<RealtimeUpdate> routeRealtimeUpdate = realtimeUpdates.parallelStream().filter(realtimeUpdate -> Integer.parseInt(realtimeUpdate.getRouteID()) == (routeDetail.getRouteId())).collect(Collectors.toList());
                 Log.e(TAG, "showRealtimeRouteBus: route" + routeRealtimeUpdate.get(0).getRouteID() + " size:" + routeRealtimeUpdate.size());
-                setNearbyBusesRealtime(routeRealtimeUpdate, routeMarkerHashMap);
+                setNearbyBusesRealtime(routeRealtimeUpdate, routeMarkerHashMap, "#0c1159");
             }
         });
-        mViewModel.removeRealtimeLocationObserver(REALTIME_OBSERVER_FROM_STOP);
     }
 
-    private void setNearbyBusesRealtime(List<RealtimeUpdate> realtimeUpdateList, HashMap<Marker, RealtimeUpdate> markerHashMap) {
+    private void setNearbyBusesRealtime(List<RealtimeUpdate> realtimeUpdateList, HashMap<Marker, RealtimeUpdate> markerHashMap, String colorCode) {
         Log.e(TAG, "setNearByBusesRealtime list size: " + realtimeUpdateList.size());
         // Clear old markers from the map and hashmap
         markerHashMap.keySet().forEach(Marker::remove);
@@ -702,10 +701,9 @@ public class MapsFragment extends Fragment {
                     LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
                     Marker marker = mMap.addMarker(new MarkerOptions()
                             .position(latLng)
-                            .icon(vectorToBitmap(getResources(), R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
+                            .icon(vectorToBitmap(getResources(), R.drawable.bus_icon, Color.parseColor(colorCode), 0.5f))
                             .title(realtimeUpdate.getVehicleID()));
                     markerHashMap.put(marker, realtimeUpdate);
-                    Log.e(TAG, "setNearbyBusesRealtime: " + marker.getTitle());
                 }
             }
         } catch (Exception e) {
