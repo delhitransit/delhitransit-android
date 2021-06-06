@@ -1,6 +1,7 @@
 package com.delhitransit.delhitransit_android.helperclasses;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -17,8 +18,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.delhitransit.delhitransit_android.R;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.material.card.MaterialCardView;
 
 public class ViewMarker {
@@ -77,6 +83,23 @@ public class ViewMarker {
         Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, SIZE, SIZE, true);
         view.setBackground(new BitmapDrawable(context.getResources(), bMapScaled));
 
+    }
+
+    /**
+     * Demonstrates converting a {@link Drawable} to a {@link BitmapDescriptor},
+     * for use as a marker icon.
+     */
+    public static BitmapDescriptor vectorToBitmap(Resources resources, @DrawableRes int id, @ColorInt int color, float scale) {
+        Drawable vectorDrawable = ResourcesCompat.getDrawable(resources, id, null);
+        Bitmap bitmap = Bitmap.createBitmap(
+                (int) (scale * vectorDrawable.getIntrinsicWidth()),
+                (int) (scale * vectorDrawable.getIntrinsicHeight()),
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        DrawableCompat.setTint(vectorDrawable, color);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     private String getString(String s) {

@@ -39,7 +39,7 @@ public class MapsViewModel extends AndroidViewModel {
     public final MutableLiveData<List<RealtimeUpdate>> realtimeObserverUpdateList = new MutableLiveData<>();
     public final MutableLiveData<Pair<Double, Double>> userCoordinatesLiveData = new MutableLiveData<>();
     private final Handler realtimeUpdateHandler = new Handler();
-    private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
+    public final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
     private final MutableLiveData<List<StopDetail>> nearbyStops = new MutableLiveData<>();
     private final MutableLiveData<List<RouteDetailForAdapter>> routesList = new MutableLiveData<>();
     private final MutableLiveData<List<RealtimeUpdate>> realtimeUpdateList = new MutableLiveData<>();
@@ -50,12 +50,12 @@ public class MapsViewModel extends AndroidViewModel {
     private double userLongitude;
     private StopDetail sourceStop;
     private StopDetail destinationStop;
-    private DelhiTransitApplication applicationPrefrences;
+    private DelhiTransitApplication applicationPreferences;
     private boolean isRealtimeUpdateScheduled = false;
 
     public MapsViewModel(@NonNull Application application) {
         super(application);
-        applicationPrefrences = (DelhiTransitApplication) getApplication();
+        applicationPreferences = (DelhiTransitApplication) getApplication();
     }
 
     private void makeNearbyStopsApiRequest(double dist) {
@@ -232,16 +232,16 @@ public class MapsViewModel extends AndroidViewModel {
         if (!this.isRealtimeUpdateScheduled) return;
         int refreshInterval;
         try {
-            refreshInterval = Integer.parseInt(applicationPrefrences.getUpdateTime());
+            refreshInterval = Integer.parseInt(applicationPreferences.getUpdateTime());
             if (refreshInterval < 1) {
                 Toast.makeText(getApplication().getApplicationContext(), "Time can't be negative", Toast.LENGTH_LONG);
-                applicationPrefrences.setUpdateTime("1");
+                applicationPreferences.setUpdateTime("1");
                 refreshInterval = 1;
             }
         } catch (Exception exception) {
             Toast.makeText(getApplication().getApplicationContext(), "Please enter valid positive integer", Toast.LENGTH_LONG);
             refreshInterval = 5;
-            applicationPrefrences.setUpdateTime("5");
+            applicationPreferences.setUpdateTime("5");
         }
         int intervalInMillis = refreshInterval * 1000;
         realtimeUpdateHandler.postDelayed(new Runnable() {

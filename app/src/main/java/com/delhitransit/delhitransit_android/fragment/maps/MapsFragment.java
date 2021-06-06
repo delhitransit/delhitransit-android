@@ -5,11 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -27,15 +24,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
@@ -68,7 +61,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -94,6 +86,9 @@ import retrofit2.Response;
 
 import static com.delhitransit.delhitransit_android.fragment.maps.MapsViewModel.REALTIME_OBSERVER_FROM_STOP;
 import static com.delhitransit.delhitransit_android.fragment.maps.MapsViewModel.REALTIME_OBSERVER_USER_LOCATION;
+import static com.delhitransit.delhitransit_android.fragment.realtime_tracker.RealtimeTrackerFragment.getBusSpeedKmph;
+import static com.delhitransit.delhitransit_android.fragment.realtime_tracker.RealtimeTrackerFragment.getLastUpdatedString;
+import static com.delhitransit.delhitransit_android.helperclasses.ViewMarker.vectorToBitmap;
 
 public class MapsFragment extends Fragment {
 
@@ -129,7 +124,6 @@ public class MapsFragment extends Fragment {
         @Override
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
-
             progressBarVisibility(false);
             viewVisibility(searchView1, true);
             LatLng latLng = new LatLng(28.6172368, 77.2059964);
@@ -144,7 +138,6 @@ public class MapsFragment extends Fragment {
             }
             setOnMarkerClickListeners();
             getUserLocation();
-
         }
 
     };
@@ -177,32 +170,15 @@ public class MapsFragment extends Fragment {
         busSpeed = mView.findViewById(R.id.realtime_speed_text);
         RoutesFromStopDetail routesFromStopDetail = new RoutesFromStopDetail();
         alert.setView(mView);
+        final NavController navController = NavHostFragment.findNavController(MapsFragment.this);
         alert.setPositiveButton("More Info", (dialog, which) -> {
-            NavController navController = NavHostFragment.findNavController(MapsFragment.this);
             MapsFragmentDirections.ActionMapsFragmentToRouteStopsFragment action = MapsFragmentDirections.actionMapsFragmentToRouteStopsFragment(routesFromStopDetail);
             navController.navigate(action);
         });
         alert.setNegativeButton(android.R.string.cancel, (dialog, x) -> dialog.dismiss());
         alert.setTitle("License Plate: " + realtimeUpdate.getVehicleID());
-        busSpeed.setText(String.format("%d km/h", (int) (realtimeUpdate.getSpeed() * 3.6)));
-        long updateTimeDelta = (int) (System.currentTimeMillis() / 1000) - realtimeUpdate.getTimestamp();
-        String updateTimeString = "Last updated ";
-        if (updateTimeDelta < 60) {
-            updateTimeString += updateTimeDelta + " seconds ago";
-        } else {
-            long minutes = updateTimeDelta / 60;
-            if (minutes < 2) {
-                updateTimeString += minutes + " minute ago";
-            } else if (minutes > 59) {
-                long hours = minutes / 60;
-                if (hours < 2) {
-                    updateTimeString += hours + " hour ago";
-                } else {
-                    updateTimeString += hours + " hours ago";
-                }
-            } else updateTimeString += minutes + " minutes ago";
-        }
-        busLastUpdate.setText(updateTimeString);
+        busSpeed.setText(getBusSpeedKmph(realtimeUpdate.getSpeed()));
+        busLastUpdate.setText(getLastUpdatedString(realtimeUpdate.getTimestamp()));
         mViewModel.getRouteByRouteId(realtimeUpdate.getRouteID()).observe(mLifecycleOwner, route -> {
             if (route != null) {
                 busRoute.setText(route.getLongName());
@@ -217,6 +193,12 @@ public class MapsFragment extends Fragment {
         final AlertDialog alertDialog = alert.create();
         alertDialog.setCanceledOnTouchOutside(true);
         alertDialog.show();
+        final Button liveTrackButton = mView.findViewById(R.id.realtime_dialog_live_track_button);
+        liveTrackButton.setOnClickListener(view -> {
+            alertDialog.dismiss();
+            final MapsFragmentDirections.ActionMapsFragmentToRealtimeTrackerFragment action = MapsFragmentDirections.actionMapsFragmentToRealtimeTrackerFragment(realtimeUpdate.getTripID());
+            navController.navigate(action);
+        });
     }
 
     @Nullable
@@ -564,8 +546,6 @@ public class MapsFragment extends Fragment {
             LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             if (isLocationEnabled(locationManager)) {
                 try {
-                    // Show user's current location
-                    mMap.setMyLocationEnabled(true);
                     searchView1.setSearchHint("Loading Nearby Bus Stops...");
                     horizontalProgressBar.setVisibility(View.VISIBLE);
                     String locationProvider = application.getLocationProvider();
@@ -695,23 +675,6 @@ public class MapsFragment extends Fragment {
         searchView1.setSearchHint("Search Bus Stops");
     }
 
-    /**
-     * Demonstrates converting a {@link Drawable} to a {@link BitmapDescriptor},
-     * for use as a marker icon.
-     */
-    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color, float scale) {
-        Drawable vectorDrawable = ResourcesCompat.getDrawable(getResources(), id, null);
-        Bitmap bitmap = Bitmap.createBitmap(
-                (int) (scale * vectorDrawable.getIntrinsicWidth()),
-                (int) (scale * vectorDrawable.getIntrinsicHeight()),
-                Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        DrawableCompat.setTint(vectorDrawable, color);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
-
     private void setNearbyBusesRealtime(List<RealtimeUpdate> realtimeUpdateList) {
         Log.v(MapsFragment.class.getSimpleName(), String.valueOf(realtimeUpdateList.size()));
         // Clear old markers from the map and hashmap
@@ -724,7 +687,7 @@ public class MapsFragment extends Fragment {
                     LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
                     Marker marker = mMap.addMarker(new MarkerOptions()
                             .position(latLng)
-                            .icon(vectorToBitmap(R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
+                            .icon(vectorToBitmap(getResources(), R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
                             .title(realtimeUpdate.getVehicleID()));
                     realtimeUpdateHashMap.put(marker, realtimeUpdate);
                 }
