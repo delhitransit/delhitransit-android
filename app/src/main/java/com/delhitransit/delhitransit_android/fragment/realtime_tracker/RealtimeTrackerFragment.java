@@ -218,7 +218,7 @@ public class RealtimeTrackerFragment extends Fragment {
             final LatLng nearestShapePoint = getNearestShapePoint(latLng);
             if (nearestShapePoint != null) {
                 new RoutePointsMaker(getResources().getColor(R.color.orange_faded), routeCoveredCallback, firstStopLatLng, nearestShapePoint).execute(routeShapePointList);
-                new RoutePointsMaker(Color.parseColor(getString(R.string.orange_dark)), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
+                new RoutePointsMaker(getResources().getColor(R.color.orange_dark), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
             }
         }
     }
