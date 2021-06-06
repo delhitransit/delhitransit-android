@@ -13,10 +13,13 @@ import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.fragment.maps.MapsViewModel;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
+import com.delhitransit.delhitransit_android.pojos.ShapePoint;
 import com.delhitransit.delhitransit_android.pojos.route.Route;
+import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -30,6 +33,8 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
     private final DelhiTransitApplication applicationPreferences;
     private final Handler realtimeUpdateHandler = new Handler();
+    public List<ShapePoint> routeShapePointList = new LinkedList<>();
+    public List<CustomizeStopDetail> routeBusStopsList = new LinkedList<>();
 
     public RealtimeTrackerViewModel(@NonNull @NotNull Application application) {
         super(application);
@@ -71,6 +76,42 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
             }
         });
         return route;
+    }
+
+    public void fetchShapePointsByTripId(String tripId) {
+        apiService.getAllShapePointsByTripId(tripId).enqueue(new Callback<List<ShapePoint>>() {
+            @Override
+            public void onResponse(Call<List<ShapePoint>> call, Response<List<ShapePoint>> response) {
+                routeShapePointList.clear();
+                final List<ShapePoint> body = response.body();
+                if (body != null) {
+                    routeShapePointList.addAll(body);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ShapePoint>> call, Throwable t) {
+                Log.e(TAG, "Call to get ShapePoints failed : " + t.toString());
+            }
+        });
+    }
+
+    public void fetchStopsByTripId(String tripId) {
+        apiService.getStopsByTripId(tripId).enqueue(new Callback<List<CustomizeStopDetail>>() {
+            @Override
+            public void onResponse(Call<List<CustomizeStopDetail>> call, Response<List<CustomizeStopDetail>> response) {
+                routeBusStopsList.clear();
+                final List<CustomizeStopDetail> body = response.body();
+                if (body != null) {
+                    routeBusStopsList.addAll(body);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<CustomizeStopDetail>> call, Throwable t) {
+                Log.e(TAG, "Call to get Bus Stops failed : " + t.toString());
+            }
+        });
     }
 
     public void scheduleRealtimeUpdates() {

@@ -18,7 +18,12 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.helperclasses.GeoLocationHelper;
+import com.delhitransit.delhitransit_android.helperclasses.RoutePointsMaker;
+import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
+import com.delhitransit.delhitransit_android.pojos.ShapePoint;
+import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -27,6 +32,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -38,6 +45,8 @@ import static com.delhitransit.delhitransit_android.helperclasses.ViewMarker.vec
 public class RealtimeTrackerFragment extends Fragment {
 
     private static final String TAG = RealtimeTrackerFragment.class.getSimpleName();
+    private static final int USER_ZOOM_RETENTION_CYCLES = 7;
+    private static final float DEFAULT_CAMERA_ZOOM = 17.5f;
     private LifecycleOwner mLifecycleOwner;
     private String tripId;
     private GoogleMap mMap;
@@ -67,6 +76,9 @@ public class RealtimeTrackerFragment extends Fragment {
     private TextView routeNameTextView;
     private TextView speedTextView;
     private TextView lastUpdatedTextView;
+    private Polyline routeCoveredPolyline;
+    private Polyline routeRemainingPolyline;
+    private int userZoomRetainIntervalsRemaining = 1;
 
     @NotNull
     public static String getLastUpdatedString(long timestamp) {
@@ -98,7 +110,7 @@ public class RealtimeTrackerFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         RealtimeTrackerFragmentArgs args = RealtimeTrackerFragmentArgs.fromBundle(getArguments());
-        this.tripId = args.getTripId();
+        this.tripId = "28_21_40";//"3_13_10";//args.getTripId();
         final View view = inflater.inflate(R.layout.fragment_realtime_tracker, container, false);
         licensePlateTextView = view.findViewById(R.id.realtime_tracker_textView3);
         routeNameTextView = view.findViewById(R.id.realtime_tracker_realtime_route_text);
@@ -124,6 +136,8 @@ public class RealtimeTrackerFragment extends Fragment {
         mLifecycleOwner = getViewLifecycleOwner();
         mViewModel.realtimeUpdateList.observe(mLifecycleOwner, this::onRealtimeUpdate);
         mViewModel.scheduleRealtimeUpdates();
+        mViewModel.fetchShapePointsByTripId(this.tripId);
+        mViewModel.fetchStopsByTripId(this.tripId);
     }
 
     private void onRealtimeUpdate(List<RealtimeUpdate> updateList) {
@@ -158,6 +172,62 @@ public class RealtimeTrackerFragment extends Fragment {
                     .title(realtimeUpdate.getVehicleID()));
         }
         busMarker.setPosition(latLng);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17.5f));
+        // Let the user keep their custom zoom level for a few cycles
+        float cameraZoom = DEFAULT_CAMERA_ZOOM;
+        final float currentCameraZoom = mMap.getCameraPosition().zoom;
+        if (currentCameraZoom != DEFAULT_CAMERA_ZOOM) {
+            if (--userZoomRetainIntervalsRemaining == 0) {
+                this.userZoomRetainIntervalsRemaining = USER_ZOOM_RETENTION_CYCLES;
+            } else cameraZoom = currentCameraZoom;
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, cameraZoom));
+        final List<ShapePoint> routeShapePointList = mViewModel.routeShapePointList;
+        final List<CustomizeStopDetail> routeBusStopsList = mViewModel.routeBusStopsList;
+        if (routeBusStopsList.size() > 0) {
+            final CustomizeStopDetail firstStop = routeBusStopsList.get(0);
+            final CustomizeStopDetail lastStop = routeBusStopsList.get(routeBusStopsList.size() - 1);
+            final LatLng firstStopLatLng = new LatLng(firstStop.getLatitude(), firstStop.getLongitude());
+            final LatLng lastStopLatLng = new LatLng(lastStop.getLatitude(), lastStop.getLongitude());
+            final TaskCompleteCallback routeCoveredCallback = (values) -> {
+                if (!(values[0] instanceof Boolean)) {
+                    if (routeCoveredPolyline != null) {
+                        routeCoveredPolyline.remove();
+                    }
+                    routeCoveredPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+                }
+            };
+            final TaskCompleteCallback routeRemainingCallback = (values) -> {
+                if (!(values[0] instanceof Boolean)) {
+                    if (routeRemainingPolyline != null) {
+                        routeRemainingPolyline.remove();
+                    }
+                    routeRemainingPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+                }
+            };
+            final LatLng nearestShapePoint = getNearestShapePoint(latLng);
+            if (nearestShapePoint != null) {
+                new RoutePointsMaker(Color.parseColor("#fca964"), routeCoveredCallback, firstStopLatLng, nearestShapePoint).execute(routeShapePointList);
+                new RoutePointsMaker(Color.parseColor("#ff7300"), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
+            }
+        }
+    }
+
+    private LatLng getNearestShapePoint(LatLng busLocation) {
+        ShapePoint nearestShapePoint = null;
+        double nearestDistance = Double.MAX_VALUE;
+        final GeoLocationHelper busLocationGlh = GeoLocationHelper
+                .fromDegrees(busLocation.latitude, busLocation.longitude);
+        for (ShapePoint shapePoint : mViewModel.routeShapePointList) {
+            if (nearestShapePoint == null) nearestShapePoint = shapePoint;
+            final GeoLocationHelper currShapePoint = GeoLocationHelper
+                    .fromDegrees(shapePoint.getLatitude(), shapePoint.getLongitude());
+            final double distance = busLocationGlh.distanceTo(currShapePoint, null);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestShapePoint = shapePoint;
+            }
+        }
+        if (nearestShapePoint == null) return null;
+        return new LatLng(nearestShapePoint.getLatitude(), nearestShapePoint.getLongitude());
     }
 }
