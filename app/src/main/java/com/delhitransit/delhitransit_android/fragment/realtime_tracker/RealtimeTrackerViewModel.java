@@ -12,8 +12,10 @@ import com.delhitransit.delhitransit_android.DelhiTransitApplication;
 import com.delhitransit.delhitransit_android.api.ApiClient;
 import com.delhitransit.delhitransit_android.api.ApiInterface;
 import com.delhitransit.delhitransit_android.fragment.maps.MapsViewModel;
+import com.delhitransit.delhitransit_android.fragment.route_stops.RouteStopsViewModel;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.route.Route;
+import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +29,7 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
 
     private static final String TAG = RealtimeTrackerViewModel.class.getSimpleName();
     public final MutableLiveData<List<RealtimeUpdate>> realtimeUpdateList = new MutableLiveData<>();
+    public final MutableLiveData<List<CustomizeStopDetail>> allStops = new MutableLiveData<>();
     private final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
     private final DelhiTransitApplication applicationPreferences;
     private final Handler realtimeUpdateHandler = new Handler();
@@ -51,6 +54,22 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
                 Log.d(MapsViewModel.class.getSimpleName(), "Request to get realtime update from server failed");
             }
         });
+    }
+
+    public void fetchStopsByTripId(String tripId) {
+        apiService.getStopsByTripId(tripId)
+                .enqueue(new Callback<List<CustomizeStopDetail>>() {
+                    @Override
+                    public void onResponse(Call<List<CustomizeStopDetail>> call, Response<List<CustomizeStopDetail>> response) {
+                        if (response.body() != null && response.body().size() != 0)
+                            allStops.setValue(response.body());
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<CustomizeStopDetail>> call, Throwable t) {
+                        Log.e(RouteStopsViewModel.class.getSimpleName(), "API call failed at getStopsByTripId from tripId : " + tripId);
+                    }
+                });
     }
 
     public MutableLiveData<Route> getRouteByRouteId(String routeId) {

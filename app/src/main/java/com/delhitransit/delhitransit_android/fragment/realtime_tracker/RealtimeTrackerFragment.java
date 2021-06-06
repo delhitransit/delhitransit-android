@@ -18,11 +18,14 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.delhitransit.delhitransit_android.R;
+import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
+import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -30,6 +33,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +45,13 @@ public class RealtimeTrackerFragment extends Fragment {
     private LifecycleOwner mLifecycleOwner;
     private String tripId;
     private GoogleMap mMap;
+    private RealtimeTrackerViewModel mViewModel;
+    private Marker busMarker;
+    private TextView licensePlateTextView;
+    private TextView routeNameTextView;
+    private TextView speedTextView;
+    private TextView lastUpdatedTextView;
+    private HashMap<Marker, CustomizeStopDetail> stopDetailHashMap = new HashMap<>();
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
         @SuppressLint("MissingPermission")
         @Override
@@ -61,12 +72,6 @@ public class RealtimeTrackerFragment extends Fragment {
             mMap.setPadding(100, 600, 100, 100);
         }
     };
-    private RealtimeTrackerViewModel mViewModel;
-    private Marker busMarker;
-    private TextView licensePlateTextView;
-    private TextView routeNameTextView;
-    private TextView speedTextView;
-    private TextView lastUpdatedTextView;
 
     @NotNull
     public static String getLastUpdatedString(long timestamp) {
@@ -123,7 +128,9 @@ public class RealtimeTrackerFragment extends Fragment {
         mViewModel = new ViewModelProvider(this).get(RealtimeTrackerViewModel.class);
         mLifecycleOwner = getViewLifecycleOwner();
         mViewModel.realtimeUpdateList.observe(mLifecycleOwner, this::onRealtimeUpdate);
+        mViewModel.fetchStopsByTripId(tripId);
         mViewModel.scheduleRealtimeUpdates();
+        setStopsOnMap();
     }
 
     private void onRealtimeUpdate(List<RealtimeUpdate> updateList) {
@@ -159,5 +166,18 @@ public class RealtimeTrackerFragment extends Fragment {
         }
         busMarker.setPosition(latLng);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17.5f));
+    }
+
+    private void setStopsOnMap() {
+        mViewModel.allStops.observe(mLifecycleOwner, customizeStopDetails -> {
+            for (CustomizeStopDetail stopDetail : customizeStopDetails) {
+                if (stopDetail == null) continue;
+                LatLng latLng = new LatLng(stopDetail.getLatitude(), stopDetail.getLongitude());
+                Marker marker = mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(getContext(), stopDetail.getName(), Color.RED, ViewMarker.BUS_STOP).getBitmap())));
+                stopDetailHashMap.put(marker, stopDetail);
+            }
+        });
     }
 }
