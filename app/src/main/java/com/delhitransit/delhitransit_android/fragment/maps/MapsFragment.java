@@ -158,13 +158,13 @@ public class MapsFragment extends Fragment {
                 } else runnable.run();
             }
             if (realtimeUpdate != null || routeRealtime != null) {
-                setDialogBox(realtimeUpdate != null ? realtimeUpdate : routeRealtime);
+                createRealtimeBusDetailsDialogBox(realtimeUpdate != null ? realtimeUpdate : routeRealtime);
             }
             return true;
         });
     }
 
-    private void setDialogBox(RealtimeUpdate realtimeUpdate) {
+    private void createRealtimeBusDetailsDialogBox(RealtimeUpdate realtimeUpdate) {
         final AlertDialog.Builder alert = new AlertDialog.Builder(requireActivity());
         View mView = getLayoutInflater().inflate(R.layout.realtime_dialog_layout, null);
         TextView busRoute, busLastUpdate, busSpeed;
@@ -211,20 +211,10 @@ public class MapsFragment extends Fragment {
         parentView = inflater.inflate(R.layout.fragment_map, container, false);
         context = this.getContext();
         application = (DelhiTransitApplication) context.getApplicationContext();
-        setMapFragment();
-        init();
-        getAllFavouriteStops();
-        return parentView;
-    }
-
-    private void setMapFragment() {
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(callback);
         }
-    }
-
-    private void init() {
         searchView1 = parentView.findViewById(R.id.floating_bus_stop_search_view_1);
         searchView2 = parentView.findViewById(R.id.floating_bus_stop_search_view_2);
         bottomButton = parentView.findViewById(R.id.bottom_button);
@@ -239,20 +229,46 @@ public class MapsFragment extends Fragment {
 
         setSearchViewQueryAndSearchListener(searchView1, false);
         setSearchViewQueryAndSearchListener(searchView2, true);
-        setRoutesBottomSheetDialog();
+        routesBottomSheetDialog = new BottomSheetDialog(context, R.style.BottomSheetDialogTheme);
+        routesBottomSheetDialog.setContentView(getLayoutInflater().inflate(R.layout.routes_bottom_sheet_view, null));
+
+        routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
+        noRoutesAvailableTextView = routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view);
+
+        routesListAdapter = new RoutesListAdapter(context, routeDetail -> {
+            showRealtimeRouteBus(routeDetail);
+            progressBarVisibility(true);
+            routesBottomSheetDialog.dismiss();
+        }, values -> {
+            if (!(values[0] instanceof Boolean)) {
+                if (currentPolyline != null) {
+                    currentPolyline.remove();
+                    circleMarker.remove();
+                }
+                currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
+                circleMarker = new CircleMarker(mMap, context, currentPolyline);
+            } else {
+                routesBottomSheetDialog.dismiss();
+                showToast("Route plotting not available for this trip");
+            }
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(sourceMarkerDetail.latLng).include(destinationMarkerDetail.latLng).build(), 0));
+            progressBarVisibility(false);
+        });
+
+        routesListRecycleView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
+        routesListRecycleView.setAdapter(routesListAdapter);
 
         bottomButton.setOnClickListener(it -> routesBottomSheetDialog.show());
-        mFlipSearchItemsFab.setOnClickListener(this::setSearchViewWithFlip);
-    }
-
-
-    public void setSearchViewWithFlip(View v) {
-        StopDetail sourceStop = mViewModel.getSourceStop();
-        StopDetail destinationStop = mViewModel.getDestinationStop();
-        if (sourceStop != null && destinationStop != null) {
-            setStopDataOnSearchView(destinationStop, searchView1, false);
-            setStopDataOnSearchView(sourceStop, searchView2, true);
-        }
+        mFlipSearchItemsFab.setOnClickListener(v -> {
+            StopDetail sourceStop = mViewModel.getSourceStop();
+            StopDetail destinationStop = mViewModel.getDestinationStop();
+            if (sourceStop != null && destinationStop != null) {
+                setStopDataOnSearchView(destinationStop, searchView1, false);
+                setStopDataOnSearchView(sourceStop, searchView2, true);
+            }
+        });
+        getAllFavouriteStops();
+        return parentView;
     }
 
     private void getAllFavouriteStops() {
@@ -261,42 +277,6 @@ public class MapsFragment extends Fragment {
             favouriteStopsLists.clear();
             favouriteStopsLists.addAll(list);
         });
-    }
-
-    private void setRoutesBottomSheetDialog() {
-        routesBottomSheetDialog = new BottomSheetDialog(context, R.style.BottomSheetDialogTheme);
-        routesBottomSheetDialog.setContentView(getLayoutInflater().inflate(R.layout.routes_bottom_sheet_view, null));
-
-        routesListRecycleView = routesBottomSheetDialog.findViewById(R.id.routes_list_recycle_view);
-        noRoutesAvailableTextView = routesBottomSheetDialog.findViewById(R.id.no_routes_available_text_view);
-
-        routesListAdapter = new RoutesListAdapter(context, this::onRouteSelected, this::onTaskDone);
-
-        routesListRecycleView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
-        routesListRecycleView.setAdapter(routesListAdapter);
-
-    }
-
-    private void onRouteSelected(RouteDetailForAdapter routeDetail) {
-        showRealtimeRouteBus(routeDetail);
-        progressBarVisibility(true);
-        routesBottomSheetDialog.dismiss();
-    }
-
-    private void onTaskDone(Object[] values) {
-        if (!(values[0] instanceof Boolean)) {
-            if (currentPolyline != null) {
-                currentPolyline.remove();
-                circleMarker.remove();
-            }
-            currentPolyline = mMap.addPolyline((PolylineOptions) values[0]);
-            circleMarker = new CircleMarker(mMap, context, currentPolyline);
-        } else {
-            routesBottomSheetDialog.dismiss();
-            showToast("Route plotting not available for this trip");
-        }
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().include(sourceMarkerDetail.latLng).include(destinationMarkerDetail.latLng).build(), 0));
-        progressBarVisibility(false);
     }
 
     private void viewVisibility(View view, boolean visible) {
@@ -402,7 +382,7 @@ public class MapsFragment extends Fragment {
                     reachable.observe(mLifecycleOwner, stops -> {
                         if (stops != null && stops.size() != 0) {
                             stops = stops.stream().filter(it -> it.getName().toUpperCase().contains(currentQuery.toUpperCase())).collect(Collectors.toList());
-                            if (stops != null && stops.size() != 0)
+                            if (stops.size() != 0)
                                 setStopDataOnSearchView(stops.get(0), searchView, isSecondSearchView);
                         } else {
                             showToast("Sorry ,No bus stop with \"" + currentQuery + "\" found");
@@ -458,12 +438,18 @@ public class MapsFragment extends Fragment {
         });
     }
 
-    private void setStopDataOnSearchView(StopDetail stopsDetail, FloatingSearchView searchView,
-                                         boolean isSecondSearchView) {
+    private void setStopDataOnSearchView(
+            StopDetail stopsDetail, FloatingSearchView searchView, boolean isSecondSearchView) {
 
         MarkerDetails markerDetails = new MarkerDetails(stopsDetail, isSecondSearchView);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerDetails.latLng, 17));
-        addMarkerIfNotNull(markerDetails);
+        if (markerDetails.latLng != null) {
+            busStopsHashMap.remove(markerDetails.marker);
+            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetails.name, markerDetails.relation, getMarkerType(markerDetails.stopsResponseData)).getBitmap())).position(markerDetails.latLng));
+            marker.setZIndex(3);
+            markerDetails.marker = marker;
+            busStopsHashMap.put(marker, markerDetails.stopsResponseData);
+        }
 
         if (isSecondSearchView) {
             mViewModel.setDestinationStop(stopsDetail);
@@ -513,16 +499,6 @@ public class MapsFragment extends Fragment {
         searchView.setSearchText(stopsDetail.getName());
     }
 
-    private void addMarkerIfNotNull(MarkerDetails markerDetail) {
-        if (markerDetail.latLng != null) {
-            busStopsHashMap.remove(markerDetail.marker);
-            Marker marker = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, markerDetail.name, markerDetail.relation, getMarkerType(markerDetail.stopsResponseData)).getBitmap())).position(markerDetail.latLng));
-            marker.setZIndex(3);
-            markerDetail.marker = marker;
-            busStopsHashMap.put(marker, markerDetail.stopsResponseData);
-        }
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -560,7 +536,10 @@ public class MapsFragment extends Fragment {
                             double latitude = location.getLatitude();
                             double longitude = location.getLongitude();
                             userLocation = new LatLng(latitude, longitude);
-                            setUserLocation();
+                            if (userLocation != null) {
+                                mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, "Your location ").getBitmap())).position(userLocation));
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 17));
+                            }
                             mViewModel.setUserCoordinates(latitude, longitude);
                         }
 
@@ -598,19 +577,15 @@ public class MapsFragment extends Fragment {
             }
 
         } else {
-            requestPermissions();
+            FragmentActivity activity = this.getActivity();
+            if (activity != null) {
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            }
         }
     }
 
     private boolean checkPermissions() {
         return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void requestPermissions() {
-        FragmentActivity activity = this.getActivity();
-        if (activity != null) {
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        }
     }
 
     private int getMarkerType(StopDetail data) {
@@ -624,24 +599,13 @@ public class MapsFragment extends Fragment {
         return type;
     }
 
-    private void setUserLocation() {
-        if (userLocation != null) {
-            mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(new ViewMarker(context, "Your location ").getBitmap())).position(userLocation));
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 17));
-        }
-    }
-
     private boolean isLocationEnabled(LocationManager locationManager) {
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
 
     private void showToast(String s) {
-        showToast(s, "info");
-    }
-
-    private void showToast(String s, String about) {
         Toast.makeText(context, s, Toast.LENGTH_LONG).show();
-        Log.e(TAG, about + "  : " + s);
+        Log.e(TAG, "info" + "  : " + s);
     }
 
     @Override
