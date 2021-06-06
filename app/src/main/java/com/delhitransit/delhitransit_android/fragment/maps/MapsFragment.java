@@ -55,6 +55,7 @@ import com.delhitransit.delhitransit_android.helperclasses.ViewMarker;
 import com.delhitransit.delhitransit_android.interfaces.OnStopMarkerClickedListener;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.route.CustomizeRouteDetail;
+import com.delhitransit.delhitransit_android.pojos.route.RouteDetailForAdapter;
 import com.delhitransit.delhitransit_android.pojos.route.RoutesFromStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -97,6 +98,7 @@ public class MapsFragment extends Fragment {
     private final int LOCATION_ON_REQUEST_CODE = 101;
     private final List<StopDetail> favouriteStopsLists = new ArrayList<>();
     private final HashMap<Marker, RealtimeUpdate> realtimeUpdateHashMap = new HashMap<>();
+    private final HashMap<Marker, RealtimeUpdate> routeMarkerHashMap = new HashMap<>();
     private GoogleMap mMap;
     private Polyline currentPolyline;
     private ApiInterface apiService;
@@ -147,6 +149,7 @@ public class MapsFragment extends Fragment {
         mMap.setOnMarkerClickListener(marker -> {
             StopDetail stop = busStopsHashMap.get(marker);
             RealtimeUpdate realtimeUpdate = realtimeUpdateHashMap.get(marker);
+            RealtimeUpdate routeRealtime = routeMarkerHashMap.get(marker);
             if (stop != null) {
                 Runnable runnable = () -> setStopDataOnSearchView(stop, searchView1, false);
                 Activity activity = getActivity();
@@ -154,8 +157,8 @@ public class MapsFragment extends Fragment {
                     ((OnStopMarkerClickedListener) activity).onStopMarkerClick(stop, runnable);
                 } else runnable.run();
             }
-            if (realtimeUpdate != null) {
-                setDialogBox(realtimeUpdate);
+            if (realtimeUpdate != null || routeRealtime != null) {
+                setDialogBox(realtimeUpdate != null ? realtimeUpdate : routeRealtime);
             }
             return true;
         });
@@ -274,7 +277,8 @@ public class MapsFragment extends Fragment {
 
     }
 
-    private void onRouteSelected() {
+    private void onRouteSelected(RouteDetailForAdapter routeDetail) {
+        showRealtimeRouteBus(routeDetail);
         progressBarVisibility(true);
         routesBottomSheetDialog.dismiss();
     }
@@ -656,7 +660,7 @@ public class MapsFragment extends Fragment {
         mViewModel.userCoordinatesLiveData.observe(mLifecycleOwner, coordinates -> {
             mViewModel.addRealtimeLocationObserver(REALTIME_OBSERVER_USER_LOCATION, GeoLocationHelper.fromDegrees(coordinates.first, coordinates.second));
         });
-        mViewModel.realtimeObserverUpdateList.observe(mLifecycleOwner, this::setNearbyBusesRealtime);
+        mViewModel.realtimeObserverUpdateList.observe(mLifecycleOwner, realtimeUpdateList -> setNearbyBusesRealtime(realtimeUpdateList, realtimeUpdateHashMap, "#296332"));
         mViewModel.scheduleRealtimeUpdates(true);
     }
 
@@ -675,11 +679,21 @@ public class MapsFragment extends Fragment {
         searchView1.setSearchHint("Search Bus Stops");
     }
 
-    private void setNearbyBusesRealtime(List<RealtimeUpdate> realtimeUpdateList) {
-        Log.v(MapsFragment.class.getSimpleName(), String.valueOf(realtimeUpdateList.size()));
+    private void showRealtimeRouteBus(RouteDetailForAdapter routeDetail) {
+        mViewModel.realtimeUpdateList.observe(mLifecycleOwner, realtimeUpdates -> {
+            if (routeDetail != null && routeDetail.getRouteId() < 534 && realtimeUpdates.size() > 0) {
+                List<RealtimeUpdate> routeRealtimeUpdate = realtimeUpdates.parallelStream().filter(realtimeUpdate -> Integer.parseInt(realtimeUpdate.getRouteID()) == (routeDetail.getRouteId())).collect(Collectors.toList());
+                Log.e(TAG, "showRealtimeRouteBus: route" + routeRealtimeUpdate.get(0).getRouteID() + " size:" + routeRealtimeUpdate.size());
+                setNearbyBusesRealtime(routeRealtimeUpdate, routeMarkerHashMap, "#0c1159");
+            }
+        });
+    }
+
+    private void setNearbyBusesRealtime(List<RealtimeUpdate> realtimeUpdateList, HashMap<Marker, RealtimeUpdate> markerHashMap, String colorCode) {
+        Log.e(TAG, "setNearByBusesRealtime list size: " + realtimeUpdateList.size());
         // Clear old markers from the map and hashmap
-        realtimeUpdateHashMap.keySet().forEach(Marker::remove);
-        realtimeUpdateHashMap.clear();
+        markerHashMap.keySet().forEach(Marker::remove);
+        markerHashMap.clear();
         try {
             if (realtimeUpdateList.size() > 0) {
                 for (RealtimeUpdate realtimeUpdate : realtimeUpdateList) {
@@ -687,9 +701,9 @@ public class MapsFragment extends Fragment {
                     LatLng latLng = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
                     Marker marker = mMap.addMarker(new MarkerOptions()
                             .position(latLng)
-                            .icon(vectorToBitmap(getResources(), R.drawable.bus_icon, Color.parseColor("#296332"), 0.5f))
+                            .icon(vectorToBitmap(getResources(), R.drawable.bus_icon, Color.parseColor(colorCode), 0.5f))
                             .title(realtimeUpdate.getVehicleID()));
-                    realtimeUpdateHashMap.put(marker, realtimeUpdate);
+                    markerHashMap.put(marker, realtimeUpdate);
                 }
             }
         } catch (Exception e) {

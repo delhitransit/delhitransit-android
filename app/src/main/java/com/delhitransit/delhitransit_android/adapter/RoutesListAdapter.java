@@ -76,7 +76,7 @@ public class RoutesListAdapter extends ListAdapter<RouteDetailForAdapter, Routes
         holder.busNumber.setText(routeDetail.getLongName());
         setTimeInLayout(holder.bothTime, holder.sourceTime, sourceBusStopName, routeDetail.getBusTimings(), routeDetail.getTravelTime(), holder.travelTimeHr, holder.hrDisplay, holder.travelTimeMin, holder.minDisplay);
         holder.parent.setOnClickListener(v -> {
-            onRouteSelectedListener.onRouteSelected();
+            onRouteSelectedListener.onRouteSelected(routeDetail);
             ApiClient.getApiService(context).getAllShapePointsByTripId(routeDetail.getTripId()).enqueue(new Callback<List<ShapePoint>>() {
                 @Override
                 public void onResponse(Call<List<ShapePoint>> call, Response<List<ShapePoint>> response) {

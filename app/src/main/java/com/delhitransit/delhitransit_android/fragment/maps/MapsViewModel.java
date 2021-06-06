@@ -42,7 +42,7 @@ public class MapsViewModel extends AndroidViewModel {
     public final ApiInterface apiService = ApiClient.getApiService(getApplication().getApplicationContext());
     private final MutableLiveData<List<StopDetail>> nearbyStops = new MutableLiveData<>();
     private final MutableLiveData<List<RouteDetailForAdapter>> routesList = new MutableLiveData<>();
-    private final MutableLiveData<List<RealtimeUpdate>> realtimeUpdateList = new MutableLiveData<>();
+    public final MutableLiveData<List<RealtimeUpdate>> realtimeUpdateList = new MutableLiveData<>();
     private final HashMap<Long, List<StopDetail>> reachableStops = new HashMap<>();
     private final HashMap<Long, Long> reachableStopsRecentlyQuery = new HashMap<>();
     private final HashMap<String, GeoLocationHelper> realtimeObserverLocationsHashMap = new HashMap<>();
