@@ -157,15 +157,14 @@ public class RealtimeTrackerFragment extends Fragment {
         horizontalProgressBar.setVisibility(View.GONE);
         if (!isUpdatePresent) {
             if (licensePlateTextView.getText().equals(getString(R.string.loading_tracking_information))) {
-                licensePlateTextView.setText("Tracking not available");
+                licensePlateTextView.setText(R.string.realtime_tracker_no_data_text);
             }
             return;
         }
         final RealtimeUpdate realtimeUpdate = update.get();
         mViewModel.realtimeUpdate.setValue(realtimeUpdate);
-        if (licensePlateTextView.getText().equals(getString(R.string.loading_tracking_information))) {
-            licensePlateTextView.setText("Tracking " + realtimeUpdate.getVehicleID());
-        }
+        if (licensePlateTextView.getText().equals(getString(R.string.loading_tracking_information)))
+            licensePlateTextView.setText(String.format("Tracking %s", realtimeUpdate.getVehicleID()));
         if (TextUtils.isEmpty(routeNameTextView.getText())) {
             mViewModel.getRouteByRouteId(realtimeUpdate.getRouteID()).observe(mLifecycleOwner, route -> {
                 if (route != null) {
@@ -217,8 +216,8 @@ public class RealtimeTrackerFragment extends Fragment {
             };
             final LatLng nearestShapePoint = getNearestShapePoint(latLng);
             if (nearestShapePoint != null) {
-                new RoutePointsMaker(getResources().getColor(R.color.orange_faded), routeCoveredCallback, firstStopLatLng, nearestShapePoint).execute(routeShapePointList);
-                new RoutePointsMaker(getResources().getColor(R.color.orange_dark), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
+                new RoutePointsMaker(getResources().getColor(R.color.orange_dark), routeCoveredCallback, firstStopLatLng, nearestShapePoint).execute(routeShapePointList);
+                new RoutePointsMaker(getResources().getColor(R.color.orange_faded), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
             }
         }
     }
@@ -245,9 +244,7 @@ public class RealtimeTrackerFragment extends Fragment {
     private void setStopsOnMap() {
         mViewModel.allStops.observe(mLifecycleOwner, customizeStopDetails -> {
             if (customizeStopDetails.size() == 0) {
-                mViewModel.realtimeUpdate.observe(mLifecycleOwner, realtimeUpdate -> {
-                    mViewModel.fetchStopsByRouteId(Integer.parseInt(realtimeUpdate.getRouteID()));
-                });
+                mViewModel.realtimeUpdate.observe(mLifecycleOwner, realtimeUpdate -> mViewModel.fetchStopsByRouteId(Integer.parseInt(realtimeUpdate.getRouteID())));
                 return;
             }
             for (StopDetail stopDetail : customizeStopDetails) {

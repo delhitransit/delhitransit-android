@@ -9,4 +9,5 @@
     <string name="fav_stops_tab_title">Stops</string>
     <string name="hint_stop_search_bar">Search bus stops</string>
     <string name="loading_tracking_information">Loading Tracking Information</string>
+    <string name="realtime_tracker_no_data_text">Tracking not available</string>
 </resources>
