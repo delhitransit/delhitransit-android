@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.View;
 import android.view.Window;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,11 +42,15 @@ public class AppActivity extends AppCompatActivity implements OnStopMarkerClicke
         NavigationUI.setupWithNavController(bottomNav, navController);
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             Window window = AppActivity.this.getWindow();
-            if (destination.getId() == R.id.mapsFragment) {
+            if (destination.getId() == R.id.mapsFragment || destination.getId() == R.id.realtimeTrackerFragment) {
                 window.addFlags(WINDOW_DECORATION_FLAG);
             } else {
                 window.clearFlags(WINDOW_DECORATION_FLAG);
             }
+            if (destination.getId() == R.id.realtimeTrackerFragment)
+                bottomNav.setVisibility(View.GONE);
+            else
+                bottomNav.setVisibility(View.VISIBLE);
         });
     }
 
