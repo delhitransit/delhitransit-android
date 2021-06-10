@@ -36,6 +36,7 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
     private final Handler realtimeUpdateHandler = new Handler();
     public List<ShapePoint> routeShapePointList = new LinkedList<>();
     public List<StopDetail> routeBusStopsList = new LinkedList<>();
+    public final MutableLiveData<List<CustomizeStopDetail>> customStopsOfTrip = new MutableLiveData<>();
 
     public RealtimeTrackerViewModel(@NonNull @NotNull Application application) {
         super(application);
@@ -105,6 +106,7 @@ public class RealtimeTrackerViewModel extends AndroidViewModel {
                 if (body != null) {
                     routeBusStopsList.addAll(body);
                     allStops.setValue(routeBusStopsList);
+                    customStopsOfTrip.setValue(body);
                 }
             }
 

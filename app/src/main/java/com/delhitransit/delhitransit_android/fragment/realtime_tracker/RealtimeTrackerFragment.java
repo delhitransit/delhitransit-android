@@ -24,6 +24,7 @@ import com.delhitransit.delhitransit_android.helperclasses.TrackerStopMarker;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
 import com.delhitransit.delhitransit_android.pojos.ShapePoint;
+import com.delhitransit.delhitransit_android.pojos.stops.CustomizeStopDetail;
 import com.delhitransit.delhitransit_android.pojos.stops.StopDetail;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -220,6 +221,7 @@ public class RealtimeTrackerFragment extends Fragment {
                 new RoutePointsMaker(getResources().getColor(R.color.orange_faded), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
             }
         }
+        setStopsData(realtimeUpdate);
     }
 
     private LatLng getNearestShapePoint(LatLng busLocation) {
@@ -242,12 +244,12 @@ public class RealtimeTrackerFragment extends Fragment {
     }
 
     private void setStopsOnMap() {
-        mViewModel.allStops.observe(mLifecycleOwner, customizeStopDetails -> {
-            if (customizeStopDetails.size() == 0) {
+        mViewModel.allStops.observe(mLifecycleOwner, stopDetails -> {
+            if (stopDetails.size() == 0) {
                 mViewModel.realtimeUpdate.observe(mLifecycleOwner, realtimeUpdate -> mViewModel.fetchStopsByRouteId(Integer.parseInt(realtimeUpdate.getRouteID())));
                 return;
             }
-            for (StopDetail stopDetail : customizeStopDetails) {
+            for (StopDetail stopDetail : stopDetails) {
                 if (stopDetail == null) continue;
                 LatLng latLng = new LatLng(stopDetail.getLatitude(), stopDetail.getLongitude());
                 final TrackerStopMarker viewMarker = new TrackerStopMarker(getContext(), stopDetail.getName());
@@ -255,6 +257,49 @@ public class RealtimeTrackerFragment extends Fragment {
                         .position(latLng)
                         .icon(BitmapDescriptorFactory.fromBitmap(viewMarker.getBitmap())));
                 stopDetailHashMap.put(marker, stopDetail);
+            }
+        });
+    }
+
+    private void setStopsData(RealtimeUpdate realtimeUpdate) {
+        LatLng currBusLocation = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
+        mViewModel.customStopsOfTrip.observe(mLifecycleOwner, customizeStopDetails -> {
+            //list of customised stops that contains expected arrival time
+            if (customizeStopDetails.size() != 0) {
+                //Log.e(TAG, "setStopsData: "+customizeStopDetails.get(0).getName()+customizeStopDetails.get(0).getArrivalTime() );
+                //getting bus stop which is near by realtime bus.
+                CustomizeStopDetail nearestStop = null;
+                CustomizeStopDetail scheduledStop = null;
+                long currTime = System.currentTimeMillis();
+                long minTime = Long.MAX_VALUE;
+                double nearestDistance = Double.MAX_VALUE;
+                final GeoLocationHelper busLocationGlh = GeoLocationHelper.fromDegrees(currBusLocation.latitude, currBusLocation.longitude);
+                for (CustomizeStopDetail customizeStopDetail : customizeStopDetails) {
+                    if (nearestStop == null) nearestStop = customizeStopDetail;
+                    final GeoLocationHelper currStop = GeoLocationHelper
+                            .fromDegrees(customizeStopDetail.getLatitude(), customizeStopDetail.getLongitude());
+                    final double distance = busLocationGlh.distanceTo(currStop, null);
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                        nearestStop = customizeStopDetail;
+                    }
+                    long diff = currTime - customizeStopDetail.getArrivalTime();
+                    if (diff < minTime) {
+                        minTime = diff;
+                        scheduledStop = customizeStopDetail;
+                    }
+                }
+                if (nearestStop != null) {
+                    Log.e(TAG, "setStopsData: nearestStop = " + nearestStop.getName() + nearestStop.getArrivalTime());
+                }
+                Log.e(TAG, "setStopsData: scheduledStop: " + scheduledStop.getName() + scheduledStop.getArrivalTime());
+                //calculate estimate arrival time using realtime data of bus
+                //time = distance/speed
+                if (realtimeUpdate.getSpeed() != 0) {
+                    double estimatedTime = (nearestDistance / realtimeUpdate.getSpeed()) * 60 * 60;
+                    Log.e(TAG, "setStopsData: eastinated time " + estimatedTime + " distance: " + nearestDistance);
+                }
+                //Now waiting to test this code/
             }
         });
     }
