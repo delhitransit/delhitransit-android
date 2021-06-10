@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.delhitransit.delhitransit_android.R;
 import com.delhitransit.delhitransit_android.helperclasses.GeoLocationHelper;
 import com.delhitransit.delhitransit_android.helperclasses.RoutePointsMaker;
+import com.delhitransit.delhitransit_android.helperclasses.TimeConverter;
 import com.delhitransit.delhitransit_android.helperclasses.TrackerStopMarker;
 import com.delhitransit.delhitransit_android.interfaces.TaskCompleteCallback;
 import com.delhitransit.delhitransit_android.pojos.RealtimeUpdate;
@@ -46,6 +47,7 @@ import java.util.Optional;
 
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
+import static com.delhitransit.delhitransit_android.helperclasses.TimeConverter.getSecondsSince12AM;
 import static com.delhitransit.delhitransit_android.helperclasses.ViewMarker.vectorToBitmap;
 
 public class RealtimeTrackerFragment extends Fragment {
@@ -87,27 +89,50 @@ public class RealtimeTrackerFragment extends Fragment {
     private Polyline routeRemainingPolyline;
     private MaterialProgressBar horizontalProgressBar;
     private int userZoomRetainIntervalsRemaining = 1;
+    private View bottomSheet;
+    private TextView nextStopTitle;
+    private View nextStopCardView;
+    private TextView nextStopNameTextView;
+    private TextView nextStopTimeNumeral;
+    private TextView nextStopTimeUnit;
+    private TextView nextStopStatusTextView;
+    private View scheduledStopLinearLayout;
+    private View nextStopLinearLayout;
+    private TextView scheduledStopTitle;
+    private View scheduledStopCardView;
+    private TextView scheduledStopNameTextView;
+    private TextView scheduledStopTimeNumeral;
+    private TextView scheduledStopTimeUnit;
+    private TextView scheduledStopStatusTextView;
 
     @NotNull
     public static String getLastUpdatedString(long timestamp) {
         long updateTimeDelta = (int) (System.currentTimeMillis() / 1000) - timestamp;
         String updateTimeString = "Last updated ";
-        if (updateTimeDelta < 60) {
-            updateTimeString += updateTimeDelta + " seconds ago";
+        updateTimeString += secondsToTimeString(updateTimeDelta);
+        updateTimeString += " ago";
+        return updateTimeString;
+    }
+
+    @NotNull
+    public static String secondsToTimeString(long timeInSeconds) {
+        String result = "";
+        if (timeInSeconds < 60) {
+            result += timeInSeconds + " seconds";
         } else {
-            long minutes = updateTimeDelta / 60;
+            long minutes = timeInSeconds / 60;
             if (minutes < 2) {
-                updateTimeString += minutes + " minute ago";
+                result += minutes + " minute";
             } else if (minutes > 59) {
                 long hours = minutes / 60;
                 if (hours < 2) {
-                    updateTimeString += hours + " hour ago";
+                    result += hours + " hour";
                 } else {
-                    updateTimeString += hours + " hours ago";
+                    result += hours + " hours";
                 }
-            } else updateTimeString += minutes + " minutes ago";
+            } else result += minutes + " minutes";
         }
-        return updateTimeString;
+        return result;
     }
 
     public static String getBusSpeedKmph(double speed) {
@@ -125,6 +150,21 @@ public class RealtimeTrackerFragment extends Fragment {
         speedTextView = view.findViewById(R.id.realtime_tracker_realtime_speed_text);
         lastUpdatedTextView = view.findViewById(R.id.realtime_tracker_realtime_updated_text);
         horizontalProgressBar = view.findViewById(R.id.realtime_tracker_realtime_progress_bar);
+        bottomSheet = view.findViewById(R.id.realtime_tracker_bottom_sheet);
+        nextStopLinearLayout = view.findViewById(R.id.realtime_tracker_next_stop_layout);
+        nextStopTitle = view.findViewById(R.id.realtime_tracker_next_stop_title);
+        nextStopCardView = view.findViewById(R.id.realtime_tracker_next_stop_card_view);
+        nextStopNameTextView = view.findViewById(R.id.realtime_tracker_next_stop_stop_name);
+        nextStopTimeNumeral = view.findViewById(R.id.realtime_tracker_next_stop_time_numeral);
+        nextStopTimeUnit = view.findViewById(R.id.realtime_tracker_next_stop_time_unit);
+        nextStopStatusTextView = view.findViewById(R.id.route_details_item_bus_status);
+        scheduledStopLinearLayout = view.findViewById(R.id.realtime_tracker_scheduled_stop_layout);
+        scheduledStopTitle = view.findViewById(R.id.realtime_tracker_scheduled_stop_title);
+        scheduledStopCardView = view.findViewById(R.id.realtime_tracker_scheduled_stop_card_view);
+        scheduledStopNameTextView = view.findViewById(R.id.realtime_tracker_scheduled_stop_stop_name);
+        scheduledStopTimeNumeral = view.findViewById(R.id.realtime_tracker_scheduled_stop_time_numeral);
+        scheduledStopTimeUnit = view.findViewById(R.id.realtime_tracker_scheduled_stop_time_unit);
+        scheduledStopStatusTextView = view.findViewById(R.id.realtime_tracker_scheduled_bus_status);
         return view;
     }
 
@@ -221,7 +261,7 @@ public class RealtimeTrackerFragment extends Fragment {
                 new RoutePointsMaker(getResources().getColor(R.color.orange_faded), routeRemainingCallback, nearestShapePoint, lastStopLatLng).execute(routeShapePointList);
             }
         }
-        setStopsData(realtimeUpdate);
+        updateBottomStopsDatasheet(realtimeUpdate);
     }
 
     private LatLng getNearestShapePoint(LatLng busLocation) {
@@ -261,7 +301,7 @@ public class RealtimeTrackerFragment extends Fragment {
         });
     }
 
-    private void setStopsData(RealtimeUpdate realtimeUpdate) {
+    private void updateBottomStopsDatasheet(RealtimeUpdate realtimeUpdate) {
         LatLng currBusLocation = new LatLng(realtimeUpdate.getLatitude(), realtimeUpdate.getLongitude());
         mViewModel.customStopsOfTrip.observe(mLifecycleOwner, customizeStopDetails -> {
             //list of customised stops that contains expected arrival time
@@ -270,7 +310,7 @@ public class RealtimeTrackerFragment extends Fragment {
                 //getting bus stop which is near by realtime bus.
                 CustomizeStopDetail nearestStop = null;
                 CustomizeStopDetail scheduledStop = null;
-                long currTime = System.currentTimeMillis();
+                long currTime = getSecondsSince12AM();
                 long minTime = Long.MAX_VALUE;
                 double nearestDistance = Double.MAX_VALUE;
                 final GeoLocationHelper busLocationGlh = GeoLocationHelper.fromDegrees(currBusLocation.latitude, currBusLocation.longitude);
@@ -284,23 +324,93 @@ public class RealtimeTrackerFragment extends Fragment {
                         nearestStop = customizeStopDetail;
                     }
                     long diff = currTime - customizeStopDetail.getArrivalTime();
-                    if (diff < minTime) {
+                    if (Math.abs(diff) < minTime) {
                         minTime = diff;
                         scheduledStop = customizeStopDetail;
                     }
                 }
-                if (nearestStop != null) {
-                    Log.e(TAG, "setStopsData: nearestStop = " + nearestStop.getName() + nearestStop.getArrivalTime());
+                if (scheduledStop != null) {
+                    Log.e(TAG, "setStopsData: scheduledStop: " + scheduledStop.getName() + scheduledStop.getArrivalTime());
                 }
-                Log.e(TAG, "setStopsData: scheduledStop: " + scheduledStop.getName() + scheduledStop.getArrivalTime());
                 //calculate estimate arrival time using realtime data of bus
                 //time = distance/speed
                 if (realtimeUpdate.getSpeed() != 0) {
                     double estimatedTime = (nearestDistance / realtimeUpdate.getSpeed()) * 60 * 60;
-                    Log.e(TAG, "setStopsData: eastinated time " + estimatedTime + " distance: " + nearestDistance);
+                    Log.e(TAG, "setStopsData: estimated time " + estimatedTime + " distance: " + nearestDistance);
                 }
                 //Now waiting to test this code/
+
+                if (nearestStop != null) {
+                    renderNextStopCard(nearestStop);
+                } else Log.e(TAG, "Nearest stop to the current bus location could not be found.");
+
+                if (scheduledStop != null && !nearestStop.equals(scheduledStop)) {
+                    renderScheduledStopCard(scheduledStop, nearestStop, customizeStopDetails);
+                }
             }
         });
+    }
+
+    private void renderNextStopCard(CustomizeStopDetail nextStop) {
+        bottomSheet.setVisibility(View.VISIBLE);
+        nextStopLinearLayout.setVisibility(View.VISIBLE);
+        nextStopNameTextView.setText(nextStop.getName());
+        TimeConverter arrivalTimeConverter = new TimeConverter((long) nextStop.getArrivalTime());
+        nextStopTimeNumeral.setText(arrivalTimeConverter.justHrAndMin);
+        nextStopTimeUnit.setText(arrivalTimeConverter.state);
+        long timeDelta = nextStop.getArrivalTime() - getSecondsSince12AM();
+        String nextStopStatusString;
+        if (Math.abs(timeDelta) > 300) {
+            if (timeDelta > 0) {
+                nextStopStatusString = "Arriving " + secondsToTimeString(Math.abs(timeDelta)) + " earlier than scheduled";
+            } else {
+                nextStopStatusString = "Running late by " + secondsToTimeString(Math.abs(timeDelta));
+            }
+        } else nextStopStatusString = "The bus is running on time";
+        nextStopStatusTextView.setText(nextStopStatusString);
+    }
+
+    private void renderScheduledStopCard(CustomizeStopDetail scheduledStop, CustomizeStopDetail actualCurrentStop, List<CustomizeStopDetail> stopDetails) {
+        bottomSheet.setVisibility(View.VISIBLE);
+        scheduledStopLinearLayout.setVisibility(View.VISIBLE);
+        scheduledStopNameTextView.setText(scheduledStop.getName());
+
+        int scheduledStopIndex = stopDetails.indexOf(scheduledStop);
+        int actualCurrStopIndex = stopDetails.indexOf(actualCurrentStop);
+
+        int earlierStopListIndex = Math.min(actualCurrStopIndex, scheduledStopIndex);
+        int laterStopListIndex = Math.max(actualCurrStopIndex, scheduledStopIndex);
+
+        int travelTime = 0;
+        int prevArrivalTime = stopDetails.get(earlierStopListIndex).getArrivalTime();
+
+        for (int i = earlierStopListIndex + 1; i <= laterStopListIndex; i++) {
+            int currArrivalTime = stopDetails.get(i).getArrivalTime();
+            travelTime += currArrivalTime - prevArrivalTime;
+            prevArrivalTime = currArrivalTime;
+        }
+
+        if (actualCurrStopIndex > scheduledStopIndex) travelTime = Math.abs(travelTime) * (-1);
+
+        int calibratedArrivalTime = scheduledStop.getArrivalTime() + travelTime;
+        int calibratedArrivalTimeSecondsSince12AM = (int) getSecondsSince12AM() - calibratedArrivalTime;
+
+        TimeConverter calibratedArrivalTimeConverter = new TimeConverter((long) calibratedArrivalTime);
+        scheduledStopTimeNumeral.setText(calibratedArrivalTimeConverter.justHrAndMin);
+        scheduledStopTimeUnit.setText(calibratedArrivalTimeConverter.state);
+
+        TimeConverter arrivalTimeConverter = new TimeConverter((long) scheduledStop.getArrivalTime());
+        String busStatusString = busStatusByArrivalTimeDeltaString(calibratedArrivalTimeSecondsSince12AM);
+        busStatusString += "\nScheduled arrival time: " + arrivalTimeConverter.justHrAndMinWithState;
+        scheduledStopStatusTextView.setText(busStatusString);
+    }
+
+    @NotNull
+    private String busStatusByArrivalTimeDeltaString(int timeDelta) {
+        String result;
+        if (timeDelta > 0) {
+            result = "The bus arrived " + secondsToTimeString(Math.abs(timeDelta)) + " early";
+        } else result = "The bus is running " + secondsToTimeString(Math.abs(timeDelta)) + " late";
+        return result;
     }
 }
