@@ -1,9 +1,9 @@
-# DTC Bus Tracker Android Client ![Android CI](https://github.com/delhitransit/delhitransit-android/workflows/Android%20CI/badge.svg)
+# Delhi Transit Android Client ![Android CI](https://github.com/delhitransit/delhitransit-android/workflows/Android%20CI/badge.svg)
 
 The Android Client for the major project developed by Abhishek Jain, Ankit Varshney and Tanmay Singal.
 
 ## Introduction
-DTC Bus Tracker is a server and client app that displays information like distance, routes, stops,
+Delhi Transit is a server and client app that displays information like distance, routes, stops,
 timings etc related to DTC Buses in a user friendly UI based on Android which is backboned by
 our servers based on Java SpringBoot and database management by PostgreSQL.
 
