@@ -1,6 +1,6 @@
 # Delhi Transit Android Client ![Android CI](https://github.com/delhitransit/delhitransit-android/workflows/Android%20CI/badge.svg)
 
-The Android Client for the major project developed by Abhishek Jain, Ankit Varshney and Tanmay Singal.
+The Android Client for the major project developed by Tanmay Singal, Abhishek Jain, and Ankit Varshney. See the [delhitransit/delhitransit](https://github.com/delhitransit/delhitransit/tree/master) repository for the Spring server's source code.
 
 ## Introduction
 Delhi Transit is a server and client app that displays information like distance, routes, stops,
